@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    tags: ["v*"]        # a tag like v0.1.0 builds and publishes a Release
+  workflow_dispatch: {} # or run it manually from the Actions tab
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish self-contained single-file exe
+        run: dotnet publish src/Fanfara.csproj -c Release -o publish
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fanfara
+          path: publish/Fanfara.exe
+
+      - name: Attach exe to the Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: publish/Fanfara.exe
