@@ -1,0 +1,7 @@
+{
+  "Style": "arcade",
+  "Sound": "classic",
+  "Position": "bottom-center",
+  "DurationMs": 4200,
+  "PollMs": 1000
+}

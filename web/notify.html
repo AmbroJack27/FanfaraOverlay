@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fanfara — runtime</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;600;700;800&family=Archivo:wght@400;500;600;700&family=Press+Start+2P&family=Share+Tech+Mono&display=swap">
+<style>
+  /* Runtime overlay: transparent full-screen surface; the C# host calls window.fanfara.show(...)
+     to display one notification. This reuses the visual system designed in the Fanfara prototype.
+     NOTE (v0): a representative set of styles is included; the remaining prototype styles paste in here 1:1. */
+  :root{
+    --panel:#161c2b; --panel-2:#1d2437; --fg:#E8EBF3; --muted:#8b93a7; --line:rgba(255,255,255,.09);
+    --common:#8A93A6; --uncommon:#4ac46a; --rare:#4C8DFF; --epic:#B078FF; --legendary:#F5C242;
+    --display:'Oxanium', ui-sans-serif, system-ui, sans-serif;
+    --body:'Archivo', ui-sans-serif, system-ui, sans-serif;
+  }
+  html,body{height:100%}
+  body{margin:0; background:transparent; color:var(--fg); font-family:var(--body); overflow:hidden}
+  /* The user chooses WHERE the notification appears (config.json "Position"). */
+  #zone{position:fixed; z-index:5; display:flex; width:min(430px,calc(100% - 32px))}
+  #zone.pos-bottom-center{left:50%; transform:translateX(-50%); bottom:clamp(60px,12vh,140px); justify-content:center}
+  #zone.pos-top-center{left:50%; transform:translateX(-50%); top:clamp(40px,8vh,110px); justify-content:center}
+  #zone.pos-center{left:50%; top:50%; transform:translate(-50%,-50%); justify-content:center}
+  #zone.pos-top-right{right:28px; top:clamp(32px,7vh,90px); justify-content:flex-end}
+  #zone.pos-bottom-right{right:28px; bottom:clamp(32px,7vh,90px); justify-content:flex-end}
+  #zone.pos-top-left{left:28px; top:clamp(32px,7vh,90px); justify-content:flex-start}
+  #zone.pos-bottom-left{left:28px; bottom:clamp(32px,7vh,90px); justify-content:flex-start}
+
+  .tier-common{--tier:var(--common)} .tier-uncommon{--tier:var(--uncommon)}
+  .tier-rare{--tier:var(--rare)} .tier-epic{--tier:var(--epic)} .tier-legendary{--tier:var(--legendary)}
+
+  /* --- ARCADE --- */
+  .arc{position:relative; width:100%; text-align:center; padding:14px 18px; border-radius:14px; overflow:hidden;
+    background:linear-gradient(150deg, rgba(29,36,55,.94), rgba(13,17,26,.97)); border:1px solid var(--line);
+    box-shadow:0 20px 50px -18px rgba(0,0,0,.78)}
+  .arc.tier-rare{border-color:color-mix(in srgb,var(--tier) 40%, transparent); box-shadow:0 20px 50px -18px rgba(0,0,0,.78), 0 0 24px -8px var(--tier)}
+  .arc.tier-epic{border-color:color-mix(in srgb,var(--tier) 50%, transparent); box-shadow:0 20px 50px -18px rgba(0,0,0,.78), 0 0 32px -8px var(--tier)}
+  .arc.tier-legendary{border-color:color-mix(in srgb,var(--tier) 62%, transparent); box-shadow:0 22px 54px -18px rgba(0,0,0,.82), 0 0 44px -6px var(--tier)}
+  .arc .a-bar{height:2px; width:58%; margin:0 auto 9px; background:linear-gradient(90deg,transparent,var(--tier),transparent); box-shadow:0 0 16px var(--tier)}
+  .arc .a-bar.b2{margin:9px auto 0}
+  .arc .a-label{font:700 13px var(--display); letter-spacing:.42em; text-transform:uppercase; color:var(--tier); margin-left:.42em}
+  .arc .a-name{font:800 clamp(20px,4.4vw,29px) var(--display); line-height:1.05; margin:7px 0 9px; text-transform:uppercase;
+    text-shadow:0 0 26px color-mix(in srgb,var(--tier) 55%, transparent)}
+  .arc .a-rar{font:700 11.5px var(--display); letter-spacing:.15em; text-transform:uppercase; color:var(--muted)}
+  .arc .a-rar b{color:var(--tier)}
+  .arc.enter{animation:arcin .6s cubic-bezier(.15,.8,.2,1.05) both}
+  @keyframes arcin{from{opacity:0; transform:scale(.85)} to{opacity:1; transform:scale(1)}}
+  .arc.leave{animation:fadeout .4s ease-in forwards}
+
+  /* --- NEON --- */
+  .ne{width:100%; display:flex; justify-content:center}
+  .ne-card{position:relative; overflow:hidden; padding:20px 26px; text-align:center; border-radius:4px; width:100%;
+    background:linear-gradient(180deg,#150e28,#0a0716); border:2px solid var(--tier);
+    box-shadow:0 0 18px var(--tier), inset 0 0 18px color-mix(in srgb,var(--tier) 30%, transparent)}
+  .ne-grid{position:absolute; left:-20%; right:-20%; bottom:-12px; height:52%; opacity:.5; pointer-events:none;
+    background:repeating-linear-gradient(90deg, color-mix(in srgb,var(--tier) 45%, transparent) 0 1px, transparent 1px 22px),
+      repeating-linear-gradient(0deg, color-mix(in srgb,var(--tier) 45%, transparent) 0 1px, transparent 1px 16px);
+    transform:perspective(200px) rotateX(62deg); transform-origin:bottom}
+  .ne-name{position:relative; font:800 19px var(--display); text-transform:uppercase; color:#fff; margin-top:6px; text-shadow:0 0 8px var(--tier), 0 0 18px var(--tier)}
+  .ne-rar{position:relative; font:700 11px var(--display); letter-spacing:.14em; text-transform:uppercase; color:var(--tier); text-shadow:0 0 8px var(--tier)}
+  .ne.enter{animation:nein .5s ease-out both}
+  @keyframes nein{0%{opacity:0; transform:translateY(16px) scale(.96); filter:brightness(2.2)} 100%{opacity:1; transform:none; filter:brightness(1)}}
+  .ne.leave{animation:fadeout .4s ease-in forwards}
+
+  /* --- LOOT --- */
+  .lt{position:relative; width:100%; display:flex; justify-content:center}
+  .lt-beam{position:absolute; top:-150px; left:50%; width:120px; height:210px; transform:translateX(-50%); pointer-events:none; opacity:.8;
+    background:linear-gradient(to top, color-mix(in srgb,var(--tier) 55%, transparent), transparent); filter:blur(7px)}
+  .lt-card{position:relative; display:flex; align-items:center; gap:13px; padding:12px 16px; border-radius:8px;
+    background:linear-gradient(180deg, color-mix(in srgb,var(--tier) 18%, #12121a), #0a0a12);
+    border:1px solid var(--tier); box-shadow:0 14px 34px -14px rgba(0,0,0,.75), 0 0 26px -8px var(--tier)}
+  .lt-emblem{flex:0 0 auto; width:42px;height:42px;border-radius:7px;display:grid;place-items:center;color:var(--tier);
+    background:color-mix(in srgb,var(--tier) 20%, #0a0a12); border:1px solid color-mix(in srgb,var(--tier) 45%, transparent)}
+  .lt-info{min-width:0; text-align:left}
+  .lt-kicker{font:700 9px var(--display); letter-spacing:.22em; text-transform:uppercase; color:var(--muted)}
+  .lt-name{font:800 17px var(--display); text-transform:uppercase; color:#fff; line-height:1.1; margin:1px 0 2px; text-shadow:0 0 14px color-mix(in srgb,var(--tier) 55%, transparent)}
+  .lt-rar{font:700 11px var(--display); letter-spacing:.06em; text-transform:uppercase; color:var(--tier)}
+  .lt.enter{animation:ltin .5s cubic-bezier(.2,.8,.25,1.05) both}
+  @keyframes ltin{0%{opacity:0; transform:translateY(22px) scale(.94)} 100%{opacity:1; transform:none}}
+  .lt.leave{animation:fadeout .4s ease-in forwards}
+
+  /* --- TERMINALE --- */
+  .tm{width:100%}
+  .tm-panel{background:rgba(6,10,8,.92); border:1px solid var(--tier); border-left:3px solid var(--tier); padding:11px 14px;
+    font-family:'Share Tech Mono', ui-monospace, monospace; box-shadow:0 10px 30px -12px rgba(0,0,0,.8), 0 0 20px -8px var(--tier)}
+  .tm-head{font-size:10px; letter-spacing:.2em; color:var(--tier); margin-bottom:7px; opacity:.85}
+  .tm-line{font-size:14px; color:#d4f0e0; line-height:1.5} .tm-name{color:var(--tier); font-weight:700}
+  .tm-dim{color:var(--muted); font-size:12px; margin-top:2px} .tm-dim b{color:var(--tier)}
+  .tm-cur{color:var(--tier); animation:tmblink 1s steps(1) infinite} @keyframes tmblink{50%{opacity:0}}
+  .tm.enter{animation:tmin .32s steps(7,end) both} @keyframes tmin{0%{opacity:0; clip-path:inset(0 100% 0 0)} 100%{opacity:1; clip-path:inset(0 0 0 0)}}
+  .tm.leave{animation:fadeout .3s ease-in forwards}
+
+  @keyframes fadeout{to{opacity:0; transform:translateY(14px)}}
+
+  .sparks{position:absolute; inset:0; pointer-events:none; overflow:visible}
+  .spark{position:absolute; bottom:30%; width:7px; height:7px; border-radius:50%; background:var(--tier);
+    box-shadow:0 0 8px var(--tier); opacity:0; animation:spark var(--d,1s) ease-out forwards}
+  @keyframes spark{0%{opacity:0; transform:translateY(8px) scale(.4)} 18%{opacity:1} 100%{opacity:0; transform:translateY(-48px) scale(1)}}
+</style>
+</head>
+<body>
+<div id="zone" class="pos-bottom-center"></div>
+<script>
+  const GLYPH='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+
+    '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/>'+
+    '<path d="M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22"/><path d="M14 14.7V17c0 .6.5 1 1 1.2 1.1.6 2 2 2 3.8"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>';
+
+  const zone=document.getElementById("zone");
+  let current=null, timer=null, seqTok=0;
+
+  // ---- rarity from global unlock percentage ----
+  function tierFromPercent(p){                    // p = 0..100
+    if(p<1) return {id:"legendary", label:"Leggendario", fx:5};
+    if(p<5) return {id:"epic", label:"Epico", fx:4};
+    if(p<10) return {id:"rare", label:"Raro", fx:3};
+    if(p<40) return {id:"uncommon", label:"Non comune", fx:2};
+    return {id:"common", label:"Comune", fx:1};
+  }
+
+  function builders(style, t){
+    const pct = t.pct + "%";
+    if(style==="neon") return '<div class="ne tier-'+t.id+'"><div class="ne-card"><div class="ne-grid"></div>'+
+      '<div class="ne-name">'+t.name+'</div><div class="ne-rar">'+t.label+' · '+pct+'</div></div></div>';
+    if(style==="loot") return '<div class="lt tier-'+t.id+'"><div class="lt-beam"></div><div class="lt-card">'+
+      '<div class="lt-emblem">'+GLYPH+'</div><div class="lt-info"><div class="lt-kicker">Oggetto ottenuto</div>'+
+      '<div class="lt-name">'+t.name+'</div><div class="lt-rar"><b>'+t.label+'</b> · '+pct+'</div></div></div><div class="sparks"></div></div>';
+    if(style==="terminale") return '<div class="tm tier-'+t.id+'"><div class="tm-panel"><div class="tm-head">▚ ACHIEVEMENT.SYS</div>'+
+      '<div class="tm-line">&gt; unlock: <span class="tm-name">'+t.name+'</span><span class="tm-cur">_</span></div>'+
+      '<div class="tm-line tm-dim">&gt; rarity: <b>'+t.label+'</b> // '+pct+'</div></div></div>';
+    // default arcade
+    return '<div class="arc tier-'+t.id+'"><div class="a-bar"></div><div class="a-label">Obiettivo sbloccato</div>'+
+      '<div class="a-name">'+t.name+'</div><div class="a-rar"><b>'+t.label+'</b> · '+pct+' dei giocatori</div>'+
+      '<div class="a-bar b2"></div><div class="sparks"></div></div>';
+  }
+  function rootClass(style){ return style==="neon"?"ne":style==="loot"?"lt":style==="terminale"?"tm":"arc"; }
+
+  function clearCurrent(){ if(timer){clearTimeout(timer); timer=null;} if(current){current.remove(); current=null;} }
+
+  function spawnSparks(el,n){
+    const w=el.querySelector(".sparks"); if(!w) return;
+    for(let i=0;i<n;i++){ const s=document.createElement("span"); s.className="spark";
+      s.style.left=(8+Math.random()*84)+"%"; s.style.setProperty("--d",(0.8+Math.random()*0.8).toFixed(2)+"s");
+      s.style.animationDelay=(Math.random()*0.35).toFixed(2)+"s"; const z=(4+Math.random()*6).toFixed(0);
+      s.style.width=z+"px"; s.style.height=z+"px"; w.appendChild(s); }
+  }
+
+  // ---- the API the C# host calls ----
+  const DEFAULT = { style:"arcade", sound:"classic", durationMs:4200, position:"bottom-center" };
+  function show(opts){
+    const o = Object.assign({}, DEFAULT, opts||{});
+    const t = o.tier || tierFromPercent(o.percent==null?55:o.percent);
+    t.name = o.name || "Obiettivo";
+    t.pct  = (o.percent==null?"" : Number(o.percent).toFixed(1));
+    clearCurrent();
+    zone.className = "pos-" + (o.position || "bottom-center");
+    const wrap=document.createElement("div");
+    wrap.innerHTML = builders(o.style, t);
+    const el = wrap.firstElementChild;
+    zone.appendChild(el); current=el;
+    void el.offsetWidth;
+    el.classList.add("enter");
+    if(t.fx>=4) spawnSparks(el, t.fx===5?18:11);
+    playSound(o.sound, t);
+    const mine=++seqTok;
+    timer=setTimeout(()=>{ if(seqTok===mine) dismiss(el); }, o.durationMs);
+  }
+  function dismiss(el){ if(!el) return; el.classList.add("leave"); setTimeout(()=>{ if(el===current){el.remove(); current=null;} }, 460); }
+
+  // ---- sound (synth; replace with samples later) ----
+  let actx=null;
+  function ctx(){ if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+  function note(c,t0,f,dur,{type="sine",gain=0.16,glide=null}={}){
+    const o=c.createOscillator(), g=c.createGain(); o.type=type; o.frequency.setValueAtTime(f,t0);
+    if(glide) o.frequency.exponentialRampToValueAtTime(glide,t0+dur);
+    g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(gain,t0+0.012); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    o.connect(g).connect(c.destination); o.start(t0); o.stop(t0+dur+0.03);
+  }
+  const SEQ={ common:[[660,.12]], uncommon:[[523,.12],[659,.16]], rare:[[523,.11],[659,.11],[784,.2]],
+    epic:[[392,.1],[523,.1],[659,.1],[880,.26]], legendary:[[523,.1],[659,.1],[784,.1],[1046,.12],[1319,.34]] };
+  function playSound(kind, t){
+    const c=ctx(); if(c.state==="suspended") c.resume(); const n=c.currentTime+0.02;
+    if(kind==="epico"){
+      note(c,n,55,1.0,{type:"sine",gain:0.10}); note(c,n,110,0.9,{type:"sawtooth",gain:0.06,glide:165});
+      [261.6,329.6,392,523.3].forEach((f,i)=> note(c,n+0.02*i,f,0.8,{type:"sawtooth",gain:0.05}));
+      if(t.fx>=4) note(c,n+0.35,392,0.5,{type:"sawtooth",gain:0.06,glide:784}); return;
+    }
+    if(kind==="levelup"){
+      const s=[523.3,659.3,784,1046.5,1318.5]; const k=Math.min(s.length,2+t.fx); let t0=n;
+      for(let i=0;i<k;i++){ note(c,t0,s[i],0.12,{type:"square",gain:0.09}); t0+=0.09; }
+      note(c,t0,s[k-1],0.42,{type:"triangle",gain:0.10}); return;
+    }
+    // classic
+    let t0=n; SEQ[t.id].forEach(([f,d])=>{ note(c,t0,f,d,{type:"triangle",gain:0.16}); t0+=d*0.72; });
+    if(t.fx>=4){ note(c,n+0.05,1568,0.5,{type:"sine",gain:0.06}); if(t.fx===5){ note(c,n+0.12,2093,0.6,{type:"sine",gain:0.05}); note(c,n,130.8,0.7,{type:"sine",gain:0.10,glide:196}); } }
+  }
+
+  // expose to the C# host
+  window.fanfara = { show, tierFromPercent };
+
+  // demo mode: if opened directly in a browser (no host), cycle a few
+  if(!window.chrome || !window.chrome.webview){
+    const demo=[{name:"Primi passi",percent:62.4,style:"arcade",sound:"classic"},
+      {name:"Senza un graffio",percent:7.1,style:"loot",sound:"levelup"},
+      {name:"Il Completista",percent:0.6,style:"neon",sound:"epico"},
+      {name:"A tutta velocità",percent:2.9,style:"terminale",sound:"classic"}];
+    let i=0; const run=()=>{ show(demo[i%demo.length]); i++; }; setTimeout(run,600); setInterval(run,5200);
+  }
+</script>
+</body>
+</html>

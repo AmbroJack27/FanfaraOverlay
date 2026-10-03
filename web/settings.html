@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fanfara — Impostazioni</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#0b0f18; --panel:#161c2b; --panel-2:#1d2437; --fg:#E8EBF3; --muted:#8b93a7;
+    --line:rgba(255,255,255,.1); --accent:#F5C242;
+    --display:'Oxanium',system-ui,sans-serif; --body:'Archivo',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--fg); font-family:var(--body);
+    padding:24px 22px; display:flex; flex-direction:column; gap:18px}
+  h1{font-family:var(--display); font-weight:800; font-size:22px; margin:0}
+  h1 small{display:block; font-family:var(--body); font-weight:500; font-size:12px; color:var(--muted); margin-top:3px}
+  .field{display:flex; flex-direction:column; gap:6px}
+  label{font:700 11px var(--display); letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+  select,input{background:var(--panel-2); color:var(--fg); border:1px solid var(--line); border-radius:10px;
+    padding:11px 12px; font:600 15px var(--body); cursor:pointer}
+  select:focus,input:focus{outline:none; border-color:color-mix(in srgb,var(--accent) 60%, var(--line))}
+  .row{display:flex; gap:12px; margin-top:6px}
+  button{flex:1; cursor:pointer; border:1px solid var(--line); border-radius:11px; padding:13px;
+    font:700 14px var(--display); letter-spacing:.04em; transition:background .15s, border-color .15s}
+  .test{background:var(--panel-2); color:var(--fg)}
+  .test:hover{background:var(--panel); border-color:color-mix(in srgb,#fff 22%, var(--line))}
+  .save{background:var(--accent); color:#1a1205; border-color:var(--accent)}
+  .save:hover{filter:brightness(1.07)}
+  .saved{min-height:16px; font:600 12px var(--body); color:#4ac46a; text-align:center; opacity:0; transition:opacity .2s}
+  .saved.on{opacity:1}
+  .note{font-size:11px; color:var(--muted); line-height:1.5}
+</style>
+</head>
+<body>
+  <h1>Fanfara<small>Scegli come appare lo sblocco degli obiettivi</small></h1>
+
+  <div class="field">
+    <label>Stile</label>
+    <select id="style">
+      <option value="arcade">Arcade</option>
+      <option value="neon">Neon</option>
+      <option value="loot">Loot</option>
+      <option value="terminale">Terminale</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Suono</label>
+    <select id="sound">
+      <option value="classic">Classico</option>
+      <option value="epico">Epico</option>
+      <option value="levelup">Level Up</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Posizione sullo schermo</label>
+    <select id="position">
+      <option value="bottom-center">In basso al centro</option>
+      <option value="top-center">In alto al centro</option>
+      <option value="center">Al centro</option>
+      <option value="top-right">In alto a destra</option>
+      <option value="bottom-right">In basso a destra</option>
+      <option value="top-left">In alto a sinistra</option>
+      <option value="bottom-left">In basso a sinistra</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Durata (secondi)</label>
+    <input id="duration" type="number" min="2" max="12" step="0.5" value="4.2">
+  </div>
+
+  <div class="row">
+    <button class="test" id="btnTest">Prova</button>
+    <button class="save" id="btnSave">Salva</button>
+  </div>
+  <div class="saved" id="saved">Impostazioni salvate ✓</div>
+
+  <p class="note">Premi <b>Prova</b> per vedere l'anteprima dello sblocco con le scelte attuali.
+  Con <b>Salva</b> le rendi effettive: da lì in poi ogni achievement comparirà così.</p>
+
+<script>
+  const $ = id => document.getElementById(id);
+  function send(obj){ try { window.chrome.webview.postMessage(JSON.stringify(obj)); } catch(e){} }
+  function values(){
+    return { style:$("style").value, sound:$("sound").value, position:$("position").value,
+             duration: Math.round(parseFloat($("duration").value || "4.2") * 1000) };
+  }
+
+  // called by the C# host to load current settings
+  window.initSettings = cfg => {
+    if(!cfg) return;
+    if(cfg.style) $("style").value = cfg.style;
+    if(cfg.sound) $("sound").value = cfg.sound;
+    if(cfg.position) $("position").value = cfg.position;
+    if(cfg.duration) $("duration").value = (cfg.duration/1000).toString();
+  };
+
+  $("btnTest").addEventListener("click", ()=> send(Object.assign({action:"test"}, values())));
+  $("btnSave").addEventListener("click", ()=>{
+    send(Object.assign({action:"save"}, values()));
+    const s=$("saved"); s.classList.add("on"); setTimeout(()=>s.classList.remove("on"), 1600);
+  });
+</script>
+</body>
+</html>
