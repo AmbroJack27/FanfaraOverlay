@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
@@ -8,40 +9,40 @@ using Steamworks;   // Facepunch.Steamworks
 namespace Fanfara;
 
 /// <summary>
-/// Watches Steam for the currently-running game and for freshly unlocked achievements,
-/// then raises <see cref="AchievementUnlocked"/> with the achievement's display name and
-/// its global unlock percentage (0..100), which the UI turns into a rarity tier.
-///
-/// Detection approach (no API key needed):
-///   1. Read the running game's AppID from HKCU\Software\Valve\Steam\RunningAppID.
-///   2. Initialise the Steamworks API *as that game* and read its achievements.
-///   3. Poll for state changes; anything newly unlocked fires the event.
-///
-/// The exact Facepunch.Steamworks member names can vary slightly by version — the spots that
-/// may need a small tweak on your machine are marked with TODO(steam).
+/// Watches Steam for the running game and for freshly unlocked achievements.
+/// This build writes a diagnostic log to  %USERPROFILE%\fanfara-log.txt  so we can see
+/// exactly what happens (running AppID, Steam init, achievement scan, new unlocks).
 /// </summary>
 public class SteamWatcher
 {
     public event Action<string, double>? AchievementUnlocked;
 
     private CancellationTokenSource? _cts;
-    private int _pollMs;
+    private readonly int _pollMs;
     private uint _currentApp;
+    private uint _failedApp;              // an app whose Init failed; don't hammer it every tick
+    private bool _primed;                 // baseline of already-unlocked achievements established?
+    private int _tick;
     private readonly HashSet<string> _known = new();
+
+    private static readonly string LogPath =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "fanfara-log.txt");
 
     public SteamWatcher(int pollMs = 1000) => _pollMs = pollMs;
 
+    private static void Log(string msg)
+    {
+        try { File.AppendAllText(LogPath, $"{DateTime.Now:HH:mm:ss}  {msg}{Environment.NewLine}"); } catch { }
+    }
+
     public void Start()
     {
+        try { File.WriteAllText(LogPath, $"{DateTime.Now:HH:mm:ss}  Fanfara watcher avviato{Environment.NewLine}"); } catch { }
         _cts = new CancellationTokenSource();
         Task.Run(() => Loop(_cts.Token));
     }
 
-    public void Stop()
-    {
-        _cts?.Cancel();
-        TryShutdown();
-    }
+    public void Stop() { _cts?.Cancel(); TryShutdown(); }
 
     private async Task Loop(CancellationToken ct)
     {
@@ -51,20 +52,29 @@ public class SteamWatcher
             {
                 uint app = ReadRunningAppId();
 
-                if (app == 0 && _currentApp != 0)
-                    Detach();
-                else if (app != 0 && app != _currentApp)
+                if (app == 0)
+                {
+                    if (_currentApp != 0) { Log($"gioco chiuso (era {_currentApp})"); Detach(); }
+                    _failedApp = 0;
+                }
+                else if (app != _currentApp && app != _failedApp)
+                {
+                    Log($"RunningAppID -> {app}");
                     Attach(app);
+                }
 
                 if (_currentApp != 0)
                 {
                     SteamClient.RunCallbacks();
                     ScanAchievements();
                 }
-            }
-            catch { /* keep the watcher alive; a game closing mid-poll is normal */ }
 
-            await Task.Delay(_pollMs, ct).ContinueWith(_ => { });
+                if (++_tick % 10 == 0)
+                    Log($"heartbeat: app={_currentApp} primed={_primed} known={_known.Count}");
+            }
+            catch (Exception ex) { Log($"errore loop: {ex.GetType().Name}: {ex.Message}"); }
+
+            try { await Task.Delay(_pollMs, ct); } catch { }
         }
     }
 
@@ -80,50 +90,57 @@ public class SteamWatcher
         Detach();
         try
         {
-            // Init the Steam API as the running game.
-            SteamClient.Init(app, asyncCallbacks: false);   // TODO(steam): signature may be Init(app)
+            SteamClient.Init(app, asyncCallbacks: false);
             _currentApp = app;
+            _failedApp = 0;
+            _primed = false;
             _known.Clear();
-
-            // Ask Steam for the current stats and the global rarity percentages.
-            SteamUserStats.RequestCurrentStats();                       // TODO(steam)
-            _ = SteamUserStats.RequestGlobalAchievementPercentages();   // TODO(steam): returns Task
-
-            // Snapshot already-unlocked achievements so we don't re-announce old ones.
-            foreach (var a in SteamUserStats.Achievements)              // TODO(steam): Achievements enumerable
-                if (a.State) _known.Add(a.Identifier);
+            try { SteamUserStats.RequestCurrentStats(); }
+            catch (Exception ex) { Log($"RequestCurrentStats: {ex.Message}"); }
+            Log($"agganciato a {app}, SteamClient.IsValid={SteamClient.IsValid}");
         }
-        catch
+        catch (Exception ex)
         {
             _currentApp = 0;
+            _failedApp = app;   // stop retrying this app every second
+            Log($"Init({app}) FALLITO: {ex.GetType().Name}: {ex.Message}");
         }
     }
 
-    private void Detach()
-    {
-        TryShutdown();
-        _currentApp = 0;
-        _known.Clear();
-    }
-
-    private void TryShutdown()
-    {
-        try { if (_currentApp != 0) SteamClient.Shutdown(); } catch { }
-    }
+    private void Detach() { TryShutdown(); _currentApp = 0; _primed = false; _known.Clear(); }
+    private void TryShutdown() { try { if (_currentApp != 0) SteamClient.Shutdown(); } catch { } }
 
     private void ScanAchievements()
     {
+        int total = 0, unlocked = 0;
+        var fresh = new List<(string id, string name, double pct)>();
+
         foreach (var a in SteamUserStats.Achievements)
         {
-            if (!a.State) continue;                 // not unlocked
+            total++;
+            if (!a.State) continue;         // not unlocked
+            unlocked++;
+
             if (_known.Contains(a.Identifier)) continue;
 
+            if (!_primed) { _known.Add(a.Identifier); continue; }  // baseline: record, don't announce
+
             _known.Add(a.Identifier);
+            string name = string.IsNullOrEmpty(a.Name) ? a.Identifier : a.Name;
+            double pct = a.GlobalUnlocked >= 0 ? a.GlobalUnlocked * 100.0 : 50.0;
+            fresh.Add((a.Identifier, name, pct));
+        }
 
-            string name = string.IsNullOrEmpty(a.Name) ? a.Identifier : a.Name;  // TODO(steam): display name
-            double percent = a.GlobalUnlocked >= 0 ? a.GlobalUnlocked * 100.0 : 50.0; // TODO(steam): 0..1
+        if (!_primed && total > 0)
+        {
+            _primed = true;
+            Log($"baseline: {total} achievement, {unlocked} già sbloccati");
+        }
 
-            AchievementUnlocked?.Invoke(name, percent);
+        foreach (var f in fresh)
+        {
+            Log($"SBLOCCO {f.id} nome='{f.name}' global={f.pct:0.0}%");
+            AchievementUnlocked?.Invoke(f.name, f.pct);
         }
     }
 }

@@ -6,30 +6,83 @@
 <title>Fanfara — runtime</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;600;700;800&family=Archivo:wght@400;500;600;700&family=Press+Start+2P&family=Share+Tech+Mono&display=swap">
 <style>
-  /* Runtime overlay: transparent full-screen surface; the C# host calls window.fanfara.show(...)
-     to display one notification. This reuses the visual system designed in the Fanfara prototype.
-     NOTE (v0): a representative set of styles is included; the remaining prototype styles paste in here 1:1. */
+  /* Transparent full-screen overlay. The C# host calls window.fanfara.show(...). All 15 styles
+     and the full sound library are ported from the Fanfara prototype. Position is user-chosen. */
   :root{
-    --panel:#161c2b; --panel-2:#1d2437; --fg:#E8EBF3; --muted:#8b93a7; --line:rgba(255,255,255,.09);
+    color-scheme: dark;
+    --panel:#161c2b; --panel-2:#1d2437;
+    --fg:#E8EBF3; --muted:#8b93a7; --faint:#5b6478; --line:rgba(255,255,255,.09);
     --common:#8A93A6; --uncommon:#4ac46a; --rare:#4C8DFF; --epic:#B078FF; --legendary:#F5C242;
     --display:'Oxanium', ui-sans-serif, system-ui, sans-serif;
     --body:'Archivo', ui-sans-serif, system-ui, sans-serif;
   }
   html,body{height:100%}
   body{margin:0; background:transparent; color:var(--fg); font-family:var(--body); overflow:hidden}
-  #zone{position:fixed; z-index:5; display:flex; left:50%; transform:translateX(-50%);
-    bottom:clamp(90px,20vh,180px); width:min(430px,calc(100% - 32px)); justify-content:center}
-  #zone.s-neon{top:50%; left:50%; transform:translate(-50%,-50%); bottom:auto; width:min(360px,calc(100% - 32px))}
-  #zone.s-terminale{top:60px; left:40px; right:auto; bottom:auto; transform:none; width:min(320px,60%); justify-content:flex-start}
-  #zone.s-scudo{bottom:auto; top:44px; perspective:1300px}
 
   .tier-common{--tier:var(--common)} .tier-uncommon{--tier:var(--uncommon)}
   .tier-rare{--tier:var(--rare)} .tier-epic{--tier:var(--epic)} .tier-legendary{--tier:var(--legendary)}
 
-  /* --- ARCADE --- */
+  /* ---------- notification zone: position chosen by the user ---------- */
+  #zone{position:fixed; z-index:5; display:flex; width:min(440px,calc(100% - 32px))}
+  #zone.pos-bottom-center{left:50%; transform:translateX(-50%); bottom:clamp(60px,12vh,140px); justify-content:center}
+  #zone.pos-top-center{left:50%; transform:translateX(-50%); top:clamp(40px,8vh,110px); justify-content:center}
+  #zone.pos-center{left:50%; top:50%; transform:translate(-50%,-50%); justify-content:center}
+  #zone.pos-top-right{right:28px; top:clamp(32px,7vh,90px); justify-content:flex-end}
+  #zone.pos-bottom-right{right:28px; bottom:clamp(32px,7vh,90px); justify-content:flex-end}
+  #zone.pos-top-left{left:28px; top:clamp(32px,7vh,90px); justify-content:flex-start}
+  #zone.pos-bottom-left{left:28px; bottom:clamp(32px,7vh,90px); justify-content:flex-start}
+
+  /* ===== STYLE 1 — CONSOLE ===== */
+  .plaque{position:relative; width:100%; display:flex; align-items:center; gap:14px;
+    padding:14px 18px 14px 15px; border-radius:15px; overflow:hidden;
+    background:linear-gradient(150deg, rgba(29,36,55,.94), rgba(15,19,29,.96));
+    border:1px solid var(--line); backdrop-filter:blur(8px); box-shadow:0 20px 50px -18px rgba(0,0,0,.75)}
+  .plaque .accent{position:absolute; left:0; top:12px; bottom:12px; width:3px; border-radius:0 3px 3px 0;
+    background:var(--tier); box-shadow:0 0 12px var(--tier)}
+  .plaque .icon{flex:0 0 auto; width:52px; height:52px; border-radius:13px; display:grid; place-items:center; color:#fff;
+    background:linear-gradient(150deg, color-mix(in srgb,var(--tier) 32%, var(--panel-2)), var(--panel-2));
+    border:1px solid color-mix(in srgb,var(--tier) 45%, transparent)}
+  .plaque .icon svg{width:26px;height:26px}
+  .plaque .txt{min-width:0; flex:1 1 auto}
+  .plaque .eyebrow{font:700 11px var(--display); letter-spacing:.2em; text-transform:uppercase; color:var(--muted)}
+  .plaque .name{font:700 20px var(--display); line-height:1.15; margin:2px 0 3px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .plaque .meta{font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums}
+  .plaque .meta .rarity{color:var(--tier); font-weight:700}
+  .plaque.tier-uncommon{border-color:color-mix(in srgb,var(--tier) 28%, transparent)}
+  .plaque.tier-rare{border-color:color-mix(in srgb,var(--tier) 40%, transparent); box-shadow:0 20px 50px -18px rgba(0,0,0,.75), 0 0 22px -8px var(--tier)}
+  .plaque.tier-epic{border-color:color-mix(in srgb,var(--tier) 50%, transparent); box-shadow:0 20px 50px -18px rgba(0,0,0,.75), 0 0 30px -8px var(--tier)}
+  .plaque.tier-legendary{border-color:color-mix(in srgb,var(--tier) 62%, transparent); box-shadow:0 22px 54px -18px rgba(0,0,0,.8), 0 0 40px -6px var(--tier)}
+  .plaque.enter{animation:rise .58s cubic-bezier(.18,.9,.24,1.08) both}
+  .plaque.enter .icon{animation:pop .6s .04s cubic-bezier(.2,.85,.28,1.4) both}
+  .plaque.enter .shine i{animation:sweep 1.05s .22s ease-out}
+  .plaque.leave{animation:fall .42s ease-in forwards}
+  @keyframes rise{from{opacity:0; transform:translateY(46px) scale(.955)} to{opacity:1; transform:translateY(0) scale(1)}}
+  @keyframes pop{from{opacity:0; transform:scale(.3)} to{opacity:1; transform:scale(1)}}
+  @keyframes fall{to{opacity:0; transform:translateY(26px) scale(.98)}}
+
+  /* ===== STYLE 2 — MINIMAL ===== */
+  .mini{position:relative; width:100%; display:flex; align-items:center; gap:10px; overflow:hidden;
+    padding:9px 13px; border-radius:11px; backdrop-filter:blur(8px);
+    background:linear-gradient(180deg, rgba(24,30,45,.92), rgba(15,19,29,.94));
+    border:1px solid var(--line); box-shadow:0 12px 30px -14px rgba(0,0,0,.7)}
+  .mini .m-accent{width:3px; align-self:stretch; border-radius:3px; background:var(--tier)}
+  .mini .m-ico{flex:0 0 auto; width:24px; height:24px; color:var(--tier); display:grid; place-items:center}
+  .mini .m-ico svg{width:19px; height:19px}
+  .mini .m-name{font:600 14px var(--body); flex:1 1 auto; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .mini .m-rar{font:600 11px var(--display); letter-spacing:.03em; color:var(--tier); white-space:nowrap}
+  .mini.tier-legendary,.mini.tier-epic{border-color:color-mix(in srgb,var(--tier) 34%, transparent)}
+  .mini.enter{animation:slidein .4s cubic-bezier(.2,.8,.2,1) both}
+  .mini.leave{animation:slideout .3s ease-in forwards}
+  @keyframes slidein{from{opacity:0; transform:translateX(24px)} to{opacity:1; transform:translateX(0)}}
+  @keyframes slideout{to{opacity:0; transform:translateX(24px)}}
+
+  /* ===== STYLE 3 — ARCADE ===== */
   .arc{position:relative; width:100%; text-align:center; padding:14px 18px; border-radius:14px; overflow:hidden;
-    background:linear-gradient(150deg, rgba(29,36,55,.94), rgba(13,17,26,.97)); border:1px solid var(--line);
-    box-shadow:0 20px 50px -18px rgba(0,0,0,.78)}
+    background:linear-gradient(150deg, rgba(29,36,55,.94), rgba(13,17,26,.97));
+    border:1px solid var(--line); backdrop-filter:blur(8px); box-shadow:0 20px 50px -18px rgba(0,0,0,.78)}
+  .arc > *{position:relative; z-index:1}
+  .arc.tier-uncommon{border-color:color-mix(in srgb,var(--tier) 28%, transparent)}
   .arc.tier-rare{border-color:color-mix(in srgb,var(--tier) 40%, transparent); box-shadow:0 20px 50px -18px rgba(0,0,0,.78), 0 0 24px -8px var(--tier)}
   .arc.tier-epic{border-color:color-mix(in srgb,var(--tier) 50%, transparent); box-shadow:0 20px 50px -18px rgba(0,0,0,.78), 0 0 32px -8px var(--tier)}
   .arc.tier-legendary{border-color:color-mix(in srgb,var(--tier) 62%, transparent); box-shadow:0 22px 54px -18px rgba(0,0,0,.82), 0 0 44px -6px var(--tier)}
@@ -41,10 +94,104 @@
   .arc .a-rar{font:700 11.5px var(--display); letter-spacing:.15em; text-transform:uppercase; color:var(--muted)}
   .arc .a-rar b{color:var(--tier)}
   .arc.enter{animation:arcin .6s cubic-bezier(.15,.8,.2,1.05) both}
+  .arc.enter .a-name{animation:arcname .6s .05s cubic-bezier(.2,.7,.2,1.3) both}
+  .arc.enter .a-bar{animation:arcbar .6s ease-out both}
+  .arc.leave{animation:arcout .4s ease-in forwards}
   @keyframes arcin{from{opacity:0; transform:scale(.85)} to{opacity:1; transform:scale(1)}}
-  .arc.leave{animation:fadeout .4s ease-in forwards}
+  @keyframes arcname{from{opacity:0; transform:translateY(10px) scale(.92); letter-spacing:.18em} to{opacity:1; transform:none; letter-spacing:normal}}
+  @keyframes arcbar{from{width:0; opacity:0} to{width:58%; opacity:1}}
+  @keyframes arcout{to{opacity:0; transform:scale(1.04)}}
+  .arc.flash::before{content:""; position:absolute; inset:0; z-index:0; border-radius:inherit; pointer-events:none;
+    background:radial-gradient(circle at 50% 50%, color-mix(in srgb,var(--tier) 40%, transparent), transparent 66%);
+    animation:flash 1s ease-out forwards}
 
-  /* --- NEON --- */
+  /* ===== STYLE 4 — ARCADE 3D ===== */
+  .a3{width:100%}
+  .a3-stage{position:relative; width:100%; transform-style:preserve-3d; animation:a3-float 7s ease-in-out infinite}
+  .a3-slab{position:relative; transform-style:preserve-3d; text-align:center; padding:20px 22px 18px; border-radius:16px;
+    background:linear-gradient(160deg,#26304a,#0e131e 74%);
+    border:1px solid color-mix(in srgb,var(--tier) 42%, rgba(255,255,255,.16));
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.85), 0 0 46px -12px var(--tier),
+      inset 0 1px 0 rgba(255,255,255,.16), inset 0 -3px 10px rgba(0,0,0,.55)}
+  .a3-slab::before{content:""; position:absolute; inset:0; border-radius:inherit; transform:translateZ(-18px);
+    background:linear-gradient(160deg,#141a29,#080b12); box-shadow:0 26px 42px -16px rgba(0,0,0,.8)}
+  .a3-slab::after{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; transform:translateZ(1px);
+    background:linear-gradient(125deg, rgba(255,255,255,.15), transparent 42%)}
+  .a3-glow{position:absolute; inset:0; border-radius:inherit; transform:translateZ(2px); pointer-events:none; opacity:.5;
+    background:radial-gradient(circle at 50% 42%, color-mix(in srgb,var(--tier) 32%, transparent), transparent 62%)}
+  .a3-ico{position:relative; transform:translateZ(48px); color:var(--tier); display:inline-grid; place-items:center; margin-bottom:2px}
+  .a3-ico svg{width:30px; height:30px; filter:drop-shadow(0 0 10px var(--tier))}
+  .a3-bar{height:2px; width:58%; margin:6px auto 10px; transform:translateZ(14px);
+    background:linear-gradient(90deg,transparent,var(--tier),transparent); box-shadow:0 0 16px var(--tier)}
+  .a3-label{transform:translateZ(22px); font:700 12px var(--display); letter-spacing:.4em; text-transform:uppercase; color:var(--tier); margin-left:.4em}
+  .a3-name{transform:translateZ(36px); font:800 clamp(21px,4.6vw,30px) var(--display); text-transform:uppercase; line-height:1.05; margin:8px 0 9px;
+    text-shadow:0 2px 0 rgba(0,0,0,.5), 0 0 26px color-mix(in srgb,var(--tier) 60%, transparent)}
+  .a3-rar{transform:translateZ(22px); font:700 11.5px var(--display); letter-spacing:.15em; text-transform:uppercase; color:var(--muted)}
+  .a3-rar b{color:var(--tier)}
+  .a3.tier-common .a3-glow{opacity:.28}
+  .a3.tier-legendary .a3-slab{box-shadow:0 30px 66px -20px rgba(0,0,0,.9), 0 0 62px -8px var(--tier),
+    inset 0 1px 0 rgba(255,255,255,.2), inset 0 -3px 10px rgba(0,0,0,.55)}
+  @keyframes a3-float{0%{transform:perspective(1200px) rotateY(-10deg) rotateX(5deg)} 50%{transform:perspective(1200px) rotateY(10deg) rotateX(-3deg)} 100%{transform:perspective(1200px) rotateY(-10deg) rotateX(5deg)}}
+  .a3.enter{animation:a3-in .7s cubic-bezier(.2,.8,.25,1.03) both}
+  @keyframes a3-in{0%{opacity:0; transform:translateY(30px) scale(.9)} 100%{opacity:1; transform:translateY(0) scale(1)}}
+  .a3.leave{animation:a3-out .45s ease-in forwards}
+  @keyframes a3-out{to{opacity:0; transform:translateY(20px) scale(.96)}}
+  .a3.flash .a3-glow{animation:a3-burst 1s ease-out}
+  @keyframes a3-burst{0%{opacity:.5} 25%{opacity:1} 100%{opacity:.5}}
+
+  /* ===== STYLE 5 — SCUDO 3D ===== */
+  .sh{width:min(186px, calc(100% - 32px))}
+  .sh-stage{position:relative; width:100%; transform-style:preserve-3d; animation:a3-float 7s ease-in-out infinite}
+  .sh-svg{display:block; width:100%; height:auto; color:var(--tier);
+    filter:drop-shadow(0 14px 16px rgba(0,0,0,.6)) drop-shadow(0 0 12px color-mix(in srgb,var(--tier) 55%, transparent))}
+  .sh-edge{fill:color-mix(in srgb,var(--tier) 42%, #05070c)}
+  .sh-rim{fill:none; stroke:currentColor; stroke-width:3; stroke-linejoin:miter; stroke-miterlimit:6;
+    filter:drop-shadow(0 0 3px color-mix(in srgb,var(--tier) 80%, transparent))}
+  .sh.tier-legendary .sh-svg{filter:drop-shadow(0 16px 18px rgba(0,0,0,.66)) drop-shadow(0 0 22px color-mix(in srgb,var(--tier) 78%, transparent))}
+  .sh-content{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    text-align:center; padding:17% 23% 0}
+  .sh-emblem{color:var(--tier); line-height:0}
+  .sh-emblem svg{width:21px; height:21px; filter:drop-shadow(0 0 8px var(--tier))}
+  .sh-divider{width:60%; height:2px; margin:5px auto 4px; background:linear-gradient(90deg,transparent,var(--tier),transparent); box-shadow:0 0 10px var(--tier)}
+  .sh-name{font:800 clamp(10.5px,2.9vw,13px) var(--display); text-transform:uppercase; line-height:1.04; margin:0 0 2px; text-wrap:balance;
+    text-shadow:0 1px 0 rgba(0,0,0,.6), 0 0 12px color-mix(in srgb,var(--tier) 55%, transparent)}
+  .sh-rar{font:700 7.5px var(--display); letter-spacing:.05em; text-transform:uppercase; color:var(--muted)}
+  .sh-rar b{color:var(--tier)}
+  .sh.enter{animation:a3-in .7s cubic-bezier(.2,.8,.25,1.03) both}
+  .sh.leave{animation:a3-out .45s ease-in forwards}
+  .sh.flash .sh-svg{animation:sh-burst .9s ease-out}
+  @keyframes sh-burst{0%{filter:drop-shadow(0 14px 16px rgba(0,0,0,.6)) drop-shadow(0 0 12px color-mix(in srgb,var(--tier) 55%, transparent))}
+    30%{filter:drop-shadow(0 14px 16px rgba(0,0,0,.6)) drop-shadow(0 0 28px color-mix(in srgb,var(--tier) 95%, transparent)) brightness(1.22)}
+    100%{filter:drop-shadow(0 14px 16px rgba(0,0,0,.6)) drop-shadow(0 0 12px color-mix(in srgb,var(--tier) 55%, transparent))}}
+
+  /* ===== STYLE 6 — NASTRO ===== */
+  .nb{width:100%; display:flex; justify-content:center}
+  .nb-ribbon{position:relative; display:flex; align-items:center; gap:13px; padding:12px 34px;
+    background:linear-gradient(180deg,#1c2336,#10141f); border-top:2px solid var(--tier); border-bottom:2px solid var(--tier);
+    clip-path:polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%);
+    box-shadow:0 14px 34px -14px rgba(0,0,0,.7), 0 0 24px -10px var(--tier)}
+  .nb-emblem{color:var(--tier); line-height:0} .nb-emblem svg{width:26px;height:26px;filter:drop-shadow(0 0 6px var(--tier))}
+  .nb-name{font:800 18px var(--display); text-transform:uppercase; line-height:1.1}
+  .nb-rar{font:700 10.5px var(--display); letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+  .nb-rar b{color:var(--tier)}
+  .nb.enter{animation:nb-in .5s cubic-bezier(.2,.8,.25,1.05) both}
+  @keyframes nb-in{0%{opacity:0; transform:scaleX(.15)} 60%{opacity:1} 100%{opacity:1; transform:scaleX(1)}}
+  .nb.leave{animation:nb-out .38s ease-in forwards}
+  @keyframes nb-out{to{opacity:0; transform:scaleX(.4)}}
+
+  /* ===== STYLE 7 — PIXEL ===== */
+  .px{width:100%; display:flex; justify-content:center}
+  .px-box{max-width:280px; background:#0b0f18; border:4px solid var(--tier); padding:16px 18px; text-align:center;
+    box-shadow:0 0 0 4px #05070c, 8px 8px 0 0 rgba(0,0,0,.5), 0 0 22px -6px var(--tier)}
+  .px-emblem{color:var(--tier); line-height:0} .px-emblem svg{width:26px;height:26px}
+  .px-name{font:400 11px 'Press Start 2P', monospace; color:#fff; line-height:1.55; margin:10px 0 8px; text-transform:uppercase; word-break:break-word}
+  .px-rar{font:400 8px 'Press Start 2P', monospace; color:var(--tier); line-height:1.6}
+  .px.enter{animation:px-in .4s steps(4,end) both}
+  @keyframes px-in{0%{opacity:0; transform:scale(.4)} 100%{opacity:1; transform:scale(1)}}
+  .px.leave{animation:px-out .2s steps(3,end) forwards}
+  @keyframes px-out{to{opacity:0; transform:scale(.6)}}
+
+  /* ===== STYLE 8 — NEON ===== */
   .ne{width:100%; display:flex; justify-content:center}
   .ne-card{position:relative; overflow:hidden; padding:20px 26px; text-align:center; border-radius:4px; width:100%;
     background:linear-gradient(180deg,#150e28,#0a0716); border:2px solid var(--tier);
@@ -53,13 +200,28 @@
     background:repeating-linear-gradient(90deg, color-mix(in srgb,var(--tier) 45%, transparent) 0 1px, transparent 1px 22px),
       repeating-linear-gradient(0deg, color-mix(in srgb,var(--tier) 45%, transparent) 0 1px, transparent 1px 16px);
     transform:perspective(200px) rotateX(62deg); transform-origin:bottom}
-  .ne-name{position:relative; font:800 19px var(--display); text-transform:uppercase; color:#fff; margin-top:6px; text-shadow:0 0 8px var(--tier), 0 0 18px var(--tier)}
+  .ne-emblem{position:relative; color:var(--tier); line-height:0} .ne-emblem svg{width:26px;height:26px; filter:drop-shadow(0 0 8px var(--tier))}
+  .ne-name{position:relative; font:800 19px var(--display); text-transform:uppercase; color:#fff; margin-top:6px;
+    text-shadow:0 0 8px var(--tier), 0 0 18px var(--tier)}
   .ne-rar{position:relative; font:700 11px var(--display); letter-spacing:.14em; text-transform:uppercase; color:var(--tier); text-shadow:0 0 8px var(--tier)}
-  .ne.enter{animation:nein .5s ease-out both}
-  @keyframes nein{0%{opacity:0; transform:translateY(16px) scale(.96); filter:brightness(2.2)} 100%{opacity:1; transform:none; filter:brightness(1)}}
-  .ne.leave{animation:fadeout .4s ease-in forwards}
+  .ne.enter{animation:ne-in .5s ease-out both}
+  @keyframes ne-in{0%{opacity:0; transform:translateY(16px) scale(.96); filter:brightness(2.2)} 100%{opacity:1; transform:none; filter:brightness(1)}}
+  .ne.leave{animation:a3-out .4s ease-in forwards}
 
-  /* --- LOOT --- */
+  /* ===== STYLE 9 — TERMINALE ===== */
+  .tm{width:100%}
+  .tm-panel{background:rgba(6,10,8,.92); border:1px solid var(--tier); border-left:3px solid var(--tier); padding:11px 14px;
+    font-family:'Share Tech Mono', ui-monospace, monospace; box-shadow:0 10px 30px -12px rgba(0,0,0,.8), 0 0 20px -8px var(--tier)}
+  .tm-head{font-size:10px; letter-spacing:.2em; color:var(--tier); margin-bottom:7px; opacity:.85}
+  .tm-line{font-size:14px; color:#d4f0e0; line-height:1.5} .tm-name{color:var(--tier); font-weight:700}
+  .tm-dim{color:var(--muted); font-size:12px; margin-top:2px} .tm-dim b{color:var(--tier)}
+  .tm-cur{color:var(--tier); animation:tm-blink 1s steps(1) infinite}
+  @keyframes tm-blink{50%{opacity:0}}
+  .tm.enter{animation:tm-in .32s steps(7,end) both}
+  @keyframes tm-in{0%{opacity:0; clip-path:inset(0 100% 0 0)} 100%{opacity:1; clip-path:inset(0 0 0 0)}}
+  .tm.leave{animation:a3-out .3s ease-in forwards}
+
+  /* ===== STYLE 10 — LOOT ===== */
   .lt{position:relative; width:100%; display:flex; justify-content:center}
   .lt-beam{position:absolute; top:-150px; left:50%; width:120px; height:210px; transform:translateX(-50%); pointer-events:none; opacity:.8;
     background:linear-gradient(to top, color-mix(in srgb,var(--tier) 55%, transparent), transparent); filter:blur(7px)}
@@ -68,45 +230,63 @@
     border:1px solid var(--tier); box-shadow:0 14px 34px -14px rgba(0,0,0,.75), 0 0 26px -8px var(--tier)}
   .lt-emblem{flex:0 0 auto; width:42px;height:42px;border-radius:7px;display:grid;place-items:center;color:var(--tier);
     background:color-mix(in srgb,var(--tier) 20%, #0a0a12); border:1px solid color-mix(in srgb,var(--tier) 45%, transparent)}
+  .lt-emblem svg{width:24px;height:24px}
   .lt-info{min-width:0; text-align:left}
   .lt-kicker{font:700 9px var(--display); letter-spacing:.22em; text-transform:uppercase; color:var(--muted)}
-  .lt-name{font:800 17px var(--display); text-transform:uppercase; color:#fff; line-height:1.1; margin:1px 0 2px; text-shadow:0 0 14px color-mix(in srgb,var(--tier) 55%, transparent)}
+  .lt-name{font:800 17px var(--display); text-transform:uppercase; color:#fff; line-height:1.1; margin:1px 0 2px;
+    text-shadow:0 0 14px color-mix(in srgb,var(--tier) 55%, transparent)}
   .lt-rar{font:700 11px var(--display); letter-spacing:.06em; text-transform:uppercase; color:var(--tier)}
-  .lt.enter{animation:ltin .5s cubic-bezier(.2,.8,.25,1.05) both}
-  @keyframes ltin{0%{opacity:0; transform:translateY(22px) scale(.94)} 100%{opacity:1; transform:none}}
-  .lt.leave{animation:fadeout .4s ease-in forwards}
+  .lt.enter{animation:lt-in .5s cubic-bezier(.2,.8,.25,1.05) both}
+  @keyframes lt-in{0%{opacity:0; transform:translateY(22px) scale(.94)} 100%{opacity:1; transform:none}}
+  .lt.enter .lt-beam{animation:lt-beam .7s ease-out both}
+  @keyframes lt-beam{0%{opacity:0; transform:translateX(-50%) scaleY(.3)} 40%{opacity:.9} 100%{opacity:.5; transform:translateX(-50%) scaleY(1)}}
+  .lt.leave{animation:a3-out .4s ease-in forwards}
 
-  /* --- TERMINALE --- */
-  .tm{width:100%}
-  .tm-panel{background:rgba(6,10,8,.92); border:1px solid var(--tier); border-left:3px solid var(--tier); padding:11px 14px;
-    font-family:'Share Tech Mono', ui-monospace, monospace; box-shadow:0 10px 30px -12px rgba(0,0,0,.8), 0 0 20px -8px var(--tier)}
-  .tm-head{font-size:10px; letter-spacing:.2em; color:var(--tier); margin-bottom:7px; opacity:.85}
-  .tm-line{font-size:14px; color:#d4f0e0; line-height:1.5} .tm-name{color:var(--tier); font-weight:700}
-  .tm-dim{color:var(--muted); font-size:12px; margin-top:2px} .tm-dim b{color:var(--tier)}
-  .tm-cur{color:var(--tier); animation:tmblink 1s steps(1) infinite} @keyframes tmblink{50%{opacity:0}}
-  .tm.enter{animation:tmin .32s steps(7,end) both} @keyframes tmin{0%{opacity:0; clip-path:inset(0 100% 0 0)} 100%{opacity:1; clip-path:inset(0 0 0 0)}}
-  .tm.leave{animation:fadeout .3s ease-in forwards}
+  /* ===== 3D wrapper for the extra layouts ===== */
+  .l3{width:100%; display:flex; justify-content:center}
+  .l3-stage{position:relative; display:flex; justify-content:center; width:100%; transform-style:preserve-3d; animation:l3-float 7s ease-in-out infinite}
+  @keyframes l3-float{0%{transform:perspective(1000px) rotateY(-12deg) rotateX(6deg)} 50%{transform:perspective(1000px) rotateY(12deg) rotateX(-4deg)} 100%{transform:perspective(1000px) rotateY(-12deg) rotateX(6deg)}}
+  .l3.enter{animation:a3-in .7s cubic-bezier(.2,.8,.25,1.03) both}
+  .l3.leave{animation:a3-out .45s ease-in forwards}
 
-  @keyframes fadeout{to{opacity:0; transform:translateY(14px)}}
-
+  /* ===== shared: glyph, shine, sparkles, flash ===== */
+  svg.glyph{stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+  .plaque .icon svg.glyph{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--tier) 70%, transparent))}
+  .shine{position:absolute; inset:0; border-radius:inherit; overflow:hidden; pointer-events:none}
+  .shine i{position:absolute; top:0; left:-60%; width:38%; height:100%; transform:skewX(-18deg);
+    background:linear-gradient(100deg,transparent, rgba(255,255,255,.16), transparent)}
+  @keyframes sweep{from{left:-60%} to{left:135%}}
+  .flash::before{content:""; position:absolute; inset:-40px; z-index:-1; border-radius:40px;
+    background:radial-gradient(circle at 16% 55%, color-mix(in srgb,var(--tier) 55%, transparent), transparent 62%);
+    animation:flash .95s ease-out forwards}
+  @keyframes flash{0%{opacity:0; transform:scale(.6)} 30%{opacity:.85} 100%{opacity:0; transform:scale(1.15)}}
   .sparks{position:absolute; inset:0; pointer-events:none; overflow:visible}
   .spark{position:absolute; bottom:30%; width:7px; height:7px; border-radius:50%; background:var(--tier);
     box-shadow:0 0 8px var(--tier); opacity:0; animation:spark var(--d,1s) ease-out forwards}
   @keyframes spark{0%{opacity:0; transform:translateY(8px) scale(.4)} 18%{opacity:1} 100%{opacity:0; transform:translateY(-48px) scale(1)}}
+
+  @media (prefers-reduced-motion: reduce){
+    .enter,.enter *,.flash::before{animation:none !important}
+    .a3-stage,.sh-stage,.l3-stage{animation:none !important; transform:perspective(1000px) rotateY(-5deg) rotateX(3deg)}
+    .tm-cur{animation:none !important}
+    .spark{display:none}
+    .leave{animation:none !important; opacity:0}
+  }
 </style>
 </head>
 <body>
-<div id="zone" class="s-arcade"></div>
+<div id="zone" class="pos-bottom-center"></div>
 <script>
-  const GLYPH='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+
-    '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/>'+
-    '<path d="M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22"/><path d="M14 14.7V17c0 .6.5 1 1 1.2 1.1.6 2 2 2 3.8"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>';
+  const GLYPH = '<svg class="glyph" viewBox="0 0 24 24" aria-hidden="true">'+
+    '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>'+
+    '<path d="M4 22h16"/><path d="M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22"/>'+
+    '<path d="M14 14.7V17c0 .6.5 1 1 1.2 1.1.6 2 2 2 3.8"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>';
 
-  const zone=document.getElementById("zone");
-  let current=null, timer=null, seqTok=0;
+  const zone = document.getElementById("zone");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let style = "arcade", currentSound = "classic", current = null, timer = null, seqTok = 0;
 
-  // ---- rarity from global unlock percentage ----
-  function tierFromPercent(p){                    // p = 0..100
+  function tierFromPercent(p){
     if(p<1) return {id:"legendary", label:"Leggendario", fx:5};
     if(p<5) return {id:"epic", label:"Epico", fx:4};
     if(p<10) return {id:"rare", label:"Raro", fx:3};
@@ -114,93 +294,295 @@
     return {id:"common", label:"Comune", fx:1};
   }
 
-  function builders(style, t){
-    const pct = t.pct + "%";
-    if(style==="neon") return '<div class="ne tier-'+t.id+'"><div class="ne-card"><div class="ne-grid"></div>'+
-      '<div class="ne-name">'+t.name+'</div><div class="ne-rar">'+t.label+' · '+pct+'</div></div></div>';
-    if(style==="loot") return '<div class="lt tier-'+t.id+'"><div class="lt-beam"></div><div class="lt-card">'+
-      '<div class="lt-emblem">'+GLYPH+'</div><div class="lt-info"><div class="lt-kicker">Oggetto ottenuto</div>'+
-      '<div class="lt-name">'+t.name+'</div><div class="lt-rar"><b>'+t.label+'</b> · '+pct+'</div></div></div><div class="sparks"></div></div>';
-    if(style==="terminale") return '<div class="tm tier-'+t.id+'"><div class="tm-panel"><div class="tm-head">▚ ACHIEVEMENT.SYS</div>'+
-      '<div class="tm-line">&gt; unlock: <span class="tm-name">'+t.name+'</span><span class="tm-cur">_</span></div>'+
-      '<div class="tm-line tm-dim">&gt; rarity: <b>'+t.label+'</b> // '+pct+'</div></div></div>';
-    // default arcade
-    return '<div class="arc tier-'+t.id+'"><div class="a-bar"></div><div class="a-label">Obiettivo sbloccato</div>'+
-      '<div class="a-name">'+t.name+'</div><div class="a-rar"><b>'+t.label+'</b> · '+pct+' dei giocatori</div>'+
-      '<div class="a-bar b2"></div><div class="sparks"></div></div>';
+  function buildConsole(t){
+    const el = document.createElement("div"); el.className = "plaque tier-"+t.id;
+    el.innerHTML =
+      '<span class="accent"></span><div class="icon">'+GLYPH+'</div>'+
+      '<div class="txt"><div class="eyebrow">Obiettivo sbloccato</div>'+
+      '<div class="name">'+t.name+'</div>'+
+      '<div class="meta"><span class="rarity">'+t.label+'</span> · '+t.pct+' dei giocatori</div></div>'+
+      '<div class="shine"><i></i></div><div class="sparks"></div>';
+    return el;
   }
-  function rootClass(style){ return style==="neon"?"ne":style==="loot"?"lt":style==="terminale"?"tm":"arc"; }
+  function buildMinimal(t){
+    const el = document.createElement("div"); el.className = "mini tier-"+t.id;
+    el.innerHTML =
+      '<span class="m-accent"></span><span class="m-ico">'+GLYPH+'</span>'+
+      '<span class="m-name">'+t.name+'</span><span class="m-rar">'+t.label+'</span>';
+    return el;
+  }
+  function buildArcade(t){
+    const el = document.createElement("div"); el.className = "arc tier-"+t.id;
+    el.innerHTML =
+      '<div class="a-bar"></div><div class="a-label">Obiettivo sbloccato</div>'+
+      '<div class="a-name">'+t.name+'</div>'+
+      '<div class="a-rar"><b>'+t.label+'</b> · '+t.pct+' dei giocatori</div>'+
+      '<div class="a-bar b2"></div><div class="sparks"></div>';
+    return el;
+  }
+  function buildArcade3D(t){
+    const el = document.createElement("div"); el.className = "a3 tier-"+t.id;
+    el.innerHTML =
+      '<div class="a3-stage"><div class="a3-slab">'+
+        '<div class="a3-glow"></div><div class="a3-ico">'+GLYPH+'</div>'+
+        '<div class="a3-bar"></div><div class="a3-label">Obiettivo sbloccato</div>'+
+        '<div class="a3-name">'+t.name+'</div>'+
+        '<div class="a3-rar"><b>'+t.label+'</b> · '+t.pct+' dei giocatori</div>'+
+        '<div class="sparks"></div>'+
+      '</div></div>';
+    return el;
+  }
+  const SHIELD = {
+    common:    "M50 6 L82 18 L82 58 L50 112 L18 58 L18 18 Z",
+    uncommon:  "M30 6 L50 13 L70 6 L84 20 L82 60 L50 116 L18 60 L16 20 Z",
+    rare:      "M50 6 L74 14 L92 12 L80 28 L82 60 L50 114 L18 60 L20 28 L8 12 L26 14 Z",
+    epic:      "M50 3 L58 13 L72 7 L70 21 L88 20 L78 34 L82 60 L50 116 L18 60 L22 34 L12 20 L30 21 L28 7 L42 13 Z",
+    legendary: "M50 2 L60 12 L78 5 L74 20 L96 15 L82 30 L90 46 L80 60 L50 118 L20 60 L10 46 L18 30 L4 15 L26 20 L22 5 L40 12 Z",
+  };
+  function buildShield(t){
+    const d = SHIELD[t.id] || SHIELD.common;
+    const el = document.createElement("div"); el.className = "sh tier-"+t.id;
+    el.innerHTML =
+      '<div class="sh-stage">'+
+        '<svg class="sh-svg" viewBox="0 0 100 122" preserveAspectRatio="xMidYMid meet">'+
+          '<defs>'+
+            '<linearGradient id="shFace" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34415f"/><stop offset="1" stop-color="#0c111b"/></linearGradient>'+
+            '<linearGradient id="shGloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.24"/><stop offset="0.5" stop-color="#fff" stop-opacity="0"/></linearGradient>'+
+          '</defs>'+
+          '<path class="sh-edge" transform="translate(0 3.4)" d="'+d+'"/>'+
+          '<path class="sh-body" d="'+d+'" fill="url(#shFace)"/>'+
+          '<path class="sh-gloss" d="'+d+'" fill="url(#shGloss)"/>'+
+          '<path class="sh-rim" d="'+d+'"/>'+
+        '</svg>'+
+        '<div class="sh-content">'+
+          '<div class="sh-emblem">'+GLYPH+'</div>'+
+          '<div class="sh-divider"></div>'+
+          '<div class="sh-name">'+t.name+'</div>'+
+          '<div class="sh-rar"><b>'+t.label+'</b> · '+t.pct+'</div>'+
+        '</div>'+
+        '<div class="sparks"></div>'+
+      '</div>';
+    return el;
+  }
+  function buildBanner(t){
+    const el=document.createElement("div"); el.className="nb tier-"+t.id;
+    el.innerHTML='<div class="nb-ribbon"><div class="nb-emblem">'+GLYPH+'</div>'+
+      '<div class="nb-txt"><div class="nb-name">'+t.name+'</div>'+
+      '<div class="nb-rar"><b>'+t.label+'</b> · '+t.pct+'</div></div></div><div class="sparks"></div>';
+    return el;
+  }
+  function buildPixel(t){
+    const el=document.createElement("div"); el.className="px tier-"+t.id;
+    el.innerHTML='<div class="px-box"><div class="px-emblem">'+GLYPH+'</div>'+
+      '<div class="px-name">'+t.name+'</div><div class="px-rar">'+t.label+' '+t.pct+'</div></div><div class="sparks"></div>';
+    return el;
+  }
+  function buildNeon(t){
+    const el=document.createElement("div"); el.className="ne tier-"+t.id;
+    el.innerHTML='<div class="ne-card"><div class="ne-grid"></div><div class="ne-emblem">'+GLYPH+'</div>'+
+      '<div class="ne-name">'+t.name+'</div><div class="ne-rar">'+t.label+' · '+t.pct+'</div></div>';
+    return el;
+  }
+  function buildTerminal(t){
+    const el=document.createElement("div"); el.className="tm tier-"+t.id;
+    el.innerHTML='<div class="tm-panel"><div class="tm-head">▚ ACHIEVEMENT.SYS</div>'+
+      '<div class="tm-line">&gt; unlock: <span class="tm-name">'+t.name+'</span><span class="tm-cur">_</span></div>'+
+      '<div class="tm-line tm-dim">&gt; rarity: <b>'+t.label+'</b> // '+t.pct+'</div></div>';
+    return el;
+  }
+  function buildLoot(t){
+    const el=document.createElement("div"); el.className="lt tier-"+t.id;
+    el.innerHTML='<div class="lt-beam"></div><div class="lt-card"><div class="lt-emblem">'+GLYPH+'</div>'+
+      '<div class="lt-info"><div class="lt-kicker">Oggetto ottenuto</div>'+
+      '<div class="lt-name">'+t.name+'</div><div class="lt-rar"><b>'+t.label+'</b> · '+t.pct+'</div></div></div><div class="sparks"></div>';
+    return el;
+  }
+  function build3D(t, base){
+    const inner = base(t);
+    const el = document.createElement("div"); el.className = "l3 tier-"+t.id;
+    const stage = document.createElement("div"); stage.className = "l3-stage";
+    while(inner.firstChild) stage.appendChild(inner.firstChild);
+    el.appendChild(stage);
+    return el;
+  }
+  function build(t){
+    switch(style){
+      case "minimal": return buildMinimal(t);
+      case "arcade": return buildArcade(t);
+      case "arcade3d": return buildArcade3D(t);
+      case "scudo": return buildShield(t);
+      case "nastro": return buildBanner(t);
+      case "pixel": return buildPixel(t);
+      case "neon": return buildNeon(t);
+      case "terminale": return buildTerminal(t);
+      case "loot": return buildLoot(t);
+      case "nastro3d": return build3D(t, buildBanner);
+      case "pixel3d": return build3D(t, buildPixel);
+      case "neon3d": return build3D(t, buildNeon);
+      case "terminale3d": return build3D(t, buildTerminal);
+      case "loot3d": return build3D(t, buildLoot);
+      default: return buildConsole(t);
+    }
+  }
 
+  function spawnSparks(el, n){
+    const wrap = el.querySelector(".sparks"); if(!wrap) return;
+    for(let i=0;i<n;i++){
+      const s = document.createElement("span"); s.className = "spark";
+      s.style.left = (8 + Math.random()*84) + "%";
+      s.style.setProperty("--d", (0.8 + Math.random()*0.8).toFixed(2)+"s");
+      s.style.animationDelay = (Math.random()*0.35).toFixed(2)+"s";
+      const sz = (4 + Math.random()*6).toFixed(0); s.style.width = sz+"px"; s.style.height = sz+"px";
+      wrap.appendChild(s);
+    }
+  }
   function clearCurrent(){ if(timer){clearTimeout(timer); timer=null;} if(current){current.remove(); current=null;} }
 
-  function spawnSparks(el,n){
-    const w=el.querySelector(".sparks"); if(!w) return;
-    for(let i=0;i<n;i++){ const s=document.createElement("span"); s.className="spark";
-      s.style.left=(8+Math.random()*84)+"%"; s.style.setProperty("--d",(0.8+Math.random()*0.8).toFixed(2)+"s");
-      s.style.animationDelay=(Math.random()*0.35).toFixed(2)+"s"; const z=(4+Math.random()*6).toFixed(0);
-      s.style.width=z+"px"; s.style.height=z+"px"; w.appendChild(s); }
-  }
-
-  // ---- the API the C# host calls ----
-  const DEFAULT = { style:"arcade", sound:"classic", durationMs:4200 };
+  const DEFAULT = { style:"arcade", sound:"classic", position:"bottom-center", durationMs:4200 };
   function show(opts){
     const o = Object.assign({}, DEFAULT, opts||{});
-    const t = o.tier || tierFromPercent(o.percent==null?55:o.percent);
-    t.name = o.name || "Obiettivo";
-    t.pct  = (o.percent==null?"" : Number(o.percent).toFixed(1));
     clearCurrent();
-    zone.className = "s-"+(["neon","terminale","scudo"].includes(o.style)?o.style:"arcade");
-    const wrap=document.createElement("div");
-    wrap.innerHTML = builders(o.style, t);
-    const el = wrap.firstElementChild;
-    zone.appendChild(el); current=el;
+    style = o.style; currentSound = o.sound;
+    const pct = (o.percent==null ? 55 : o.percent);
+    const t = tierFromPercent(pct);
+    t.name = o.name || "Obiettivo";
+    t.pct  = Number(pct).toFixed(1) + "%";
+    zone.className = "pos-" + (o.position || "bottom-center");
+    const el = build(t); zone.appendChild(el); current = el;
     void el.offsetWidth;
     el.classList.add("enter");
-    if(t.fx>=4) spawnSparks(el, t.fx===5?18:11);
-    playSound(o.sound, t);
-    const mine=++seqTok;
-    timer=setTimeout(()=>{ if(seqTok===mine) dismiss(el); }, o.durationMs);
+    if(!reduce && style!=="minimal" && t.fx>=4) spawnSparks(el, t.fx===5?18:11);
+    if(!reduce && style!=="minimal" && t.fx===5) el.classList.add("flash");
+    playTier(t);
+    const mine = ++seqTok;
+    timer = setTimeout(()=>{ if(seqTok===mine) dismiss(el); }, o.durationMs);
   }
-  function dismiss(el){ if(!el) return; el.classList.add("leave"); setTimeout(()=>{ if(el===current){el.remove(); current=null;} }, 460); }
+  function dismiss(el){
+    if(!el) return;
+    el.classList.remove("enter");
+    el.classList.add("leave");
+    setTimeout(()=>{ if(el===current){ el.remove(); current=null; } }, 580);
+  }
 
-  // ---- sound (synth; replace with samples later) ----
-  let actx=null;
-  function ctx(){ if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)(); return actx; }
-  function note(c,t0,f,dur,{type="sine",gain=0.16,glide=null}={}){
-    const o=c.createOscillator(), g=c.createGain(); o.type=type; o.frequency.setValueAtTime(f,t0);
+  /* ---------- synthesised sound ---------- */
+  let actx = null;
+  function ctx(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+  function note(c,t0,freq,dur,{type="sine",gain=0.18,glide=null}={}){
+    const o=c.createOscillator(), g=c.createGain(); o.type=type; o.frequency.setValueAtTime(freq,t0);
     if(glide) o.frequency.exponentialRampToValueAtTime(glide,t0+dur);
-    g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(gain,t0+0.012); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(gain,t0+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
     o.connect(g).connect(c.destination); o.start(t0); o.stop(t0+dur+0.03);
   }
-  const SEQ={ common:[[660,.12]], uncommon:[[523,.12],[659,.16]], rare:[[523,.11],[659,.11],[784,.2]],
-    epic:[[392,.1],[523,.1],[659,.1],[880,.26]], legendary:[[523,.1],[659,.1],[784,.1],[1046,.12],[1319,.34]] };
-  function playSound(kind, t){
-    const c=ctx(); if(c.state==="suspended") c.resume(); const n=c.currentTime+0.02;
-    if(kind==="epico"){
-      note(c,n,55,1.0,{type:"sine",gain:0.10}); note(c,n,110,0.9,{type:"sawtooth",gain:0.06,glide:165});
-      [261.6,329.6,392,523.3].forEach((f,i)=> note(c,n+0.02*i,f,0.8,{type:"sawtooth",gain:0.05}));
-      if(t.fx>=4) note(c,n+0.35,392,0.5,{type:"sawtooth",gain:0.06,glide:784}); return;
+  const SEQ = {
+    common:[[660,.12]], uncommon:[[523,.12],[659,.16]], rare:[[523,.11],[659,.11],[784,.2]],
+    epic:[[392,.1],[523,.1],[659,.1],[880,.26]], legendary:[[523,.1],[659,.1],[784,.1],[1046,.12],[1319,.34]],
+  };
+  function coinSound(c,n,t){ const reps=Math.max(1,Math.round(t.fx*0.8)); let t0=n;
+    for(let i=0;i<reps;i++){ note(c,t0,988,0.05,{type:"square",gain:0.10}); note(c,t0+0.05,1319,0.15,{type:"square",gain:0.10}); t0+=0.13; } }
+  function laserSound(c,n,t){ let t0=n;
+    for(let i=0;i<t.fx;i++){ note(c,t0,300+i*110,0.18,{type:"sawtooth",gain:0.09,glide:900+i*220}); t0+=0.075; }
+    if(t.fx===5) note(c,n+0.32,1700,0.45,{type:"sawtooth",gain:0.07,glide:180}); }
+  function powerSound(c,n,t){ const steps=[392,494,587,698,880,1046,1319]; const k=Math.min(steps.length,2+t.fx); let t0=n;
+    for(let i=0;i<k;i++){ note(c,t0,steps[i],0.09,{type:"square",gain:0.09}); t0+=0.055; } }
+  function epicSound(c,n,t){
+    note(c,n,55,1.0,{type:"sine",gain:0.10}); note(c,n,110,0.9,{type:"sawtooth",gain:0.06,glide:165});
+    [261.6,329.6,392.0,523.3].forEach((f,i)=> note(c,n+0.02*i,f,0.8,{type:"sawtooth",gain:0.05}));
+    if(t.fx>=3){ note(c,n+0.15,1046.5,0.7,{type:"sine",gain:0.05}); note(c,n+0.15,1318.5,0.7,{type:"sine",gain:0.04}); }
+    if(t.fx>=4) note(c,n+0.35,392,0.5,{type:"sawtooth",gain:0.06,glide:784});
+    if(t.fx===5){ note(c,n+0.55,784,0.6,{type:"sawtooth",gain:0.06}); note(c,n+0.55,1046.5,0.6,{type:"sawtooth",gain:0.05}); } }
+  function trumpetSound(c,n,t){ const rise=[392,523.3,659.3,783.9]; let t0=n;
+    rise.forEach(f=>{ note(c,t0,f,0.18,{type:"sawtooth",gain:0.08}); note(c,t0,f*1.005,0.18,{type:"sawtooth",gain:0.04}); t0+=0.12; });
+    const hold=t.fx>=4?[523.3,659.3,783.9,1046.5]:[523.3,659.3,783.9]; hold.forEach(f=> note(c,t0,f,0.7,{type:"sawtooth",gain:0.05}));
+    note(c,t0,130.8,0.8,{type:"sine",gain:0.09}); if(t.fx>=3) note(c,t0+0.05,1568,0.5,{type:"sine",gain:0.04}); }
+  function trailerSound(c,n,t){ [55,55.5,82.4].forEach(f=> note(c,n,f,1.2,{type:"sawtooth",gain:0.06,glide:f*0.99}));
+    note(c,n,41,1.3,{type:"sine",gain:0.10}); note(c,n,98,0.25,{type:"sine",gain:0.12,glide:60});
+    if(t.fx>=4){ note(c,n+0.5,55,1.0,{type:"sawtooth",gain:0.07}); note(c,n+0.5,73.4,1.0,{type:"sawtooth",gain:0.06}); }
+    if(t.fx===5) note(c,n+0.5,1046.5,0.7,{type:"sine",gain:0.04}); }
+  function choirSound(c,n,t){ [261.6,329.6,392.0].forEach(f=>{ note(c,n,f,1.1,{type:"triangle",gain:0.05}); note(c,n,f*1.006,1.1,{type:"sine",gain:0.04}); });
+    if(t.fx>=4) [261.6,329.6,392.0].forEach(f=> note(c,n,f*2,1.0,{type:"sine",gain:0.03}));
+    note(c,n+0.1,1046.5,0.9,{type:"sine",gain:0.06}); note(c,n+0.1,2093,0.7,{type:"sine",gain:0.03});
+    if(t.fx===5) note(c,n,65.4,1.2,{type:"sine",gain:0.08}); }
+  function levelupSound(c,n,t){ const seq=[523.3,659.3,784,1046.5,1318.5]; const k=Math.min(seq.length,2+t.fx); let t0=n;
+    for(let i=0;i<k;i++){ note(c,t0,seq[i],0.12,{type:"square",gain:0.09}); t0+=0.09; }
+    note(c,t0,seq[k-1],0.42,{type:"triangle",gain:0.10}); if(t.fx>=3) note(c,t0,seq[k-1]*2,0.42,{type:"sine",gain:0.05}); }
+  function chipwinSound(c,n,t){ const mel=[[784,.1],[784,.1],[784,.1],[1046.5,.3],[784,.1],[1046.5,.36]]; let t0=n;
+    mel.forEach(([f,d])=>{ note(c,t0,f,d*0.9,{type:"square",gain:0.08}); note(c,t0,f/2,d*0.9,{type:"square",gain:0.035}); t0+=d; });
+    if(t.fx>=4) [[196,.2],[261.6,.2],[392,.42]].forEach(([f,d],i)=> note(c,n+i*0.2,f,d,{type:"triangle",gain:0.06})); }
+  function comboSound(c,n,t){ let t0=n; const hits=Math.min(5,2+t.fx);
+    for(let i=0;i<hits;i++){ const f=220*Math.pow(1.18,i); note(c,t0,f,0.08,{type:"sawtooth",gain:0.09}); note(c,t0,f*1.5,0.08,{type:"square",gain:0.04}); t0+=0.07; }
+    note(c,t0,110,0.3,{type:"sawtooth",gain:0.12,glide:70}); if(t.fx===5) note(c,t0,880,0.3,{type:"square",gain:0.07,glide:1760}); }
+  function synthwaveSound(c,n,t){ [220,277.2,329.6,440].forEach(f=>{ note(c,n,f,0.9,{type:"sawtooth",gain:0.04}); note(c,n,f*1.006,0.9,{type:"sawtooth",gain:0.04}); });
+    const arp=[440,554.4,659.3,880,659.3,880]; let t0=n+0.05; const k=Math.min(arp.length,2+t.fx);
+    for(let i=0;i<k;i++){ note(c,t0,arp[i],0.14,{type:"square",gain:0.05}); t0+=0.1; } note(c,n,55,1.0,{type:"sine",gain:0.08}); }
+  function bossSound(c,n,t){ note(c,n,60,0.5,{type:"sawtooth",gain:0.10,glide:45}); note(c,n,90,0.4,{type:"sine",gain:0.10,glide:60});
+    [261.6,329.6,392].forEach(f=>{ note(c,n+0.12,f,1.0,{type:"triangle",gain:0.045}); note(c,n+0.12,f*1.005,1.0,{type:"sine",gain:0.035}); });
+    if(t.fx>=3) [[392,.16],[523.3,.16],[659.3,.42]].forEach(([f,d],i)=> note(c,n+0.3+i*0.16,f,d,{type:"sawtooth",gain:0.06}));
+    if(t.fx===5){ note(c,n+0.3,1046.5,0.7,{type:"sine",gain:0.04}); note(c,n+0.3,1318.5,0.7,{type:"sine",gain:0.03}); } }
+  function coinrushSound(c,n,t){ const reps=Math.min(10,3+t.fx*2); let t0=n;
+    for(let i=0;i<reps;i++){ const p=988+i*40; note(c,t0,p,0.05,{type:"square",gain:0.07}); note(c,t0+0.04,p*1.33,0.09,{type:"square",gain:0.07}); t0+=0.075; }
+    if(t.fx>=4) note(c,t0,1568,0.4,{type:"sine",gain:0.05}); }
+  function questSound(c,n,t){ const gl=[392,440,523.3,587.3,659.3,784,880,1046.5]; const k=Math.min(gl.length,4+t.fx); let t0=n;
+    for(let i=0;i<k;i++){ note(c,t0,gl[i],0.22,{type:"triangle",gain:0.06}); t0+=0.045; }
+    [523.3,659.3,784].forEach(f=> note(c,t0,f,0.7,{type:"sine",gain:0.05})); if(t.fx>=4) note(c,t0,1046.5,0.7,{type:"sine",gain:0.04}); }
+  function consoleSound(c,n,t){ note(c,n,659.3,0.14,{type:"sine",gain:0.12});
+    note(c,n+0.11,987.8,0.5,{type:"sine",gain:0.11}); note(c,n+0.11,1318.5,0.5,{type:"sine",gain:0.05});
+    if(t.fx>=3) note(c,n+0.11,1975.5,0.4,{type:"sine",gain:0.03}); if(t.fx===5) note(c,n+0.3,2637,0.35,{type:"sine",gain:0.03}); }
+  function drumsSound(c,n,t){ const hits=Math.min(8,3+t.fx); let t0=n;
+    for(let i=0;i<hits;i++){ note(c,t0,150,0.16,{type:"sine",gain:0.12,glide:55}); if(i%2===0) note(c,t0,90,0.2,{type:"sine",gain:0.08,glide:45}); t0+=Math.max(0.11,0.22-i*0.015); }
+    note(c,t0,110,0.4,{type:"sawtooth",gain:0.10,glide:70}); if(t.fx>=4) [392,523.3,659.3].forEach(f=> note(c,t0,f,0.5,{type:"sawtooth",gain:0.05})); }
+  function spellSound(c,n,t){ note(c,n,200,0.4,{type:"sine",gain:0.06,glide:1200});
+    const sp=[2093,1760,1568,1318.5,1046.5,880]; const k=Math.min(sp.length,3+t.fx); let t0=n+0.2;
+    for(let i=0;i<k;i++){ note(c,t0,sp[i],0.3,{type:"sine",gain:0.05}); t0+=0.06; }
+    if(t.fx>=4) [659.3,830.6,987.8].forEach(f=> note(c,n+0.35,f,0.7,{type:"triangle",gain:0.04})); }
+  function jackpotSound(c,n,t){ const reps=Math.min(12,4+t.fx*2); let t0=n;
+    for(let i=0;i<reps;i++){ const f=880*(1+(i%4)*0.12); note(c,t0,f,0.07,{type:"triangle",gain:0.06}); note(c,t0,f*2,0.07,{type:"sine",gain:0.03}); t0+=0.06; }
+    note(c,t0,1318.5,0.5,{type:"triangle",gain:0.07}); note(c,t0,1760,0.5,{type:"sine",gain:0.04}); }
+  function cyberSound(c,n,t){ let t0=n; const stut=Math.min(7,3+t.fx); const fs=[330,660,440,880,550,990,770];
+    for(let i=0;i<stut;i++){ note(c,t0,fs[i%7],0.05,{type:"square",gain:0.07}); t0+=0.05; }
+    note(c,t0,200,0.4,{type:"sawtooth",gain:0.08,glide:1600}); if(t.fx>=4) note(c,t0,1600,0.3,{type:"square",gain:0.05,glide:400}); }
+  const THEMES = {
+    classic:{type:"triangle",gain:0.16,shimmer:true,swell:true}, soft:{type:"sine",gain:0.15,rel:1.4},
+    crystal:{type:"sine",gain:0.13,bell:true,rel:1.1,shimmer:true}, cinema:{type:"sawtooth",gain:0.11,rel:1.2,chord:true,shimmer:true,swell:true},
+    legno:{type:"triangle",gain:0.18,staccato:true,bell:true}, campana:{type:"sine",gain:0.14,rel:2.3,bell:true},
+    trionfo:{type:"sawtooth",gain:0.10,rel:1.15,chord:true,swell:true}, retro:{type:"square",gain:0.08,staccato:true},
+    digitale:{type:"sine",gain:0.15,staccato:true}, moneta:{custom:coinSound}, laser:{custom:laserSound}, powerup:{custom:powerSound},
+    epico:{custom:epicSound}, trombe:{custom:trumpetSound}, trailer:{custom:trailerSound}, cori:{custom:choirSound},
+    levelup:{custom:levelupSound}, chipwin:{custom:chipwinSound}, combo:{custom:comboSound}, synth:{custom:synthwaveSound},
+    boss:{custom:bossSound}, coinrush:{custom:coinrushSound}, quest:{custom:questSound}, consolem:{custom:consoleSound},
+    drums:{custom:drumsSound}, spell:{custom:spellSound}, jackpot:{custom:jackpotSound}, cyber:{custom:cyberSound},
+  };
+  function playTier(t){
+    const c = ctx(); if(c.state==="suspended") c.resume();
+    const th = THEMES[currentSound] || THEMES.classic;
+    const n = c.currentTime + 0.02;
+    if(th.custom){ th.custom(c, n, t); return; }
+    let notes = SEQ[t.id].slice();
+    if(style==="minimal") notes = notes.slice(0, Math.min(2, notes.length));
+    let t0 = n;
+    notes.forEach(([f,d])=>{
+      const dur = th.staccato ? d*0.55 : d*(th.rel||1);
+      note(c,t0,f,dur,{type:th.type, gain:th.gain});
+      if(th.bell) note(c,t0,f*2,dur*0.85,{type:"sine",gain:th.gain*0.45});
+      if(th.chord){ note(c,t0,f*1.26,dur*0.9,{type:th.type,gain:th.gain*0.5}); note(c,t0,f*1.5,dur*0.9,{type:th.type,gain:th.gain*0.5}); }
+      t0 += d*0.72;
+    });
+    if(th.shimmer && style!=="minimal" && t.fx>=4){
+      note(c, n+0.05, 1568, 0.5, {type:"sine",gain:0.06});
+      if(t.fx===5){ note(c, n+0.12, 2093, 0.6, {type:"sine",gain:0.05}); note(c, n+0.20, 2637, 0.55, {type:"sine",gain:0.04}); }
     }
-    if(kind==="levelup"){
-      const s=[523.3,659.3,784,1046.5,1318.5]; const k=Math.min(s.length,2+t.fx); let t0=n;
-      for(let i=0;i<k;i++){ note(c,t0,s[i],0.12,{type:"square",gain:0.09}); t0+=0.09; }
-      note(c,t0,s[k-1],0.42,{type:"triangle",gain:0.10}); return;
-    }
-    // classic
-    let t0=n; SEQ[t.id].forEach(([f,d])=>{ note(c,t0,f,d,{type:"triangle",gain:0.16}); t0+=d*0.72; });
-    if(t.fx>=4){ note(c,n+0.05,1568,0.5,{type:"sine",gain:0.06}); if(t.fx===5){ note(c,n+0.12,2093,0.6,{type:"sine",gain:0.05}); note(c,n,130.8,0.7,{type:"sine",gain:0.10,glide:196}); } }
+    if(th.swell && style!=="minimal" && t.fx>=3) note(c, n, 98, 0.65, {type:"sine", gain:0.12, glide:147});
   }
 
-  // expose to the C# host
   window.fanfara = { show, tierFromPercent };
 
-  // demo mode: if opened directly in a browser (no host), cycle a few
+  // demo mode when opened directly in a browser (no C# host)
   if(!window.chrome || !window.chrome.webview){
     const demo=[{name:"Primi passi",percent:62.4,style:"arcade",sound:"classic"},
-      {name:"Senza un graffio",percent:7.1,style:"loot",sound:"levelup"},
-      {name:"Il Completista",percent:0.6,style:"neon",sound:"epico"},
-      {name:"A tutta velocità",percent:2.9,style:"terminale",sound:"classic"}];
-    let i=0; const run=()=>{ show(demo[i%demo.length]); i++; }; setTimeout(run,600); setInterval(run,5200);
+      {name:"Senza un graffio",percent:7.1,style:"scudo",sound:"trombe"},
+      {name:"Il Completista",percent:0.6,style:"loot",sound:"epico"},
+      {name:"A tutta velocità",percent:2.9,style:"neon",sound:"synth"}];
+    let i=0; const run=()=>show(demo[i++%demo.length]); setTimeout(run,500); setInterval(run,5200);
   }
 </script>
 </body>

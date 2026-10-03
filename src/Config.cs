@@ -9,6 +9,9 @@ public class Config
 {
     public string Style { get; set; } = "arcade";     // arcade | neon | loot | terminale | scudo | ...
     public string Sound { get; set; } = "classic";    // classic | epico | levelup | ...
+    // Where the notification appears on screen:
+    // bottom-center | top-center | center | top-right | bottom-right | top-left | bottom-left
+    public string Position { get; set; } = "bottom-center";
     public int DurationMs { get; set; } = 4200;
     public int PollMs { get; set; } = 1000;            // how often to check Steam for new unlocks
 
