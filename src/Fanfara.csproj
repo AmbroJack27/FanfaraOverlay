@@ -11,6 +11,7 @@
     <RootNamespace>Fanfara</RootNamespace>
     <Version>0.1.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
     <!-- Single self-contained .exe for end users (see README / GitHub Actions) -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
@@ -24,6 +25,10 @@
     <!-- Steam wrapper. If this package/version is unavailable on your machine, see README for the
          Steamworks.NET alternative; the SteamWatcher API points are marked with TODO(steam). -->
     <PackageReference Include="Facepunch.Steamworks" Version="2.3.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="icon.ico" />
   </ItemGroup>
 
   <ItemGroup>

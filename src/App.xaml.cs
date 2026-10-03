@@ -28,11 +28,19 @@ public partial class App : System.Windows.Application
 
     private void SetupTray()
     {
+        System.Drawing.Icon icon;
+        try
+        {
+            var exe = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+            icon = exe != null ? System.Drawing.Icon.ExtractAssociatedIcon(exe)! : System.Drawing.SystemIcons.Application;
+        }
+        catch { icon = System.Drawing.SystemIcons.Application; }
+
         _tray = new System.Windows.Forms.NotifyIcon
         {
             Text = "Fanfara",
             Visible = true,
-            Icon = System.Drawing.SystemIcons.Application   // placeholder; custom icon later
+            Icon = icon
         };
         var menu = new System.Windows.Forms.ContextMenuStrip();
         menu.Items.Add("Impostazioni", null, (_, _) => ShowSettings());
