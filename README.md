@@ -91,7 +91,7 @@ and portable to any Windows PC.
 
 ### Publishing a new version
 The repo includes `.github/workflows/build.yml`. When you publish a **Release** with a **tag**
-starting with `v` (e.g. `v0.1.8`), GitHub builds the app on its own Windows servers and attaches
+starting with `v` (e.g. `v0.1.9`), GitHub builds the app on its own Windows servers and attaches
 `Fanfara.zip` **and** `FanfaraSetup.exe` to the Release automatically. No manual compiling.
 
 ---

@@ -91,7 +91,7 @@ su qualunque PC Windows.
 
 ### Pubblicare una nuova versione
 Il repo include `.github/workflows/build.yml`. Quando pubblichi una **Release** con un **tag** che
-inizia con `v` (es. `v0.1.8`), GitHub compila l'app sui propri server Windows e allega
+inizia con `v` (es. `v0.1.9`), GitHub compila l'app sui propri server Windows e allega
 automaticamente `Fanfara.zip` **e** `FanfaraSetup.exe` alla Release. Nessuna compilazione manuale.
 
 ---
