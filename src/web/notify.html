@@ -23,7 +23,9 @@
   .tier-rare{--tier:var(--rare)} .tier-epic{--tier:var(--epic)} .tier-legendary{--tier:var(--legendary)}
 
   /* ---------- notification zone: position chosen by the user ---------- */
-  #zone{position:fixed; z-index:5; display:flex; width:min(440px,calc(100% - 32px))}
+  /* Global size of the whole overlay (layout + text scale together, crisply). Raise for bigger notifications. */
+  :root{ --ui-scale:1.32; }
+  #zone{position:fixed; z-index:5; display:flex; width:min(440px,calc(100% - 32px)); zoom:var(--ui-scale)}
   #zone.pos-bottom-center{left:50%; transform:translateX(-50%); bottom:clamp(60px,12vh,140px); justify-content:center}
   #zone.pos-top-center{left:50%; transform:translateX(-50%); top:clamp(40px,8vh,110px); justify-content:center}
   #zone.pos-center{left:50%; top:50%; transform:translate(-50%,-50%); justify-content:center}
