@@ -83,6 +83,8 @@
   .switch input:checked + .slider:before{transform:translateX(19px)}
 
   .foot{display:flex; align-items:center; gap:11px; padding:13px 20px; border-top:1px solid var(--line); background:var(--bar)}
+  .ver{font:600 11px var(--display); color:var(--muted); opacity:.75; letter-spacing:.03em}
+  .disc{font:500 10px var(--body); color:var(--muted); opacity:.65; text-align:center; padding:7px 20px 10px; line-height:1.4; background:var(--bar)}
   .hint{flex:1; font:500 11.5px var(--body); color:var(--muted)}
   .saved{font:600 12px var(--body); color:#4ac46a; opacity:0; transition:opacity .2s}
   .saved.on{opacity:1}
@@ -96,7 +98,7 @@
 <body>
 <div id="app" data-mode="dark">
   <div class="head">
-    <div class="badge"><svg viewBox="0 0 24 24"><path fill="var(--accent)" d="M12 2.2l2.95 5.98 6.6.96-4.77 4.65 1.12 6.57L12 17.98 6.1 20.36l1.12-6.57L2.45 9.14l6.6-.96z"/></svg></div>
+    <div class="badge"><svg viewBox="0 0 24 24" fill="var(--accent)"><path d="M6 3 H18 V6.4 C18 10.6 15.3 13 12 13 C8.7 13 6 10.6 6 6.4 Z"/><path d="M11 12.8 H13 V15.6 H11 Z"/><path d="M8.2 15.5 H15.8 L16.9 18.6 H7.1 Z"/><path d="M6.5 18.6 H17.5 V20.3 H6.5 Z"/><path d="M6 4.6 C2.4 4.6 2.4 10.2 7 10.4 M18 4.6 C21.6 4.6 21.6 10.2 17 10.4" stroke="var(--accent)" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
     <div><h1>Fanfara</h1><small>Scegli come appare lo sblocco degli obiettivi</small></div>
     <div class="spacer"></div>
     <button class="themebtn" id="theme"></button>
@@ -105,7 +107,6 @@
   <div class="pane">
     <div class="col colL">
       <div class="block"><div class="panel-title">Stile</div><div id="stilebar"></div><div class="scroll" id="stile"></div></div>
-      <div class="block"><div class="panel-title">Suono</div><div class="scroll" id="suono"></div></div>
     </div>
     <div class="col">
       <div><div class="panel-title">Posizione sullo schermo</div><div class="screen" id="screen"></div><div class="poslab" id="poslab"></div></div>
@@ -119,21 +120,36 @@
   </div>
 
   <div class="foot">
+    <span class="ver" id="ver"></span>
     <div class="hint">Premi <b>Prova</b> per l'anteprima a schermo, <b>Salva</b> per applicare.</div>
     <div class="saved" id="saved">Salvato ✓</div>
     <button class="btn test" id="btnTest">▶ Prova</button>
     <button class="btn save" id="btnSave">Salva</button>
   </div>
+  <div class="disc">Progetto amatoriale, non affiliato né approvato dalle case produttrici. Tutti i marchi appartengono ai rispettivi proprietari.</div>
 </div>
 
 <script>
-const STYLES=[['console','Console'],['minimal','Minimal'],['arcade','Arcade'],['arcade3d','Arcade 3D'],['scudo','Scudo 3D'],['nastro','Nastro'],['pixel','Pixel'],['neon','Neon'],['terminale','Terminale'],['loot','Loot'],['nastro3d','Nastro 3D'],['pixel3d','Pixel 3D'],['neon3d','Neon 3D'],['terminale3d','Terminale 3D'],['loot3d','Loot 3D']];
-const SOUNDS=[['classic','Classico'],['soft','Morbido'],['crystal','Cristallo'],['cinema','Cinema'],['legno','Legno'],['campana','Campana'],['trionfo','Trionfo'],['retro','Retro 8-bit'],['digitale','Digitale'],['moneta','Moneta'],['laser','Laser'],['powerup','Power-up'],['epico','Epico'],['trombe','Trombe'],['trailer','Trailer'],['cori','Cori'],['levelup','Level Up'],['chipwin','Vittoria 8-bit'],['combo','Combo'],['synth','Synthwave'],['boss','Boss'],['coinrush','Monete'],['quest','Quest'],['consolem','Console mod.'],['drums','Tamburi'],['spell','Incantesimo'],['jackpot','Jackpot'],['cyber','Cyber glitch']];
+const STYLES=[['xbox','Xbox'],['playstation','PlayStation'],['switch','Switch'],['mh','Monster Hunter'],['sf','Street Fighter'],['mm','Mega Man'],['dmc','Devil May Cry'],['dd',"Dragon's Dogma"],['dr','Dead Rising'],['dc','Dino Crisis'],['re','Resident Evil'],['ff','Final Fantasy'],['ct','Chrono Trigger'],['cc','Chrono Cross'],['xg','Xenogears'],['vs','Vagrant Story'],['som','Secret of Mana'],['kh','Kingdom Hearts'],['tr','Tomb Raider'],['dx','Deus Ex'],['ha','Halo'],['fz','Forza'],['gw','Gears of War'],['fb','Fable'],['ae','Age of Empires'],['mc','Minecraft'],['ac',"Assassin's Creed"],['r6','Rainbow Six'],['gr','Ghost Recon'],['td','The Division'],['sc','Splinter Cell'],['fc','Far Cry'],['ry','Rayman'],['an','Anno'],['wi','The Witcher'],['cp','Cyberpunk 2077'],['on','Onda'],['pu','Pulsar'],['mo','Mosaico'],['nu','Numero'],['ca','Carica'],['co','Coriandoli'],['ne','Nebula'],['tt','Tratto'],['pg','Piega'],['ob','Orbita']];
+const CONSOLE=['xbox','playstation','switch'];
+const BASE=['on','pu','mo','nu','ca','co','ne','tt','pg','ob'];
+const CAPCOM=['mh','sf','mm','dmc','dd','dr','dc','re'];
+const SQUARE=['ff','ct','cc','xg','vs','som','kh','tr','dx'];
+const MICROSOFT=['ha','fz','gw','fb','ae','mc'];
+const UBISOFT=['ac','r6','gr','td','sc','fc','ry','an'];
+const CDPROJEKT=['wi','cp'];
+const isConsole=v=>CONSOLE.includes(v);
+const isCapcom=v=>CAPCOM.includes(v);
+const isSquare=v=>SQUARE.includes(v);
+const isMicrosoft=v=>MICROSOFT.includes(v);
+const isUbisoft=v=>UBISOFT.includes(v);
+const isCdprojekt=v=>CDPROJEKT.includes(v);
+const isBase=v=>BASE.includes(v);
 const POSGRID=[['top-left','top-center','top-right'],['','center',''],['bottom-left','bottom-center','bottom-right']];
 const POSLAB={'top-left':'In alto a sinistra','top-center':'In alto al centro','top-right':'In alto a destra','center':'Al centro','bottom-left':'In basso a sinistra','bottom-center':'In basso al centro','bottom-right':'In basso a destra'};
 const is3D=v=>v.endsWith('3d')||v==='scudo';
 
-const S={style:'arcade', sound:'classic', position:'bottom-center', duration:4200, startup:false, updates:true, theme:'dark', filter:'tutti'};
+const S={style:'on', sound:'classic', position:'bottom-center', duration:4200, startup:false, updates:true, theme:'dark', filter:'tutti'};
 const $=s=>document.querySelector(s);
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function send(o){ try{ window.chrome.webview.postMessage(JSON.stringify(o)); }catch(e){} }
@@ -142,15 +158,11 @@ const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 const MOON='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
 
 function renderStyles(){
-  $('#stilebar').innerHTML = `<div class="subseg">`+[['tutti','Tutti'],['2d','2D'],['3d','3D']].map(([v,l])=>`<button class="${S.filter===v?'on':''}" data-f="${v}">${l}</button>`).join('')+`</div>`;
-  const list = STYLES.filter(([v])=> S.filter==='3d'?is3D(v) : S.filter==='2d'?!is3D(v) : true);
-  $('#stile').innerHTML = `<div class="grid">`+list.map(([v,l])=>`<div class="chip ${S.style===v?'sel':''}" data-style="${v}"><b>${esc(l)}</b><small>${is3D(v)?'3D':'stile'}</small><div class="tk">✓</div></div>`).join('')+`</div>`;
+  $('#stilebar').innerHTML = `<div class="subseg">`+[['tutti','Tutti'],['base','Base'],['console','Console'],['capcom','Capcom'],['square','Square-Enix'],['microsoft','Microsoft'],['ubisoft','Ubisoft'],['cdprojekt','CD Projekt']].map(([v,l])=>`<button class="${S.filter===v?'on':''}" data-f="${v}">${l}</button>`).join('')+`</div>`;
+  const list = STYLES.filter(([v])=> S.filter==='base'?isBase(v) : S.filter==='cdprojekt'?isCdprojekt(v) : S.filter==='ubisoft'?isUbisoft(v) : S.filter==='microsoft'?isMicrosoft(v) : S.filter==='square'?isSquare(v) : S.filter==='capcom'?isCapcom(v) : S.filter==='console'?isConsole(v) : true);
+  $('#stile').innerHTML = `<div class="grid">`+list.map(([v,l])=>`<div class="chip ${S.style===v?'sel':''}" data-style="${v}"><b>${esc(l)}</b><small>${isBase(v)?'base':(isCdprojekt(v)?'cd projekt':(isUbisoft(v)?'ubisoft':(isMicrosoft(v)?'microsoft':(isSquare(v)?'square-enix':(isCapcom(v)?'capcom':'console')))))}</small><div class="tk">✓</div></div>`).join('')+`</div>`;
   $('#stilebar').querySelectorAll('[data-f]').forEach(e=>e.onclick=()=>{S.filter=e.dataset.f; renderStyles();});
   $('#stile').querySelectorAll('[data-style]').forEach(e=>e.onclick=()=>{S.style=e.dataset.style; renderStyles();});
-}
-function renderSounds(){
-  $('#suono').innerHTML = `<div class="grid">`+SOUNDS.map(([v,l])=>`<div class="chip ${S.sound===v?'sel':''}" data-sound="${v}"><b>${esc(l)}</b><small>fanfara</small><div class="tk">✓</div></div>`).join('')+`</div>`;
-  $('#suono').querySelectorAll('[data-sound]').forEach(e=>e.onclick=()=>{S.sound=e.dataset.sound; renderSounds();});
 }
 function renderPos(){
   $('#screen').innerHTML = POSGRID.flat().map(p=>p?`<div class="pos ${S.position===p?'sel':''}" data-pos="${p}" title="${POSLAB[p]}"></div>`:`<div class="pos empty"></div>`).join('');
@@ -162,17 +174,19 @@ function applyTheme(){ $('#app').dataset.mode=S.theme; $('#theme').innerHTML = S
 window.initSettings = cfg => {
   if(!cfg) return;
   if(cfg.style) S.style=cfg.style;
+  if(!STYLES.some(([v])=>v===S.style)) S.style='on';  // stili 2D/3D rimossi: ripiego su uno valido
   if(cfg.sound) S.sound=cfg.sound;
   if(cfg.position) S.position=cfg.position;
   if(cfg.duration) S.duration=cfg.duration;
   if(typeof cfg.startup==='boolean') S.startup=cfg.startup;
   if(typeof cfg.checkUpdates==='boolean') S.updates=cfg.checkUpdates;
   if(cfg.theme) S.theme=cfg.theme;
+  if(cfg.version) $('#ver').textContent=cfg.version;
   $('#dur').value=(S.duration/1000).toString(); $('#durv').textContent=(S.duration/1000).toFixed(1)+'s';
   $('#durtitle').textContent='Durata · '+(S.duration/1000).toFixed(1)+'s';
   $('#startup').checked=S.startup;
   $('#updates').checked=S.updates;
-  applyTheme(); renderStyles(); renderSounds(); renderPos();
+  applyTheme(); renderStyles(); renderPos();
 };
 
 $('#dur').oninput=()=>{ S.duration=Math.round(parseFloat($('#dur').value||'4.2')*1000);
@@ -181,13 +195,13 @@ $('#startup').onchange=()=>{ S.startup=$('#startup').checked; };
 $('#updates').onchange=()=>{ S.updates=$('#updates').checked; };
 $('#theme').onclick=()=>{ S.theme = S.theme==='dark'?'light':'dark'; applyTheme(); send({action:'theme', theme:S.theme}); };
 
-function vals(){ return {style:S.style, sound:S.sound, position:S.position, duration:S.duration, startup:S.startup, checkUpdates:S.updates}; }
+function vals(){ return {style:S.style, position:S.position, duration:S.duration, startup:S.startup, checkUpdates:S.updates}; }
 $('#btnTest').onclick=()=> send(Object.assign({action:'test'}, vals()));
 $('#btnSave').onclick=()=>{ send(Object.assign({action:'save'}, vals()));
   const s=$('#saved'); s.classList.add('on'); setTimeout(()=>s.classList.remove('on'),1600); };
 
 // first paint before the host pushes config
-applyTheme(); renderStyles(); renderSounds(); renderPos();
+applyTheme(); renderStyles(); renderPos();
 </script>
 </body>
 </html>

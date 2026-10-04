@@ -1,7 +1,9 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Interop;
 using Microsoft.Web.WebView2.Core;
 
 namespace Fanfara;
@@ -17,6 +19,37 @@ public partial class SettingsWindow : Window
         _overlay = overlay;
         InitializeComponent();
         Loaded += OnLoaded;
+    }
+
+    // ---- dark title bar matching the app theme ----
+    private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+    private const int DWMWA_CAPTION_COLOR = 35;
+    private const int DWMWA_TEXT_COLOR = 36;
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        ApplyTitleBar(_config.Theme != "light");
+    }
+
+    private void ApplyTitleBar(bool dark)
+    {
+        try
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd == IntPtr.Zero) return;
+            int useDark = dark ? 1 : 0;
+            DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDark, sizeof(int));
+            // COLORREF is 0x00BBGGRR. Dark: #0b0f18 / #E8EBF3 — Light: #eaeef6 / #1b2233
+            int caption = dark ? 0x00180F0B : 0x00F6EEEA;
+            int text    = dark ? 0x00F3EBE8 : 0x00332218;
+            DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, ref caption, sizeof(int));
+            DwmSetWindowAttribute(hwnd, DWMWA_TEXT_COLOR, ref text, sizeof(int));
+        }
+        catch { /* older Windows: ignore */ }
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -38,7 +71,8 @@ public partial class SettingsWindow : Window
                 duration = _config.DurationMs,
                 startup = _config.StartWithWindows,
                 checkUpdates = _config.CheckUpdates,
-                theme = _config.Theme
+                theme = _config.Theme,
+                version = VersionString()
             });
             Web.CoreWebView2.ExecuteScriptAsync($"window.initSettings && window.initSettings({cfg})");
         };
@@ -64,7 +98,7 @@ public partial class SettingsWindow : Window
             }
             else if (msg.action == "theme")
             {
-                if (msg.theme != null) { _config.Theme = msg.theme; _config.Save(); }
+                if (msg.theme != null) { _config.Theme = msg.theme; _config.Save(); ApplyTitleBar(msg.theme != "light"); }
             }
             else if (msg.action == "save")
             {
@@ -82,6 +116,12 @@ public partial class SettingsWindow : Window
             }
         }
         catch { /* ignore malformed messages */ }
+    }
+
+    private static string VersionString()
+    {
+        var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version ?? new System.Version(0, 0, 0);
+        return $"v{v.Major}.{v.Minor}.{(v.Build < 0 ? 0 : v.Build)}";
     }
 
     private class Msg
