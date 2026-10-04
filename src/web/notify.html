@@ -140,7 +140,7 @@
   @keyframes a3-burst{0%{opacity:.5} 25%{opacity:1} 100%{opacity:.5}}
 
   /* ===== STYLE 5 — SCUDO 3D ===== */
-  .sh{width:min(186px, calc(100% - 32px))}
+  .sh{width:min(320px, calc(100% - 32px))}
   .sh-stage{position:relative; width:100%; transform-style:preserve-3d; animation:a3-float 7s ease-in-out infinite}
   .sh-svg{display:block; width:100%; height:auto; color:var(--tier);
     filter:drop-shadow(0 14px 16px rgba(0,0,0,.6)) drop-shadow(0 0 12px color-mix(in srgb,var(--tier) 55%, transparent))}
@@ -151,11 +151,11 @@
   .sh-content{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
     text-align:center; padding:17% 23% 0}
   .sh-emblem{color:var(--tier); line-height:0}
-  .sh-emblem svg{width:21px; height:21px; filter:drop-shadow(0 0 8px var(--tier))}
+  .sh-emblem svg{width:28px; height:28px; filter:drop-shadow(0 0 8px var(--tier))}
   .sh-divider{width:60%; height:2px; margin:5px auto 4px; background:linear-gradient(90deg,transparent,var(--tier),transparent); box-shadow:0 0 10px var(--tier)}
-  .sh-name{font:800 clamp(10.5px,2.9vw,13px) var(--display); text-transform:uppercase; line-height:1.04; margin:0 0 2px; text-wrap:balance;
+  .sh-name{font:800 clamp(14px,3.6vw,18px) var(--display); text-transform:uppercase; line-height:1.04; margin:0 0 2px; text-wrap:balance;
     text-shadow:0 1px 0 rgba(0,0,0,.6), 0 0 12px color-mix(in srgb,var(--tier) 55%, transparent)}
-  .sh-rar{font:700 7.5px var(--display); letter-spacing:.05em; text-transform:uppercase; color:var(--muted)}
+  .sh-rar{font:700 10px var(--display); letter-spacing:.05em; text-transform:uppercase; color:var(--muted)}
   .sh-rar b{color:var(--tier)}
   .sh.enter{animation:a3-in .7s cubic-bezier(.2,.8,.25,1.03) both}
   .sh.leave{animation:a3-out .45s ease-in forwards}
@@ -166,13 +166,13 @@
 
   /* ===== STYLE 6 — NASTRO ===== */
   .nb{width:100%; display:flex; justify-content:center}
-  .nb-ribbon{position:relative; display:flex; align-items:center; gap:13px; padding:12px 34px;
+  .nb-ribbon{position:relative; display:flex; align-items:center; gap:15px; padding:16px 44px;
     background:linear-gradient(180deg,#1c2336,#10141f); border-top:2px solid var(--tier); border-bottom:2px solid var(--tier);
     clip-path:polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%);
     box-shadow:0 14px 34px -14px rgba(0,0,0,.7), 0 0 24px -10px var(--tier)}
-  .nb-emblem{color:var(--tier); line-height:0} .nb-emblem svg{width:26px;height:26px;filter:drop-shadow(0 0 6px var(--tier))}
-  .nb-name{font:800 18px var(--display); text-transform:uppercase; line-height:1.1}
-  .nb-rar{font:700 10.5px var(--display); letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+  .nb-emblem{color:var(--tier); line-height:0} .nb-emblem svg{width:30px;height:30px;filter:drop-shadow(0 0 6px var(--tier))}
+  .nb-name{font:800 24px var(--display); text-transform:uppercase; line-height:1.1}
+  .nb-rar{font:700 12px var(--display); letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
   .nb-rar b{color:var(--tier)}
   .nb.enter{animation:nb-in .5s cubic-bezier(.2,.8,.25,1.05) both}
   @keyframes nb-in{0%{opacity:0; transform:scaleX(.15)} 60%{opacity:1} 100%{opacity:1; transform:scaleX(1)}}
@@ -181,11 +181,11 @@
 
   /* ===== STYLE 7 — PIXEL ===== */
   .px{width:100%; display:flex; justify-content:center}
-  .px-box{max-width:280px; background:#0b0f18; border:4px solid var(--tier); padding:16px 18px; text-align:center;
+  .px-box{max-width:380px; background:#0b0f18; border:4px solid var(--tier); padding:20px 22px; text-align:center;
     box-shadow:0 0 0 4px #05070c, 8px 8px 0 0 rgba(0,0,0,.5), 0 0 22px -6px var(--tier)}
-  .px-emblem{color:var(--tier); line-height:0} .px-emblem svg{width:26px;height:26px}
-  .px-name{font:400 11px 'Press Start 2P', monospace; color:#fff; line-height:1.55; margin:10px 0 8px; text-transform:uppercase; word-break:break-word}
-  .px-rar{font:400 8px 'Press Start 2P', monospace; color:var(--tier); line-height:1.6}
+  .px-emblem{color:var(--tier); line-height:0} .px-emblem svg{width:30px;height:30px}
+  .px-name{font:400 13px 'Press Start 2P', monospace; color:#fff; line-height:1.55; margin:12px 0 9px; text-transform:uppercase; word-break:break-word}
+  .px-rar{font:400 9.5px 'Press Start 2P', monospace; color:var(--tier); line-height:1.6}
   .px.enter{animation:px-in .4s steps(4,end) both}
   @keyframes px-in{0%{opacity:0; transform:scale(.4)} 100%{opacity:1; transform:scale(1)}}
   .px.leave{animation:px-out .2s steps(3,end) forwards}
@@ -193,28 +193,28 @@
 
   /* ===== STYLE 8 — NEON ===== */
   .ne{width:100%; display:flex; justify-content:center}
-  .ne-card{position:relative; overflow:hidden; padding:20px 26px; text-align:center; border-radius:4px; width:100%;
+  .ne-card{position:relative; overflow:hidden; padding:24px 30px; text-align:center; border-radius:4px; width:100%;
     background:linear-gradient(180deg,#150e28,#0a0716); border:2px solid var(--tier);
     box-shadow:0 0 18px var(--tier), inset 0 0 18px color-mix(in srgb,var(--tier) 30%, transparent)}
   .ne-grid{position:absolute; left:-20%; right:-20%; bottom:-12px; height:52%; opacity:.5; pointer-events:none;
     background:repeating-linear-gradient(90deg, color-mix(in srgb,var(--tier) 45%, transparent) 0 1px, transparent 1px 22px),
       repeating-linear-gradient(0deg, color-mix(in srgb,var(--tier) 45%, transparent) 0 1px, transparent 1px 16px);
     transform:perspective(200px) rotateX(62deg); transform-origin:bottom}
-  .ne-emblem{position:relative; color:var(--tier); line-height:0} .ne-emblem svg{width:26px;height:26px; filter:drop-shadow(0 0 8px var(--tier))}
-  .ne-name{position:relative; font:800 19px var(--display); text-transform:uppercase; color:#fff; margin-top:6px;
+  .ne-emblem{position:relative; color:var(--tier); line-height:0} .ne-emblem svg{width:30px;height:30px; filter:drop-shadow(0 0 8px var(--tier))}
+  .ne-name{position:relative; font:800 26px var(--display); text-transform:uppercase; color:#fff; margin-top:6px;
     text-shadow:0 0 8px var(--tier), 0 0 18px var(--tier)}
-  .ne-rar{position:relative; font:700 11px var(--display); letter-spacing:.14em; text-transform:uppercase; color:var(--tier); text-shadow:0 0 8px var(--tier)}
+  .ne-rar{position:relative; font:700 12.5px var(--display); letter-spacing:.14em; text-transform:uppercase; color:var(--tier); text-shadow:0 0 8px var(--tier)}
   .ne.enter{animation:ne-in .5s ease-out both}
   @keyframes ne-in{0%{opacity:0; transform:translateY(16px) scale(.96); filter:brightness(2.2)} 100%{opacity:1; transform:none; filter:brightness(1)}}
   .ne.leave{animation:a3-out .4s ease-in forwards}
 
   /* ===== STYLE 9 — TERMINALE ===== */
   .tm{width:100%}
-  .tm-panel{background:rgba(6,10,8,.92); border:1px solid var(--tier); border-left:3px solid var(--tier); padding:11px 14px;
+  .tm-panel{background:rgba(6,10,8,.92); border:1px solid var(--tier); border-left:3px solid var(--tier); padding:15px 18px;
     font-family:'Share Tech Mono', ui-monospace, monospace; box-shadow:0 10px 30px -12px rgba(0,0,0,.8), 0 0 20px -8px var(--tier)}
-  .tm-head{font-size:10px; letter-spacing:.2em; color:var(--tier); margin-bottom:7px; opacity:.85}
-  .tm-line{font-size:14px; color:#d4f0e0; line-height:1.5} .tm-name{color:var(--tier); font-weight:700}
-  .tm-dim{color:var(--muted); font-size:12px; margin-top:2px} .tm-dim b{color:var(--tier)}
+  .tm-head{font-size:12px; letter-spacing:.2em; color:var(--tier); margin-bottom:8px; opacity:.85}
+  .tm-line{font-size:17px; color:#d4f0e0; line-height:1.5} .tm-name{color:var(--tier); font-weight:700}
+  .tm-dim{color:var(--muted); font-size:14px; margin-top:3px} .tm-dim b{color:var(--tier)}
   .tm-cur{color:var(--tier); animation:tm-blink 1s steps(1) infinite}
   @keyframes tm-blink{50%{opacity:0}}
   .tm.enter{animation:tm-in .32s steps(7,end) both}
@@ -225,17 +225,17 @@
   .lt{position:relative; width:100%; display:flex; justify-content:center}
   .lt-beam{position:absolute; top:-150px; left:50%; width:120px; height:210px; transform:translateX(-50%); pointer-events:none; opacity:.8;
     background:linear-gradient(to top, color-mix(in srgb,var(--tier) 55%, transparent), transparent); filter:blur(7px)}
-  .lt-card{position:relative; display:flex; align-items:center; gap:13px; padding:12px 16px; border-radius:8px;
+  .lt-card{position:relative; width:100%; display:flex; align-items:center; gap:16px; padding:16px 22px; border-radius:8px;
     background:linear-gradient(180deg, color-mix(in srgb,var(--tier) 18%, #12121a), #0a0a12);
     border:1px solid var(--tier); box-shadow:0 14px 34px -14px rgba(0,0,0,.75), 0 0 26px -8px var(--tier)}
-  .lt-emblem{flex:0 0 auto; width:42px;height:42px;border-radius:7px;display:grid;place-items:center;color:var(--tier);
+  .lt-emblem{flex:0 0 auto; width:52px;height:52px;border-radius:9px;display:grid;place-items:center;color:var(--tier);
     background:color-mix(in srgb,var(--tier) 20%, #0a0a12); border:1px solid color-mix(in srgb,var(--tier) 45%, transparent)}
-  .lt-emblem svg{width:24px;height:24px}
+  .lt-emblem svg{width:28px;height:28px}
   .lt-info{min-width:0; text-align:left}
-  .lt-kicker{font:700 9px var(--display); letter-spacing:.22em; text-transform:uppercase; color:var(--muted)}
-  .lt-name{font:800 17px var(--display); text-transform:uppercase; color:#fff; line-height:1.1; margin:1px 0 2px;
+  .lt-kicker{font:700 10px var(--display); letter-spacing:.22em; text-transform:uppercase; color:var(--muted)}
+  .lt-name{font:800 23px var(--display); text-transform:uppercase; color:#fff; line-height:1.1; margin:1px 0 2px;
     text-shadow:0 0 14px color-mix(in srgb,var(--tier) 55%, transparent)}
-  .lt-rar{font:700 11px var(--display); letter-spacing:.06em; text-transform:uppercase; color:var(--tier)}
+  .lt-rar{font:700 12.5px var(--display); letter-spacing:.06em; text-transform:uppercase; color:var(--tier)}
   .lt.enter{animation:lt-in .5s cubic-bezier(.2,.8,.25,1.05) both}
   @keyframes lt-in{0%{opacity:0; transform:translateY(22px) scale(.94)} 100%{opacity:1; transform:none}}
   .lt.enter .lt-beam{animation:lt-beam .7s ease-out both}

@@ -36,7 +36,8 @@ public partial class SettingsWindow : Window
                 sound = _config.Sound,
                 position = _config.Position,
                 duration = _config.DurationMs,
-                startup = _config.StartWithWindows
+                startup = _config.StartWithWindows,
+                theme = _config.Theme
             });
             Web.CoreWebView2.ExecuteScriptAsync($"window.initSettings && window.initSettings({cfg})");
         };
@@ -59,6 +60,10 @@ public partial class SettingsWindow : Window
                     msg.sound ?? _config.Sound,
                     msg.position ?? _config.Position,
                     0.6, "Anteprima!");
+            }
+            else if (msg.action == "theme")
+            {
+                if (msg.theme != null) { _config.Theme = msg.theme; _config.Save(); }
             }
             else if (msg.action == "save")
             {
@@ -85,5 +90,6 @@ public partial class SettingsWindow : Window
         public string? position { get; set; }
         public int? duration { get; set; }
         public bool? startup { get; set; }
+        public string? theme { get; set; }
     }
 }
