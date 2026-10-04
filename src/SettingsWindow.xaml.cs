@@ -72,6 +72,8 @@ public partial class SettingsWindow : Window
                 startup = _config.StartWithWindows,
                 checkUpdates = _config.CheckUpdates,
                 theme = _config.Theme,
+                language = _config.Language,
+                osLang = Config.OsLang,
                 version = VersionString()
             });
             Web.CoreWebView2.ExecuteScriptAsync($"window.initSettings && window.initSettings({cfg})");
@@ -94,11 +96,20 @@ public partial class SettingsWindow : Window
                     msg.style ?? _config.Style,
                     msg.sound ?? _config.Sound,
                     msg.position ?? _config.Position,
-                    0.6, "Anteprima!");
+                    0.6, Loc.S(_config.EffectiveLanguage, "preview"));
             }
             else if (msg.action == "theme")
             {
                 if (msg.theme != null) { _config.Theme = msg.theme; _config.Save(); ApplyTitleBar(msg.theme != "light"); }
+            }
+            else if (msg.action == "language")
+            {
+                if (msg.language != null)
+                {
+                    _config.Language = msg.language;
+                    _config.Save();
+                    _overlay.ApplyLanguage();   // live-update the overlay's language
+                }
             }
             else if (msg.action == "save")
             {
@@ -112,6 +123,7 @@ public partial class SettingsWindow : Window
                     StartupManager.Apply(s);
                 }
                 if (msg.checkUpdates is bool u) _config.CheckUpdates = u;
+                if (msg.language != null) { _config.Language = msg.language; _overlay.ApplyLanguage(); }
                 _config.Save();
             }
         }
@@ -134,5 +146,6 @@ public partial class SettingsWindow : Window
         public bool? startup { get; set; }
         public bool? checkUpdates { get; set; }
         public string? theme { get; set; }
+        public string? language { get; set; }
     }
 }

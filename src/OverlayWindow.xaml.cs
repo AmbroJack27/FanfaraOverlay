@@ -40,10 +40,24 @@ public partial class OverlayWindow : Window
         Web.CoreWebView2.Settings.IsStatusBarEnabled = false;
         Web.CoreWebView2.Settings.AreDevToolsEnabled = false;
 
-        Web.CoreWebView2.NavigationCompleted += (_, _) => _ready = true;
+        Web.CoreWebView2.NavigationCompleted += (_, _) =>
+        {
+            _ready = true;
+            ApplyLanguage();   // set the overlay's language as soon as the page is loaded
+        };
 
         var html = Path.Combine(AppContext.BaseDirectory, "web", "notify.html");
         Web.CoreWebView2.Navigate(new Uri(html).AbsoluteUri);
+    }
+
+    /// <summary>Push the effective language (from config + OS) into the web layer.</summary>
+    public void ApplyLanguage() => SetLanguage(_config.EffectiveLanguage);
+
+    /// <summary>Tell the web layer which language to render notifications in.</summary>
+    public void SetLanguage(string lang)
+    {
+        if (!_ready) return;
+        Web.CoreWebView2.ExecuteScriptAsync($"window.fanfara && window.fanfara.setLang('{lang}')");
     }
 
     /// <summary>Ask the web layer to show a notification for an unlocked achievement.</summary>

@@ -3,5 +3,6 @@
   "Sound": "c_on",
   "Position": "bottom-center",
   "DurationMs": 4200,
-  "PollMs": 1000
+  "PollMs": 1000,
+  "Language": "auto"
 }

@@ -59,25 +59,26 @@ public partial class App : System.Windows.Application
 
     private async Task CheckForUpdatesAsync(bool silent)
     {
+        var lang = _config.EffectiveLanguage;
         var info = await Updater.CheckAsync();
         if (info == null)
         {
             if (!silent)
-                System.Windows.MessageBox.Show("Nessun aggiornamento disponibile: hai già l'ultima versione.",
+                System.Windows.MessageBox.Show(Loc.S(lang, "noUpdateBody"),
                     "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
         var r = System.Windows.MessageBox.Show(
-            $"È disponibile Fanfara {info.Version}.\n\nVuoi scaricarla e aggiornare ora?\n(Fanfara si chiuderà per installare la nuova versione.)",
-            "Aggiornamento disponibile", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            string.Format(Loc.S(lang, "updateAvailBody"), info.Version),
+            Loc.S(lang, "updateAvailTitle"), MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (r != MessageBoxResult.Yes) return;
 
         if (await Updater.DownloadAndRunAsync(info))
             Shutdown();   // free the files so the installer can replace them
         else
             System.Windows.MessageBox.Show(
-                "Non è stato possibile scaricare l'aggiornamento. Riprova più tardi, oppure scaricalo dalla pagina GitHub.",
+                Loc.S(lang, "downloadFailBody"),
                 "Fanfara", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
@@ -113,12 +114,13 @@ public partial class App : System.Windows.Application
             Visible = true,
             Icon = icon
         };
+        var lang = _config.EffectiveLanguage;
         var menu = new System.Windows.Forms.ContextMenuStrip();
-        menu.Items.Add("Impostazioni", null, (_, _) => ShowSettings());
-        menu.Items.Add("Prova notifica", null, (_, _) =>
-            _overlay?.ShowPreview(_config.Style, _config.Sound, _config.Position, 0.6, "Anteprima!"));
-        menu.Items.Add("Controlla aggiornamenti", null, (_, _) => _ = CheckForUpdatesAsync(silent: false));
-        menu.Items.Add("Esci", null, (_, _) => Shutdown());
+        menu.Items.Add(Loc.S(lang, "settings"), null, (_, _) => ShowSettings());
+        menu.Items.Add(Loc.S(lang, "testNotif"), null, (_, _) =>
+            _overlay?.ShowPreview(_config.Style, _config.Sound, _config.Position, 0.6, Loc.S(_config.EffectiveLanguage, "preview")));
+        menu.Items.Add(Loc.S(lang, "checkUpdates"), null, (_, _) => _ = CheckForUpdatesAsync(silent: false));
+        menu.Items.Add(Loc.S(lang, "quit"), null, (_, _) => Shutdown());
         _tray.ContextMenuStrip = menu;
         _tray.DoubleClick += (_, _) => ShowSettings();
     }

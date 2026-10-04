@@ -60,7 +60,7 @@
   .screen{aspect-ratio:16/9; width:100%; background:linear-gradient(180deg,var(--panel-2),var(--panel-3));
     border:1px solid var(--line); border-radius:11px; padding:10px; display:grid;
     grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:8px; position:relative}
-  .screen::after{content:"SCHERMO"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  .screen::after{content:var(--screenlbl,"SCHERMO"); position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     font:800 11px var(--display); letter-spacing:.3em; color:color-mix(in srgb,var(--fg) 8%, transparent); pointer-events:none}
   .pos{border:1px dashed color-mix(in srgb,var(--fg) 16%, transparent); border-radius:7px; cursor:pointer}
   .pos:hover{border-color:var(--accent); background:color-mix(in srgb,var(--accent) 8%, transparent)}
@@ -91,6 +91,9 @@
   .btn{cursor:pointer; border:1px solid var(--line); border-radius:11px; padding:12px 22px; font:700 13.5px var(--display)}
   .btn.test{background:var(--panel-2); color:var(--fg)} .btn.test:hover{background:var(--panel-3)}
   .btn.save{background:linear-gradient(145deg,var(--accent-2),var(--accent)); color:var(--ink); border-color:var(--accent)}
+  .langsel{width:100%; background:var(--panel-2); color:var(--fg); border:1px solid var(--line);
+    border-radius:11px; padding:12px 13px; font:600 13px var(--body); cursor:pointer}
+  .langsel:focus{outline:none; border-color:var(--accent)}
 
   @media (max-width:760px){ .pane{grid-template-columns:1fr; overflow:auto} .colL .block{flex:none} .scroll{max-height:220px} }
 </style>
@@ -99,36 +102,38 @@
 <div id="app" data-mode="dark">
   <div class="head">
     <div class="badge"><svg viewBox="0 0 24 24" fill="var(--accent)"><path d="M6 3 H18 V6.4 C18 10.6 15.3 13 12 13 C8.7 13 6 10.6 6 6.4 Z"/><path d="M11 12.8 H13 V15.6 H11 Z"/><path d="M8.2 15.5 H15.8 L16.9 18.6 H7.1 Z"/><path d="M6.5 18.6 H17.5 V20.3 H6.5 Z"/><path d="M6 4.6 C2.4 4.6 2.4 10.2 7 10.4 M18 4.6 C21.6 4.6 21.6 10.2 17 10.4" stroke="var(--accent)" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
-    <div><h1>Fanfara</h1><small>Scegli come appare lo sblocco degli obiettivi</small></div>
+    <div><h1>Fanfara</h1><small id="subtitle">Scegli come appare lo sblocco degli obiettivi</small></div>
     <div class="spacer"></div>
     <button class="themebtn" id="theme"></button>
   </div>
 
   <div class="pane">
     <div class="col colL">
-      <div class="block"><div class="panel-title">Stile</div><div id="stilebar"></div><div class="scroll" id="stile"></div></div>
+      <div class="block"><div class="panel-title" id="pt-style">Stile</div><div id="stilebar"></div><div class="scroll" id="stile"></div></div>
     </div>
     <div class="col">
-      <div><div class="panel-title">Posizione sullo schermo</div><div class="screen" id="screen"></div><div class="poslab" id="poslab"></div></div>
+      <div><div class="panel-title" id="pt-pos">Posizione sullo schermo</div><div class="screen" id="screen"></div><div class="poslab" id="poslab"></div></div>
       <div><div class="panel-title" id="durtitle">Durata</div><div class="range">
         <input type="range" id="dur" min="2" max="12" step="0.5" value="4.2"><span class="durv" id="durv">4.2s</span></div></div>
-      <div class="toggle"><div><b>Avvia all'accensione del PC</b><small>Fanfara parte da sola con Windows, pronta nel tray.</small></div>
+      <div><div class="panel-title" id="pt-lang">Lingua</div><select id="lang" class="langsel"></select></div>
+      <div class="toggle"><div><b id="startupT">Avvia all'accensione del PC</b><small id="startupS">Fanfara parte da sola con Windows, pronta nel tray.</small></div>
         <label class="switch"><input type="checkbox" id="startup"><span class="slider"></span></label></div>
-      <div class="toggle"><div><b>Controlla aggiornamenti all'avvio</b><small>Avvisa quando esce una nuova versione su GitHub.</small></div>
+      <div class="toggle"><div><b id="updatesT">Controlla aggiornamenti all'avvio</b><small id="updatesS">Avvisa quando esce una nuova versione su GitHub.</small></div>
         <label class="switch"><input type="checkbox" id="updates"><span class="slider"></span></label></div>
     </div>
   </div>
 
   <div class="foot">
     <span class="ver" id="ver"></span>
-    <div class="hint">Premi <b>Prova</b> per l'anteprima a schermo, <b>Salva</b> per applicare.</div>
+    <div class="hint" id="hint">Premi <b>Prova</b> per l'anteprima a schermo, <b>Salva</b> per applicare.</div>
     <div class="saved" id="saved">Salvato ✓</div>
     <button class="btn test" id="btnTest">▶ Prova</button>
     <button class="btn save" id="btnSave">Salva</button>
   </div>
-  <div class="disc">Progetto amatoriale, non affiliato né approvato dalle case produttrici. Tutti i marchi appartengono ai rispettivi proprietari.</div>
+  <div class="disc" id="disc">Progetto amatoriale, non affiliato né approvato dalle case produttrici. Tutti i marchi appartengono ai rispettivi proprietari.</div>
 </div>
 
+<script src="i18n.js"></script>
 <script>
 const STYLES=[['xbox','Xbox'],['playstation','PlayStation'],['switch','Switch'],['mh','Monster Hunter'],['sf','Street Fighter'],['mm','Mega Man'],['dmc','Devil May Cry'],['dd',"Dragon's Dogma"],['dr','Dead Rising'],['dc','Dino Crisis'],['re','Resident Evil'],['ff','Final Fantasy'],['ct','Chrono Trigger'],['cc','Chrono Cross'],['xg','Xenogears'],['vs','Vagrant Story'],['som','Secret of Mana'],['kh','Kingdom Hearts'],['tr','Tomb Raider'],['dx','Deus Ex'],['ha','Halo'],['fz','Forza'],['gw','Gears of War'],['fb','Fable'],['ae','Age of Empires'],['mc','Minecraft'],['ac',"Assassin's Creed"],['r6','Rainbow Six'],['gr','Ghost Recon'],['td','The Division'],['sc','Splinter Cell'],['fc','Far Cry'],['ry','Rayman'],['an','Anno'],['wi','The Witcher'],['cp','Cyberpunk 2077'],['on','Onda'],['pu','Pulsar'],['mo','Mosaico'],['nu','Numero'],['ca','Carica'],['co','Coriandoli'],['ne','Nebula'],['tt','Tratto'],['pg','Piega'],['ob','Orbita']];
 const CONSOLE=['xbox','playstation','switch'];
@@ -146,19 +151,56 @@ const isUbisoft=v=>UBISOFT.includes(v);
 const isCdprojekt=v=>CDPROJEKT.includes(v);
 const isBase=v=>BASE.includes(v);
 const POSGRID=[['top-left','top-center','top-right'],['','center',''],['bottom-left','bottom-center','bottom-right']];
-const POSLAB={'top-left':'In alto a sinistra','top-center':'In alto al centro','top-right':'In alto a destra','center':'Al centro','bottom-left':'In basso a sinistra','bottom-center':'In basso al centro','bottom-right':'In basso a destra'};
 const is3D=v=>v.endsWith('3d')||v==='scudo';
 
-const S={style:'on', sound:'classic', position:'bottom-center', duration:4200, startup:false, updates:true, theme:'dark', filter:'tutti'};
+// ---- Language (IT/EN/FR/DE/ES), all strings from i18n.js ----
+const NATIVE={it:'Italiano',en:'English',fr:'Français',de:'Deutsch',es:'Español'};
+let LANG='it';
+let U=FAN_I18N.ui.it;        // current UI strings
+let POSLAB=FAN_I18N.pos.it;  // current position labels
+
+const S={style:'on', sound:'classic', position:'bottom-center', duration:4200, startup:false, updates:true, theme:'dark', filter:'tutti', language:'auto', osLang:''};
 const $=s=>document.querySelector(s);
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function send(o){ try{ window.chrome.webview.postMessage(JSON.stringify(o)); }catch(e){} }
+const durLabel=()=> U.duration+' · '+(S.duration/1000).toFixed(1)+'s';
+
+function renderLangSelect(){
+  const sel=$('#lang');
+  sel.innerHTML=`<option value="auto">${U.langAuto}</option>`+
+    window.FAN_LANGS.map(l=>`<option value="${l}">${NATIVE[l]}</option>`).join('');
+  sel.value=S.language;
+}
+function applyI18n(){
+  document.documentElement.lang = LANG;
+  $('#subtitle').textContent=U.subtitle;
+  $('#pt-style').textContent=U.style;
+  $('#pt-pos').textContent=U.position;
+  $('#pt-lang').textContent=U.language;
+  $('#startupT').textContent=U.startupT;
+  $('#startupS').textContent=U.startupS;
+  $('#updatesT').textContent=U.updatesT;
+  $('#updatesS').textContent=U.updatesS;
+  $('#disc').textContent=U.disc;
+  $('#hint').innerHTML=`${U.hintPre} <b>${U.test}</b> ${U.hintMid} <b>${U.save}</b> ${U.hintPost}`;
+  $('#saved').textContent=U.saved;
+  $('#btnTest').textContent='▶ '+U.test;
+  $('#btnSave').textContent=U.save;
+  $('#durtitle').textContent=durLabel();
+  $('#app').style.setProperty('--screenlbl', '"'+U.screen+'"');
+}
+function setUILang(eff){
+  LANG = (FAN_I18N.ui[eff]? eff : 'it');
+  U = FAN_I18N.ui[LANG];
+  POSLAB = FAN_I18N.pos[LANG];
+  applyI18n(); renderLangSelect(); renderStyles(); renderPos(); applyTheme();
+}
 
 const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 const MOON='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
 
 function renderStyles(){
-  $('#stilebar').innerHTML = `<div class="subseg">`+[['tutti','Tutti'],['base','Base'],['console','Console'],['capcom','Capcom'],['square','Square-Enix'],['microsoft','Microsoft'],['ubisoft','Ubisoft'],['cdprojekt','CD Projekt']].map(([v,l])=>`<button class="${S.filter===v?'on':''}" data-f="${v}">${l}</button>`).join('')+`</div>`;
+  $('#stilebar').innerHTML = `<div class="subseg">`+[['tutti',U.all],['base','Base'],['console','Console'],['capcom','Capcom'],['square','Square-Enix'],['microsoft','Microsoft'],['ubisoft','Ubisoft'],['cdprojekt','CD Projekt']].map(([v,l])=>`<button class="${S.filter===v?'on':''}" data-f="${v}">${l}</button>`).join('')+`</div>`;
   const list = STYLES.filter(([v])=> S.filter==='base'?isBase(v) : S.filter==='cdprojekt'?isCdprojekt(v) : S.filter==='ubisoft'?isUbisoft(v) : S.filter==='microsoft'?isMicrosoft(v) : S.filter==='square'?isSquare(v) : S.filter==='capcom'?isCapcom(v) : S.filter==='console'?isConsole(v) : true);
   $('#stile').innerHTML = `<div class="grid">`+list.map(([v,l])=>`<div class="chip ${S.style===v?'sel':''}" data-style="${v}"><b>${esc(l)}</b><small>${isBase(v)?'base':(isCdprojekt(v)?'cd projekt':(isUbisoft(v)?'ubisoft':(isMicrosoft(v)?'microsoft':(isSquare(v)?'square-enix':(isCapcom(v)?'capcom':'console')))))}</small><div class="tk">✓</div></div>`).join('')+`</div>`;
   $('#stilebar').querySelectorAll('[data-f]').forEach(e=>e.onclick=()=>{S.filter=e.dataset.f; renderStyles();});
@@ -166,10 +208,10 @@ function renderStyles(){
 }
 function renderPos(){
   $('#screen').innerHTML = POSGRID.flat().map(p=>p?`<div class="pos ${S.position===p?'sel':''}" data-pos="${p}" title="${POSLAB[p]}"></div>`:`<div class="pos empty"></div>`).join('');
-  $('#poslab').innerHTML = `Selezionata: <b>${POSLAB[S.position]||'—'}</b>`;
+  $('#poslab').innerHTML = `${U.selected} <b>${POSLAB[S.position]||'—'}</b>`;
   $('#screen').querySelectorAll('[data-pos]').forEach(e=>e.onclick=()=>{S.position=e.dataset.pos; renderPos();});
 }
-function applyTheme(){ $('#app').dataset.mode=S.theme; $('#theme').innerHTML = S.theme==='dark' ? MOON+'<span>Scuro</span>' : SUN+'<span>Chiaro</span>'; }
+function applyTheme(){ $('#app').dataset.mode=S.theme; $('#theme').innerHTML = S.theme==='dark' ? MOON+'<span>'+U.dark+'</span>' : SUN+'<span>'+U.light+'</span>'; }
 
 window.initSettings = cfg => {
   if(!cfg) return;
@@ -181,27 +223,31 @@ window.initSettings = cfg => {
   if(typeof cfg.startup==='boolean') S.startup=cfg.startup;
   if(typeof cfg.checkUpdates==='boolean') S.updates=cfg.checkUpdates;
   if(cfg.theme) S.theme=cfg.theme;
+  if(cfg.osLang) S.osLang=cfg.osLang;
+  if(cfg.language) S.language=cfg.language;
   if(cfg.version) $('#ver').textContent=cfg.version;
   $('#dur').value=(S.duration/1000).toString(); $('#durv').textContent=(S.duration/1000).toFixed(1)+'s';
-  $('#durtitle').textContent='Durata · '+(S.duration/1000).toFixed(1)+'s';
   $('#startup').checked=S.startup;
   $('#updates').checked=S.updates;
-  applyTheme(); renderStyles(); renderPos();
+  setUILang(window.resolveLang(S.language, S.osLang));
 };
 
 $('#dur').oninput=()=>{ S.duration=Math.round(parseFloat($('#dur').value||'4.2')*1000);
-  $('#durv').textContent=(S.duration/1000).toFixed(1)+'s'; $('#durtitle').textContent='Durata · '+(S.duration/1000).toFixed(1)+'s'; };
+  $('#durv').textContent=(S.duration/1000).toFixed(1)+'s'; $('#durtitle').textContent=durLabel(); };
 $('#startup').onchange=()=>{ S.startup=$('#startup').checked; };
 $('#updates').onchange=()=>{ S.updates=$('#updates').checked; };
 $('#theme').onclick=()=>{ S.theme = S.theme==='dark'?'light':'dark'; applyTheme(); send({action:'theme', theme:S.theme}); };
+$('#lang').onchange=()=>{ S.language=$('#lang').value;
+  setUILang(window.resolveLang(S.language, S.osLang));
+  send({action:'language', language:S.language}); };
 
-function vals(){ return {style:S.style, position:S.position, duration:S.duration, startup:S.startup, checkUpdates:S.updates}; }
+function vals(){ return {style:S.style, position:S.position, duration:S.duration, startup:S.startup, checkUpdates:S.updates, language:S.language}; }
 $('#btnTest').onclick=()=> send(Object.assign({action:'test'}, vals()));
 $('#btnSave').onclick=()=>{ send(Object.assign({action:'save'}, vals()));
   const s=$('#saved'); s.classList.add('on'); setTimeout(()=>s.classList.remove('on'),1600); };
 
 // first paint before the host pushes config
-applyTheme(); renderStyles(); renderPos();
+setUILang(window.resolveLang(S.language, (navigator.language||'it')));
 </script>
 </body>
 </html>

@@ -977,6 +977,7 @@
 </head>
 <body>
 <div id="zone" class="pos-bottom-center"></div>
+<script src="i18n.js"></script>
 <script>
   const GLYPH = '<svg class="glyph" viewBox="0 0 24 24" aria-hidden="true">'+
     '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>'+
@@ -987,21 +988,37 @@
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let style = "arcade", currentSound = "classic", current = null, timer = null, seqTok = 0;
 
+  // ---- Language (IT/EN/FR/DE/ES) — all notification text comes from i18n.js ----
+  let LANG = "it";
+  let LAB    = FAN_I18N.lab.it;
+  let TIER   = FAN_I18N.tier.it;
+  let PSM    = FAN_I18N.psmetal.it;
+  let CONLAB = FAN_I18N.conlab.it;
+  function setLang(l){
+    if(!FAN_I18N.ui[l]) l = "it";
+    LANG = l;
+    LAB    = FAN_I18N.lab[l];
+    TIER   = FAN_I18N.tier[l];
+    PSM    = FAN_I18N.psmetal[l];
+    CONLAB = FAN_I18N.conlab[l];
+    PKG_RANKS = FAN_I18N.ranks[l];
+  }
+
   function tierFromPercent(p){
-    if(p<1) return {id:"legendary", label:"Leggendario", fx:5};
-    if(p<5) return {id:"epic", label:"Epico", fx:4};
-    if(p<10) return {id:"rare", label:"Raro", fx:3};
-    if(p<40) return {id:"uncommon", label:"Non comune", fx:2};
-    return {id:"common", label:"Comune", fx:1};
+    if(p<1) return {id:"legendary", label:TIER[4], fx:5};
+    if(p<5) return {id:"epic", label:TIER[3], fx:4};
+    if(p<10) return {id:"rare", label:TIER[2], fx:3};
+    if(p<40) return {id:"uncommon", label:TIER[1], fx:2};
+    return {id:"common", label:TIER[0], fx:1};
   }
 
   function buildConsole(t){
     const el = document.createElement("div"); el.className = "plaque tier-"+t.id;
     el.innerHTML =
       '<span class="accent"></span><div class="icon">'+GLYPH+'</div>'+
-      '<div class="txt"><div class="eyebrow">Obiettivo sbloccato</div>'+
+      '<div class="txt"><div class="eyebrow">'+CONLAB.xbox+'</div>'+
       '<div class="name">'+t.name+'</div>'+
-      '<div class="meta"><span class="rarity">'+t.label+'</span> · '+t.pct+' dei giocatori</div></div>'+
+      '<div class="meta"><span class="rarity">'+t.label+'</span> · '+t.pct+'</div></div>'+
       '<div class="shine"><i></i></div><div class="sparks"></div>';
     return el;
   }
@@ -1015,9 +1032,9 @@
   function buildArcade(t){
     const el = document.createElement("div"); el.className = "arc tier-"+t.id;
     el.innerHTML =
-      '<div class="a-bar"></div><div class="a-label">Obiettivo sbloccato</div>'+
+      '<div class="a-bar"></div><div class="a-label">'+CONLAB.xbox+'</div>'+
       '<div class="a-name">'+t.name+'</div>'+
-      '<div class="a-rar"><b>'+t.label+'</b> · '+t.pct+' dei giocatori</div>'+
+      '<div class="a-rar"><b>'+t.label+'</b> · '+t.pct+'</div>'+
       '<div class="a-bar b2"></div><div class="sparks"></div>';
     return el;
   }
@@ -1026,9 +1043,9 @@
     el.innerHTML =
       '<div class="a3-stage"><div class="a3-slab">'+
         '<div class="a3-glow"></div><div class="a3-ico">'+GLYPH+'</div>'+
-        '<div class="a3-bar"></div><div class="a3-label">Obiettivo sbloccato</div>'+
+        '<div class="a3-bar"></div><div class="a3-label">'+CONLAB.xbox+'</div>'+
         '<div class="a3-name">'+t.name+'</div>'+
-        '<div class="a3-rar"><b>'+t.label+'</b> · '+t.pct+' dei giocatori</div>'+
+        '<div class="a3-rar"><b>'+t.label+'</b> · '+t.pct+'</div>'+
         '<div class="sparks"></div>'+
       '</div></div>';
     return el;
@@ -1094,7 +1111,7 @@
   function buildLoot(t){
     const el=document.createElement("div"); el.className="lt tier-"+t.id;
     el.innerHTML='<div class="lt-beam"></div><div class="lt-card"><div class="lt-emblem">'+GLYPH+'</div>'+
-      '<div class="lt-info"><div class="lt-kicker">Oggetto ottenuto</div>'+
+      '<div class="lt-info"><div class="lt-kicker">'+CONLAB.xbox+'</div>'+
       '<div class="lt-name">'+t.name+'</div><div class="lt-rar"><b>'+t.label+'</b> · '+t.pct+'</div></div></div><div class="sparks"></div>';
     return el;
   }
@@ -1110,26 +1127,24 @@
   const DIAMOND_SVG='<svg viewBox="0 0 24 24"><defs><linearGradient id="dgn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eafcff"/><stop offset="0.5" stop-color="#9fe3ff"/><stop offset="1" stop-color="#4bb8e6"/></linearGradient></defs><g stroke="rgba(255,255,255,.55)" stroke-width="0.4"><path fill="url(#dgn)" d="M6 4 H18 L21 9 H3 Z"/><path fill="url(#dgn)" d="M3 9 H21 L12 21 Z"/></g><g stroke="rgba(255,255,255,.5)" stroke-width="0.4" fill="none"><path d="M6 4 L9 9 L12 21 M18 4 L15 9 L12 21 M9 9 H15"/></g></svg>';
   const TROPHY_METAL_SVG='<svg viewBox="0 0 24 24"><defs><linearGradient id="psmetal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset="0.35" stop-color="var(--metal)"/><stop offset="1" stop-color="var(--metal2)"/></linearGradient></defs><g fill="url(#psmetal)" stroke="rgba(0,0,0,.3)" stroke-width="0.4"><path d="M6 3 H18 V6.4 C18 10.6 15.3 13 12 13 C8.7 13 6 10.6 6 6.4 Z"/><path d="M11 12.8 H13 V15.6 H11 Z"/><path d="M8.2 15.5 H15.8 L16.9 18.6 H7.1 Z"/><path d="M6.5 18.6 H17.5 V20.3 H6.5 Z"/></g><path d="M6 4.6 C2.4 4.6 2.4 10.2 7 10.4 M18 4.6 C21.6 4.6 21.6 10.2 17 10.4" stroke="url(#psmetal)" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>';
   const SPK='<div class="spk"><i></i><i></i><i></i><i></i><i></i><i></i></div>';
-  const PS_METAL={common:"Bronzo",uncommon:"Argento",rare:"Oro",epic:"Oro",legendary:"Platino"};
-
   function buildXbox(t){
     const el=document.createElement("div"); el.className="xb tier-"+t.id;
     el.innerHTML='<div class="ring">'+(t.id==="legendary"?DIAMOND_SVG:STAR_SVG)+'</div>'+
-      '<div class="xb-info"><div class="xb-lab">Obiettivo sbloccato</div>'+
+      '<div class="xb-info"><div class="xb-lab">'+CONLAB.xbox+'</div>'+
       '<div class="xb-name">'+t.name+'</div><div class="xb-rar">'+t.label+' · '+t.pct+'</div></div>'+SPK;
     return el;
   }
   function buildPlaystation(t){
     const el=document.createElement("div"); el.className="ps tier-"+t.id;
     el.innerHTML='<div class="ps-tro">'+TROPHY_METAL_SVG+'</div>'+
-      '<div class="ps-info"><div class="ps-lab">Trofeo sbloccato</div>'+
-      '<div class="ps-name">'+t.name+'</div><div class="ps-mt">'+(PS_METAL[t.id]||"Bronzo")+' · '+t.pct+'</div></div>'+SPK;
+      '<div class="ps-info"><div class="ps-lab">'+CONLAB.ps+'</div>'+
+      '<div class="ps-name">'+t.name+'</div><div class="ps-mt">'+(PSM[t.id]||PSM.common)+' · '+t.pct+'</div></div>'+SPK;
     return el;
   }
   function buildSwitch(t){
     const el=document.createElement("div"); el.className="ni tier-"+t.id;
     el.innerHTML='<div class="ni-em">'+STAR_SVG+'</div>'+
-      '<div class="ni-info"><div class="ni-lab">Obiettivo!</div>'+
+      '<div class="ni-info"><div class="ni-lab">'+CONLAB.ni+'</div>'+
       '<div class="ni-name">'+t.name+'</div><div class="ni-rar">'+t.label+' · '+t.pct+'</div></div>'+SPK;
     return el;
   }
@@ -1366,94 +1381,52 @@ function neMark(i){return '';}
 function ttMark(i){const paths=['M60 20 h.5','M14 20 H106','M14 26 Q60 -6 106 26','M14 20 l18 10 l18 -18 l18 18 l18 -10','M12 24 C30 2 44 36 60 20 C76 4 86 34 108 16'][i];return `<svg class="ink" viewBox="0 0 120 40"><path d="${paths[i]}"/></svg>`;}
 function pgMark(i){const n=[3,4,5,6,8][i];const R=34,cx=36,cy=36;let p='';const cols=['#e8c477','#c89a4a'];for(let k=0;k<n;k++){const a0=(k/n)*2*Math.PI-Math.PI/2,a1=((k+1)/n)*2*Math.PI-Math.PI/2;const x0=(cx+R*Math.cos(a0)).toFixed(1),y0=(cy+R*Math.sin(a0)).toFixed(1),x1=(cx+R*Math.cos(a1)).toFixed(1),y1=(cy+R*Math.sin(a1)).toFixed(1);p+=`<path d="M${cx} ${cy} L${x0} ${y0} L${x1} ${y1} Z" fill="${cols[k%2]}" stroke="#1a140a" stroke-width=".6"/>`;}return `<svg class="fold" viewBox="0 0 72 72">${p}</svg>`;}
 function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;const off=(92-sz)/2;r+=`<i style="width:${sz}px;height:${sz}px;top:${off}px;left:${off}px;--sp:${(2.5+k*1.1).toFixed(1)}s;animation-delay:${(-k*0.5).toFixed(1)}s"></i>`;}return `<div class="orbit"><b></b>${r}</div>`;}
-  const PKG_RANKS={
-    on:['Pianissimo','Piano','Mezzo','Forte','Fortissimo'],
-  pu:['Eco','Doppia eco','Tripla eco','Riverbero','Risonanza'],
-  mo:['1 tassello','3 tasselli','5 tasselli','7 tasselli','Completo'],
-  nu:['I','II','III','IV','V'],
-  ca:['20%','40%','60%','80%','100%'],
-  co:['Lancio','Festa','Grande festa','Trionfo','Esplosione'],
-  ne:['Alba','Crepuscolo','Aurora','Boreale','Cosmo'],
-  tt:['Punto','Linea','Curva','Ghirigoro','Firma'],
-  pg:['Piega','Doppia','Tripla','Origami','Tessellato'],
-  ob:['1 orbita','2 orbite','3 orbite','4 orbite','Sistema'],
-    wi:['Solo la Storia','Storia e Spada','Sangue e Ossa','Marcia Mortale','Gran Maestro'],
-  cp:['Novellino','Rispettato','Mercenario','Leggenda','Edgerunner'],
-    mh:['Grado basso','Grado alto','Grado maestro','Grado veterano',"Corona d'oro ★"],
-  sf:['GOOD','GREAT','SUPER!','ULTRA!','PERFECT!'],
-  mm:['Energia','Capsula','Arma speciale','E-Tank','Potere Robotico!'],
-  dmc:['D','C','B','A','SSS'],
-  dd:['Pedina','Avventuriero','Prescelto','Cacciatore di draghi','Arisen'],
-  dr:['+100 PP','+500 PP','+1.000 PP','+5.000 PP','+10.000 PP!'],
-  dc:['Minaccia: Compy','Minaccia: Raptor','Minaccia: Allosauro','Minaccia: T-Rex','ESTINZIONE'],
-  re:['RANGO D','RANGO C','RANGO B','RANGO A','RANGO S'],
-    ff:['Recluta','Cavaliere','Eroe','Paladino','Leggendario'],
-  ct:['65.000.000 a.C.','600 d.C.','1000 d.C.','2300 d.C.','Fine del Tempo'],
-  cc:['Elemento Lv.1','Elemento Lv.2','Elemento Lv.3','Elemento Lv.4','Stella Astrale'],
-  xg:['Attivazione','Sincronia','Risveglio','Gear completo','Divinità'],
-  vs:['CHAIN ×2','CHAIN ×5','RISK basso','RISK alto','PERFETTO'],
-  som:['Arma Lv.1','Arma Lv.3','Arma Lv.5','Arma Lv.7','Arma Lv.8 ★'],
-  kh:['Livello','Valor','Wisdom','Master','Final Form'],
-  tr:['Reperto','Reliquia','Tesoro','Artefatto','Leggenda'],
-  dx:['Augment Lv.1','Augment Lv.2','Augment Lv.3','Praxis','Singolarità'],
-    ha:['Facile','Normale','Eroica','Leggendaria','Mitica'],
-  fz:['Bene','Ottimo','Fantastico','Incredibile','Ultimate!'],
-  gw:['Casual','Normale','Hardcore','Folle','Inconcepibile'],
-  fb:['Novizio','Avventuriero','Eroe','Campione','Leggenda'],
-  ae:['Età Oscura','Età Feudale','Età dei Castelli','Età Imperiale','Meraviglia'],
-  mc:['Legno','Pietra','Ferro','Diamante','Netherite'],
-    ac:['Novizio','Apprendista','Assassino','Veterano','Maestro Assassino'],
-  r6:['Rame','Argento','Oro','Diamante','Campione'],
-  gr:['Soldato','Caporale','Sergente','Capitano','Fantasma'],
-  td:['Attivazione','Agente','Veterano','Elite','Comando SHD'],
-  sc:['Furtivo','Silenzioso','Ombra','Fantasma','Invisibile'],
-  fc:['Avamposto','Zona liberata','Regione','Territorio','Liberatore'],
-  ry:['Bronzo','Argento','Oro','Platino','Re dei Lums'],
-  an:['Contadini','Lavoratori','Artigiani','Ingegneri','Investitori']
-  };
+  // Per-style rank ladders now live in i18n.js (translated for every language).
+  // setLang() reassigns this; default to Italian until the host sets the language.
+  let PKG_RANKS = FAN_I18N.ranks.it;
   const PKG_EMB={mh:mhEmblem,mm:mmEmblem,dd:ddEmblem,dr:drEmblem,dc:dcEmblem,re:reEmblem,ff:ffEmblem,ct:ctEmblem,cc:ccEmblem,xg:xgEmblem,vs:vsEmblem,som:somEmblem,kh:khEmblem,tr:trEmblem,dx:dxEmblem,ha:haEmblem,fz:fzEmblem,gw:gwEmblem,fb:fbEmblem,ae:aeEmblem,mc:mcEmblem,ac:acEmblem,r6:r6Emblem,gr:grEmblem,td:tdEmblem,sc:scEmblem,fc:fcEmblem,ry:ryEmblem,an:anEmblem,wi:wiEmblem,cp:cpEmblem,on:onMark,pu:puMark,mo:moMark,nu:nuMark,ca:caMark,co:coMark,ne:neMark,tt:ttMark,pg:pgMark,ob:obMark};
   const TI={common:0,uncommon:1,rare:2,epic:3,legendary:4};
   const PKG_INNER={
-    mh:(n,i)=>`<div class="em">${PKG_EMB.mh(i)}</div><div><div class="lab">Caccia completata</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.mh[i]}</div></div>${SPK}`,
+    mh:(n,i)=>`<div class="em">${PKG_EMB.mh(i)}</div><div><div class="lab">${LAB.mh}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.mh[i]}</div></div>${SPK}`,
     sf:(n,i)=>`<div class="burst"></div><div class="txt"><div class="rk">${PKG_RANKS.sf[i]}</div><div class="nm">${n}</div></div>${SPK}`,
-    mm:(n,i)=>`<div class="em">${PKG_EMB.mm(i)}</div><div><div class="lab">Potenziamento</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.mm[i]}</div></div>${SPK}`,
+    mm:(n,i)=>`<div class="em">${PKG_EMB.mm(i)}</div><div><div class="lab">${LAB.mm}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.mm[i]}</div></div>${SPK}`,
     dmc:(n,i)=>`<div class="slash"></div><div class="rank">${PKG_RANKS.dmc[i]}</div><div class="cap">${n}</div>${SPK}`,
-    dd:(n,i)=>`<div class="em">${PKG_EMB.dd(i)}</div><div><div class="lab">Impresa leggendaria</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.dd[i]}</div></div>${SPK}`,
+    dd:(n,i)=>`<div class="em">${PKG_EMB.dd(i)}</div><div><div class="lab">${LAB.dd}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.dd[i]}</div></div>${SPK}`,
     dr:(n,i)=>`<div class="flash"></div><div class="polaroid"><div class="pic">${PKG_EMB.dr(i)}</div><div class="cap">${n}<small>${PKG_RANKS.dr[i]}</small></div></div>${SPK}`,
-    dc:(n,i)=>`<div class="alert"></div><div class="dcrow"><div class="dceml">${PKG_EMB.dc(i)}</div><div><div class="lab">⚠ Minaccia eliminata</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.dc[i]}</div></div></div><div class="claw"><i></i><i></i><i></i></div>${SPK}`,
-    re:(n,i)=>`<div class="em">${PKG_EMB.re(i)}</div><div><div class="lab">Oggetto acquisito</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.re[i]}</div></div>${SPK}`,
-    ff:(n,i)=>`<div class="em">${PKG_EMB.ff(i)}</div><div><div class="hd">✦ VITTORIA ✦</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ff[i]}</div></div>${SPK}`,
+    dc:(n,i)=>`<div class="alert"></div><div class="dcrow"><div class="dceml">${PKG_EMB.dc(i)}</div><div><div class="lab">${LAB.dc}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.dc[i]}</div></div></div><div class="claw"><i></i><i></i><i></i></div>${SPK}`,
+    re:(n,i)=>`<div class="em">${PKG_EMB.re(i)}</div><div><div class="lab">${LAB.re}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.re[i]}</div></div>${SPK}`,
+    ff:(n,i)=>`<div class="em">${PKG_EMB.ff(i)}</div><div><div class="hd">${LAB.ff}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ff[i]}</div></div>${SPK}`,
     ct:(n,i)=>`<div class="gate"></div><div class="ring"></div><div class="em">${PKG_EMB.ct(i)}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ct[i]}</div>${SPK}`,
-    cc:(n,i)=>`<div class="em">${PKG_EMB.cc(i)}</div><div><div class="hd">Destino intrecciato</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.cc[i]}</div></div>${SPK}`,
-    xg:(n,i)=>`<div class="row"><div class="em">${PKG_EMB.xg(i)}</div><div><div class="hd">SYSTEM // RISVEGLIO</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.xg[i]}</div></div></div>${SPK}`,
-    vs:(n,i)=>`<div class="em">${PKG_EMB.vs(i)}</div><div><div class="hd">Impresa oscura</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.vs[i]}</div></div>${SPK}`,
+    cc:(n,i)=>`<div class="em">${PKG_EMB.cc(i)}</div><div><div class="hd">${LAB.cc}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.cc[i]}</div></div>${SPK}`,
+    xg:(n,i)=>`<div class="row"><div class="em">${PKG_EMB.xg(i)}</div><div><div class="hd">${LAB.xg}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.xg[i]}</div></div></div>${SPK}`,
+    vs:(n,i)=>`<div class="em">${PKG_EMB.vs(i)}</div><div><div class="hd">${LAB.vs}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.vs[i]}</div></div>${SPK}`,
     som:(n,i)=>`<div class="ring"></div><div class="em">${PKG_EMB.som(i)}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.som[i]}</div>${SPK}`,
-    kh:(n,i)=>`<div class="stars"></div><div class="em">${PKG_EMB.kh(i)}</div><div><div class="hd">Serratura aperta</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.kh[i]}</div></div>${SPK}`,
+    kh:(n,i)=>`<div class="stars"></div><div class="em">${PKG_EMB.kh(i)}</div><div><div class="hd">${LAB.kh}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.kh[i]}</div></div>${SPK}`,
     tr:(n,i)=>`<div class="beam"></div><div class="em">${PKG_EMB.tr(i)}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.tr[i]}</div>${SPK}`,
-    dx:(n,i)=>`<div class="scan"></div><div class="em">${PKG_EMB.dx(i)}</div><div><div class="hd">AUG // ONLINE</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.dx[i]}</div></div>${SPK}`,
-    ha:(n,i)=>`<div class="scan"></div><div class="em">${PKG_EMB.ha(i)}</div><div><div class="lab">UNSC // MISSIONE</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ha[i]}</div></div>${SPK}`,
-    fz:(n,i)=>`<div class="em">${PKG_EMB.fz(i)}</div><div><div class="lab">RECORD</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.fz[i]}</div></div>${SPK}`,
-    gw:(n,i)=>`<div class="em">${PKG_EMB.gw(i)}</div><div><div class="lab">Obiettivo eliminato</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.gw[i]}</div></div>${SPK}`,
-    fb:(n,i)=>`<div class="em">${PKG_EMB.fb(i)}</div><div><div class="lab">Impresa eroica</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.fb[i]}</div></div>${SPK}`,
-    ae:(n,i)=>`<div class="banner">Nuova era raggiunta</div><div class="body"><div class="em">${PKG_EMB.ae(i)}</div><div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ae[i]}</div></div></div>${SPK}`,
-    mc:(n,i)=>`<div class="em">${PKG_EMB.mc(i)}</div><div><div class="lab">Obiettivo sbloccato!</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.mc[i]}</div></div>${SPK}`,
-    ac:(n,i)=>`<div class="em">${PKG_EMB.ac(i)}</div><div><div class="lab">Sincronizzazione</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ac[i]}</div></div>${SPK}`,
-    r6:(n,i)=>`<div class="grid2"></div><div class="em">${PKG_EMB.r6(i)}</div><div><div class="lab">OPERAZIONE // OK</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.r6[i]}</div></div>${SPK}`,
-    gr:(n,i)=>`<div class="em">${PKG_EMB.gr(i)}</div><div><div class="lab">MISSIONE COMPLETA</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.gr[i]}</div></div>${SPK}`,
-    td:(n,i)=>`<div class="em">${PKG_EMB.td(i)}</div><div><div class="lab">SHD // ONLINE</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.td[i]}</div></div>${SPK}`,
+    dx:(n,i)=>`<div class="scan"></div><div class="em">${PKG_EMB.dx(i)}</div><div><div class="hd">${LAB.dx}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.dx[i]}</div></div>${SPK}`,
+    ha:(n,i)=>`<div class="scan"></div><div class="em">${PKG_EMB.ha(i)}</div><div><div class="lab">${LAB.ha}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ha[i]}</div></div>${SPK}`,
+    fz:(n,i)=>`<div class="em">${PKG_EMB.fz(i)}</div><div><div class="lab">${LAB.fz}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.fz[i]}</div></div>${SPK}`,
+    gw:(n,i)=>`<div class="em">${PKG_EMB.gw(i)}</div><div><div class="lab">${LAB.gw}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.gw[i]}</div></div>${SPK}`,
+    fb:(n,i)=>`<div class="em">${PKG_EMB.fb(i)}</div><div><div class="lab">${LAB.fb}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.fb[i]}</div></div>${SPK}`,
+    ae:(n,i)=>`<div class="banner">${LAB.ae}</div><div class="body"><div class="em">${PKG_EMB.ae(i)}</div><div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ae[i]}</div></div></div>${SPK}`,
+    mc:(n,i)=>`<div class="em">${PKG_EMB.mc(i)}</div><div><div class="lab">${LAB.mc}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.mc[i]}</div></div>${SPK}`,
+    ac:(n,i)=>`<div class="em">${PKG_EMB.ac(i)}</div><div><div class="lab">${LAB.ac}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ac[i]}</div></div>${SPK}`,
+    r6:(n,i)=>`<div class="grid2"></div><div class="em">${PKG_EMB.r6(i)}</div><div><div class="lab">${LAB.r6}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.r6[i]}</div></div>${SPK}`,
+    gr:(n,i)=>`<div class="em">${PKG_EMB.gr(i)}</div><div><div class="lab">${LAB.gr}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.gr[i]}</div></div>${SPK}`,
+    td:(n,i)=>`<div class="em">${PKG_EMB.td(i)}</div><div><div class="lab">${LAB.td}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.td[i]}</div></div>${SPK}`,
     sc:(n,i)=>`<div class="scan"></div><div class="em">${PKG_EMB.sc(i)}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.sc[i]}</div>${SPK}`,
-    fc:(n,i)=>`<div class="em">${PKG_EMB.fc(i)}</div><div><div class="lab">Avamposto liberato</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.fc[i]}</div></div>${SPK}`,
-    ry:(n,i)=>`<div class="em">${PKG_EMB.ry(i)}</div><div><div class="lab">Lums raccolti</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ry[i]}</div></div>${SPK}`,
-    an:(n,i)=>`<div class="banner">Nuova epoca</div><div class="body"><div class="em">${PKG_EMB.an(i)}</div><div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.an[i]}</div></div></div>${SPK}`,
-    wi:(n,i)=>`<div class="halo"></div><div class="sheen"><i></i></div><div class="emb"><i></i><i></i><i></i><i></i></div><div class="em">${PKG_EMB.wi(i)}</div><div class="txt"><div class="lab">Contratto portato a termine</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.wi[i]}</div></div>${SPK}`,
-    cp:(n,i)=>`<div class="yl"></div><div class="glitch"></div><div class="em">${PKG_EMB.cp(i)}</div><div><div class="lab">// INCARICO COMPLETATO</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.cp[i]}</div></div>${SPK}`,
+    fc:(n,i)=>`<div class="em">${PKG_EMB.fc(i)}</div><div><div class="lab">${LAB.fc}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.fc[i]}</div></div>${SPK}`,
+    ry:(n,i)=>`<div class="em">${PKG_EMB.ry(i)}</div><div><div class="lab">${LAB.ry}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ry[i]}</div></div>${SPK}`,
+    an:(n,i)=>`<div class="banner">${LAB.an}</div><div class="body"><div class="em">${PKG_EMB.an(i)}</div><div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.an[i]}</div></div></div>${SPK}`,
+    wi:(n,i)=>`<div class="halo"></div><div class="sheen"><i></i></div><div class="emb"><i></i><i></i><i></i><i></i></div><div class="em">${PKG_EMB.wi(i)}</div><div class="txt"><div class="lab">${LAB.wi}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.wi[i]}</div></div>${SPK}`,
+    cp:(n,i)=>`<div class="yl"></div><div class="glitch"></div><div class="em">${PKG_EMB.cp(i)}</div><div><div class="lab">${LAB.cp}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.cp[i]}</div></div>${SPK}`,
     on:(n,i)=>`${PKG_EMB.on(i)}<div class="nm">${n}</div><div class="rr">${PKG_RANKS.on[i]}</div>${SPK}`,
     pu:(n,i)=>`${PKG_EMB.pu(i)}<div class="nm">${n}</div><div class="rr">${PKG_RANKS.pu[i]}</div>${SPK}`,
-    mo:(n,i)=>`${PKG_EMB.mo(i)}<div><div class="lab">Mosaico</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.mo[i]}</div></div>${SPK}`,
-    nu:(n,i)=>`<div class="big">${PKG_EMB.nu(i)}</div><div class="lab">Obiettivo</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.nu[i]}</div>${SPK}`,
-    ca:(n,i)=>`<div class="lab">Progresso</div><div class="nm">${n}</div>${PKG_EMB.ca(i)}<div class="rr">${PKG_RANKS.ca[i]}</div>${SPK}`,
+    mo:(n,i)=>`${PKG_EMB.mo(i)}<div><div class="lab">${LAB.mo}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.mo[i]}</div></div>${SPK}`,
+    nu:(n,i)=>`<div class="big">${PKG_EMB.nu(i)}</div><div class="lab">${LAB.nu}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.nu[i]}</div>${SPK}`,
+    ca:(n,i)=>`<div class="lab">${LAB.ca}</div><div class="nm">${n}</div>${PKG_EMB.ca(i)}<div class="rr">${PKG_RANKS.ca[i]}</div>${SPK}`,
     co:(n,i)=>`${PKG_EMB.co(i)}<div class="nm">${n}</div><div class="rr">${PKG_RANKS.co[i]}</div>${SPK}`,
-    ne:(n,i)=>`<div class="aur"></div><div class="lab">Sbloccato</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ne[i]}</div>${SPK}`,
+    ne:(n,i)=>`<div class="aur"></div><div class="lab">${LAB.ne}</div><div class="nm">${n}</div><div class="rr">${PKG_RANKS.ne[i]}</div>${SPK}`,
     tt:(n,i)=>`${PKG_EMB.tt(i)}<div class="nm">${n}</div><div class="rr">${PKG_RANKS.tt[i]}</div>${SPK}`,
     pg:(n,i)=>`${PKG_EMB.pg(i)}<div class="nm">${n}</div><div class="rr">${PKG_RANKS.pg[i]}</div>${SPK}`,
     ob:(n,i)=>`${PKG_EMB.ob(i)}<div class="nm">${n}</div><div class="rr">${PKG_RANKS.ob[i]}</div>${SPK}`
@@ -1682,7 +1655,11 @@ function syn(c,t0,f,g){const o=c.createOscillator(),o2=c.createOscillator(),gg=c
     if(th && th.custom){ th.custom(c, c.currentTime + 0.02, t); }
   }
 
-  window.fanfara = { show, tierFromPercent };
+  window.fanfara = { show, tierFromPercent, setLang };
+
+  // Pick an initial language from the browser/host locale; the C# host
+  // overrides this at startup with the user's chosen (or OS) language.
+  setLang(resolveLang(null, (navigator.language||"it")));
 
   // demo mode when opened directly in a browser (no C# host)
   if(!window.chrome || !window.chrome.webview){

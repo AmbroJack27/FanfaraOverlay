@@ -58,6 +58,9 @@ To avoid duplicates, you can disable Steam's default one:
   Square-Enix, Microsoft/Xbox, Ubisoft, CD Projekt (The Witcher, Cyberpunk 2077…).
 - **5 rarity tiers** that change icon, color, intensity and effects — Common, Uncommon, Rare, Epic,
   Legendary — and **Legendary always has something extra** ✨.
+- **5 languages** — English, Italian, French, German and Spanish. The app follows your Windows
+  language automatically, or you can pick one in Settings; **everything is translated**, down to
+  each style's themed rank ladder. The installer follows your system language too.
 - **7 on-screen positions**, adjustable duration, **light/dark theme**, **start with Windows** and
   **automatic updates**.
 - **Big, easy-to-read** notifications, great on large and high-resolution monitors.
@@ -88,7 +91,7 @@ and portable to any Windows PC.
 
 ### Publishing a new version
 The repo includes `.github/workflows/build.yml`. When you publish a **Release** with a **tag**
-starting with `v` (e.g. `v0.1.7`), GitHub builds the app on its own Windows servers and attaches
+starting with `v` (e.g. `v0.1.8`), GitHub builds the app on its own Windows servers and attaches
 `Fanfara.zip` **and** `FanfaraSetup.exe` to the Release automatically. No manual compiling.
 
 ---

@@ -17,6 +17,31 @@ public class Config
     public bool StartWithWindows { get; set; } = false; // launch automatically when Windows starts
     public string Theme { get; set; } = "dark";        // settings window appearance: "dark" | "light"
     public bool CheckUpdates { get; set; } = true;      // check GitHub for a newer version at startup
+    // UI/notification language: "auto" (follow Windows) | it | en | fr | de | es
+    public string Language { get; set; } = "auto";
+
+    /// <summary>Supported interface languages.</summary>
+    public static readonly string[] Languages = { "it", "en", "fr", "de", "es" };
+
+    /// <summary>The two-letter code of the current Windows UI language (e.g. "it", "de").</summary>
+    public static string OsLang =>
+        System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+
+    /// <summary>
+    /// Resolve an effective language from a preference ("auto" or a code) and the OS language.
+    /// Mirrors resolveLang() in web/i18n.js so C# and the web layer always agree.
+    /// </summary>
+    public static string ResolveLang(string? pref, string? os)
+    {
+        if (!string.IsNullOrEmpty(pref) && pref != "auto" && Array.IndexOf(Languages, pref) >= 0)
+            return pref!;
+        os = (os ?? "").Trim().ToLowerInvariant();
+        if (os.Length > 2) os = os.Substring(0, 2);
+        return Array.IndexOf(Languages, os) >= 0 ? os : "en";
+    }
+
+    /// <summary>The language actually in effect right now (preference resolved against the OS).</summary>
+    public string EffectiveLanguage => ResolveLang(Language, OsLang);
 
     private static string Path_ =>
         System.IO.Path.Combine(AppContext.BaseDirectory, "config.json");

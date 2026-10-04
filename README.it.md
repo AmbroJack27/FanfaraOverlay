@@ -8,56 +8,68 @@
 
 **Rendi lo sblocco degli achievement di Steam spettacolare come su Xbox e PlayStation.**
 
-Su Steam, quando sblocchi un obiettivo, compare una notifica piccola e anonima in basso a
-destra. Fanfara la sostituisce con un'animazione festante, con **suono e stile che cambiano
-in base alla rarità** dell'obiettivo: più è raro (pochi giocatori al mondo l'hanno ottenuto),
-più la notifica è epica.
+Su Steam, quando sblocchi un achievement compare una piccola notifica anonima nell'angolo. Fanfara
+la sostituisce con una notifica animata e festosa, in cui **stile, icona e suono cambiano in base
+alla rarità** dell'achievement: più è raro (meno giocatori al mondo l'hanno ottenuto), più lo
+sblocco è epico.
 
-È un overlay **leggero e nativo per Windows**: non pesa sulle prestazioni e non richiede ore
-di configurazione. Lo avvii, giochi, e pensa a tutto lui.
+È un **overlay nativo e leggero per Windows**: non rallenta il PC e non richiede ore di
+configurazione. Avvialo, gioca, e pensa a tutto lui.
 
 ---
 
-## ⬇️ Scaricare e usare (per tutti)
+## ⬇️ Scarica e usa (per tutti)
 
 1. Vai nella sezione **[Releases](../../releases)** qui su GitHub.
-2. Scarica il file **`Fanfara.zip`** dell'ultima versione.
-3. Fai clic destro sullo zip → **Estrai tutto**.
-4. Apri la cartella estratta e fai doppio clic su **`Fanfara.exe`**.
+2. Scarica l'ultima versione:
+   - **`FanfaraSetup.exe`** — l'installer (consigliato): installa tutto e tiene l'app
+     **aggiornata in automatico**.
+   - oppure **`Fanfara.zip`** — la versione portable: estraila e avvia `Fanfara.exe`, niente da installare.
+3. Avvialo.
 
-Non serve installare nulla: niente .NET, niente terminale. È tutto incluso nel pacchetto.
+Nient'altro da installare: niente .NET, niente terminale. È tutto incluso.
 
-> ⚠️ **La prima volta** Windows potrebbe mostrare l'avviso blu "Windows ha protetto il tuo PC".
-> È normale per i programmi gratuiti non firmati con un certificato a pagamento.
-> Clicca su **"Ulteriori informazioni"** → **"Esegui comunque"**.
+> ⚠️ **La prima volta**, Windows potrebbe mostrare l'avviso blu "Windows ha protetto il PC". È
+> normale per le app gratuite non firmate con un certificato a pagamento.
+> Clicca **"Ulteriori informazioni"** → **"Esegui comunque"**.
 
-Al primo avvio si apre la finestra delle **impostazioni**: puoi scegliere lo stile della
-notifica, il suono, la posizione sullo schermo e la durata, e provarli subito con il tasto
-**Prova**. Dopo averla chiusa, Fanfara resta attivo con un'icona vicino all'orologio (in basso
-a destra): clicca lì per riaprire le impostazioni o per uscire.
+Al primo avvio si apre la finestra **Impostazioni**: scegli uno stile, la posizione sullo schermo e
+la durata, e provali subito con il pulsante **Prova**. Ogni stile ha già il suo suono — niente altro
+da configurare. Dopo averla chiusa, Fanfara resta attiva con un'icona vicino all'orologio (in basso
+a destra): cliccala per riaprire le impostazioni o uscire.
 
-Poi avvia Steam, gioca, e al primo achievement sbloccato comparirà la fanfara. 🎮
+Poi avvia Steam, gioca, e la fanfara comparirà al primo achievement sbloccato. 🎮
 
-### Consiglio: spegni la notifica di Steam
-Per non vedere doppioni, puoi disattivare quella standard di Steam:
-**Steam → Impostazioni → In gioco** (o **Notifiche**) → togli la notifica di sblocco achievement.
+### Consiglio: disattiva la notifica di Steam
+Per evitare i doppioni, puoi disattivare quella predefinita di Steam:
+**Steam → Impostazioni → Nel gioco** (o **Notifiche**) → disattiva la notifica di sblocco achievement.
 
 ---
 
 ## ✨ Cosa include
 
-- **15 stili di notifica** — Console, Minimal, Arcade, Neon, Loot, Terminale, Pixel, Nastro,
-  scudi fantasy in stile League of Legends, più le versioni 3D di ognuno.
-- **28 suoni** — da melodici e cinematografici a 8-bit, epici orchestrali, fanfare da gamer.
-- **5 livelli di rarità** che cambiano colore, intensità ed effetti: Comune, Non comune, Raro,
-  Epico, Leggendario.
-- **7 posizioni** sullo schermo a scelta.
+- **46 stili di notifica**, organizzati in **7 schede**:
+  **Base · Console · Capcom · Square-Enix · Microsoft · Ubisoft · CD Projekt**.
+- Ogni stile ha un **box unico**, un'**icona diversa per ogni rarità** e un **suono integrato** —
+  tutto **in 3D e animato**. (Niente selettore separato del suono: il suono fa parte dello stile.)
+- **10 stili Base originali e astratti**: Onda, Pulsar, Mosaico, Numero, Carica, Coriandoli, Nebula,
+  Tratto, Piega, Orbita.
+- Pacchetti ispirati ai giochi con **emblemi e suoni originali** (nessun logo o audio ufficiale):
+  Capcom, Square-Enix, Microsoft/Xbox, Ubisoft, CD Projekt (The Witcher, Cyberpunk 2077…).
+- **5 rarità** che cambiano icona, colore, intensità ed effetti — Comune, Non comune, Raro, Epico,
+  Leggendario — e il **Leggendario ha sempre qualcosa in più** ✨.
+- **5 lingue** — Italiano, Inglese, Francese, Tedesco e Spagnolo. L'app segue in automatico la
+  lingua di Windows, oppure puoi sceglierla nelle Impostazioni; **è tutto tradotto**, fino alla
+  scala dei ranghi a tema di ogni stile. Anche l'installer segue la lingua del sistema.
+- **7 posizioni** sullo schermo, durata regolabile, **tema chiaro/scuro**, **avvio con Windows** e
+  **aggiornamenti automatici**.
+- Notifiche **grandi e leggibili**, perfette su monitor ampi e ad alta risoluzione.
 
 ---
 
-## 🛠️ Per sviluppatori (compilare da sé)
+## 🛠️ Per sviluppatori (compilalo da solo)
 
-Serve solo il **.NET 8 SDK** (gratuito): https://dotnet.microsoft.com/download
+Ti serve solo il **.NET 8 SDK** (gratis): https://dotnet.microsoft.com/download
 
 Nella cartella `src/`:
 
@@ -65,44 +77,49 @@ Nella cartella `src/`:
 dotnet run
 ```
 
-per avviarlo in sviluppo, oppure per produrre il pacchetto distribuibile:
+per avviarlo in sviluppo, oppure per creare il pacchetto distribuibile:
 
 ```bat
 dotnet publish -c Release
 ```
 
-L'app finita esce in `src/bin/Release/.../publish/`. È *self-contained* (include il runtime
-.NET), quindi la cartella è autonoma e trasferibile su qualsiasi PC Windows.
+L'app finita è *self-contained* (include il runtime .NET), quindi la cartella è autonoma e portabile
+su qualunque PC Windows.
 
-> L'app va eseguita **sul PC dove gira Steam**. Fanfara si aggancia al gioco in esecuzione
-> leggendo l'AppID dal registro e usando la Steamworks API come quel gioco (nessuna API key).
+> L'app deve girare **sul PC dove gira Steam**. Fanfara comunica con il gioco in esecuzione tramite
+> l'API Steamworks come se fosse quel gioco (senza chiave API).
 
 ### Pubblicare una nuova versione
-Nella repo è incluso `.github/workflows/build.yml`. Quando pubblichi una **Release** con un
-**tag** che inizia per `v` (es. `v0.1.0`), GitHub compila l'app sui propri server Windows e
-allega da solo `Fanfara.zip` alla Release. Nessuna compilazione manuale.
+Il repo include `.github/workflows/build.yml`. Quando pubblichi una **Release** con un **tag** che
+inizia con `v` (es. `v0.1.8`), GitHub compila l'app sui propri server Windows e allega
+automaticamente `Fanfara.zip` **e** `FanfaraSetup.exe` alla Release. Nessuna compilazione manuale.
 
 ---
 
 ## ⚙️ Come funziona (in breve)
 
-- `SteamWatcher.cs` — legge l'AppID del gioco in esecuzione dal registro
-  (`HKCU\Software\Valve\Steam\RunningAppID`), inizializza la Steamworks API come quel gioco, e
-  ogni secondo controlla se è stato sbloccato un nuovo achievement. Per ognuno ricava la
-  percentuale mondiale (rarità) e lancia un evento.
-- `OverlayWindow` — una finestra trasparente, sempre in primo piano e *click-through* (non
-  intercetta i clic del mouse) che copre lo schermo e contiene un WebView2.
-- `web/notify.html` — la grafica delle notifiche: riceve i dati dal guscio C# e disegna lo
-  sblocco nello stile e suono scelti, con la rarità che decide colori ed effetti.
-- `web/settings.html` — la finestra delle impostazioni.
-- `config.json` — le preferenze salvate, accanto all'exe.
+- `SteamWatcher.cs` — il supervisore. Avvia un **processo Steam separato** per il gioco in
+  esecuzione, così l'app principale non carica mai Steam direttamente (questo mantiene Fanfara
+  stabile ed evita che il gioco risulti "ancora in esecuzione" dopo che esci).
+- `SteamWorker.cs` — il processo figlio. Inizializza l'API Steamworks **come il gioco in
+  esecuzione**, controlla ogni secondo se è stato sbloccato un nuovo achievement (leggendo la
+  percentuale di rarità mondiale) e rileva quando il gioco si chiude. Comunica gli sblocchi all'app.
+- `OverlayWindow` — una finestra trasparente, sempre in primo piano e *click-through*, che copre lo
+  schermo e ospita una WebView2.
+- `web/notify.html` — la grafica delle notifiche: 46 stili che disegnano lo sblocco con il box,
+  l'icona e il suono giusti; la rarità decide colori ed effetti.
+- `web/settings.html` — la finestra delle Impostazioni (con barra del titolo a tema).
+- `Updater.cs` — controlla su GitHub se c'è una Release più recente e aggiorna da solo.
+- `StartupManager.cs` — avvio con Windows (opzionale). `config.json` — le preferenze, accanto all'exe.
 
 ### Note oneste
-- L'overlay compare sopra i giochi in **finestra senza bordi** (lo standard di oggi). Il
-  *fullscreen esclusivo* vero è l'unico caso in cui potrebbe non comparire — stesso limite di
-  tutti gli overlay simili.
-- I suoni sono per ora **sintetizzati dal vivo**: definiscono il carattere e si possono
-  sostituire con campioni audio veri più avanti.
+- L'overlay compare sui giochi in modalità **finestra senza bordi** (lo standard di oggi). Solo nel
+  vero *fullscreen esclusivo* potrebbe non apparire — lo stesso limite di ogni overlay simile.
+- I suoni sono **sintetizzati dal vivo** dentro ogni stile: ne definiscono il carattere e potranno
+  essere sostituiti con campioni audio registrati in futuro.
+
+> ℹ️ Progetto amatoriale, non affiliato né approvato dalle case produttrici. Tutti i marchi
+> appartengono ai rispettivi proprietari.
 
 ## Licenza
-MIT — vedi `LICENSE`. Libero di usarlo, modificarlo e condividerlo.
+MIT — vedi `LICENSE`. Libero di usare, modificare e condividere.
