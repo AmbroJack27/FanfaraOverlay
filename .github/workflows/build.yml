@@ -2,11 +2,11 @@ name: Build
 
 on:
   push:
-    tags: ["v*"]        # a tag like v0.1.2 builds and publishes a ready-to-use Release
-  workflow_dispatch: {} # or run it manually from the Actions tab
+    tags: ["v*"]
+  workflow_dispatch: {}
 
 permissions:
-  contents: write        # allow attaching files to the Release
+  contents: write
 
 jobs:
   build:
@@ -19,8 +19,17 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      - name: Resolve version from tag
+        id: ver
+        shell: pwsh
+        run: |
+          $ver = "${{ github.ref_name }}" -replace '^v',''
+          if ([string]::IsNullOrWhiteSpace($ver) -or $ver -notmatch '^\d') { $ver = "0.1.9" }
+          "ver=$ver" >> $env:GITHUB_OUTPUT
+          Write-Host "Building version $ver"
+
       - name: Publish (self-contained)
-        run: dotnet publish src/Fanfara.csproj -c Release -o publish
+        run: dotnet publish src/Fanfara.csproj -c Release -o publish -p:Version=${{ steps.ver.outputs.ver }}
 
       - name: Package the portable zip
         shell: pwsh
@@ -33,10 +42,7 @@ jobs:
       - name: Build the installer
         shell: pwsh
         run: |
-          # Use the tag (v0.1.2 -> 0.1.2) as the installer version when present.
-          $ver = "${{ github.ref_name }}" -replace '^v',''
-          if ([string]::IsNullOrWhiteSpace($ver) -or $ver -notmatch '^\d') { $ver = "0.1.2" }
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$ver" "Fanfara.iss"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=${{ steps.ver.outputs.ver }}" "Fanfara.iss"
 
       - name: Upload build artifacts (download from the run)
         uses: actions/upload-artifact@v4
@@ -53,3 +59,4 @@ jobs:
           files: |
             Fanfara.zip
             installer_output/FanfaraSetup.exe
+            build: versione agganciata al tag
