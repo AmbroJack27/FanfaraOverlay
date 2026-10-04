@@ -35,14 +35,20 @@ public partial class App : System.Windows.Application
         // (also refreshes the stored path if the app was moved or reinstalled).
         StartupManager.Apply(_config.StartWithWindows);
 
+        // Pre-prepare installed Steam games so notifications show over them from the first
+        // launch (disable fullscreen optimizations). Runs in the background, once per game.
+        if (_config.GameOverlayFix)
+            Task.Run(() => { try { SteamLibrary.PreoptimizeAll(_config); } catch { } });
+
         // Transparent, click-through, always-on-top overlay that renders the notifications.
         _overlay = new OverlayWindow(_config);
         _overlay.Show();
 
         // Watch Steam for the running game and freshly unlocked achievements.
-        _steam = new SteamWatcher(_config.PollMs);
+        _steam = new SteamWatcher(_config);
         _steam.AchievementUnlocked += (name, percent) =>
             _overlay?.Dispatcher.Invoke(() => _overlay.ShowAchievement(name, percent, _config));
+        _steam.GameOptimized += () => Dispatcher.Invoke(ShowRestartGameTip);
         _steam.Start();
 
         SetupTray();
@@ -123,6 +129,17 @@ public partial class App : System.Windows.Application
         menu.Items.Add(Loc.S(lang, "quit"), null, (_, _) => Shutdown());
         _tray.ContextMenuStrip = menu;
         _tray.DoubleClick += (_, _) => ShowSettings();
+    }
+
+    private void ShowRestartGameTip()
+    {
+        try
+        {
+            _tray?.ShowBalloonTip(9000, "Fanfara",
+                Loc.S(_config.EffectiveLanguage, "restartGame"),
+                System.Windows.Forms.ToolTipIcon.Info);
+        }
+        catch { /* notifications disabled — ignore */ }
     }
 
     private void ShowSettings()

@@ -63,6 +63,7 @@ Per evitare i doppioni, puoi disattivare quella predefinita di Steam:
   scala dei ranghi a tema di ogni stile. Anche l'installer segue la lingua del sistema.
 - **7 posizioni** sullo schermo, durata regolabile, **tema chiaro/scuro**, **avvio con Windows** e
   **aggiornamenti automatici**.
+- **Funziona anche nei giochi a schermo intero e senza bordi** — Fanfara prepara da sola i tuoi giochi Steam perché le notifiche compaiano in gioco, senza configurazione.
 - Notifiche **grandi e leggibili**, perfette su monitor ampi e ad alta risoluzione.
 
 ---
@@ -91,7 +92,7 @@ su qualunque PC Windows.
 
 ### Pubblicare una nuova versione
 Il repo include `.github/workflows/build.yml`. Quando pubblichi una **Release** con un **tag** che
-inizia con `v` (es. `v0.1.9`), GitHub compila l'app sui propri server Windows e allega
+inizia con `v` (es. `v0.1.10`), GitHub compila l'app sui propri server Windows e allega
 automaticamente `Fanfara.zip` **e** `FanfaraSetup.exe` alla Release. Nessuna compilazione manuale.
 
 ---

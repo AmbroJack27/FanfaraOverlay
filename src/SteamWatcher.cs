@@ -18,9 +18,12 @@ namespace Fanfara;
 public class SteamWatcher
 {
     public event Action<string, double>? AchievementUnlocked;
+    /// <summary>Raised once when a game's overlay fix was newly applied (user should restart that game).</summary>
+    public event Action? GameOptimized;
 
     private CancellationTokenSource? _cts;
     private readonly int _pollMs;
+    private readonly Config _config;
     private uint _currentApp;
     private uint _lastClosedApp;   // don't immediately respawn the game that just closed
     private Process? _worker;
@@ -28,7 +31,7 @@ public class SteamWatcher
     private static readonly string LogPath =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "fanfara-log.txt");
 
-    public SteamWatcher(int pollMs = 1000) => _pollMs = pollMs;
+    public SteamWatcher(Config config) { _config = config; _pollMs = config.PollMs > 0 ? config.PollMs : 1000; }
 
     private static void Log(string msg)
     {
@@ -115,15 +118,46 @@ public class SteamWatcher
 
     private void HandleLine(string line)
     {
-        // Expected: UNLOCK \t name \t pct
         var parts = line.Split('\t');
+
+        // UNLOCK \t name \t pct
         if (parts.Length >= 3 && parts[0] == "UNLOCK")
         {
             string name = parts[1];
             double pct = double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var p) ? p : 50.0;
             Log($"SBLOCCO nome='{name}' global={pct:0.0}%");
             try { AchievementUnlocked?.Invoke(name, pct); } catch { }
+            return;
         }
+
+        // GAMEEXE \t <full path> — make the overlay able to draw over this game.
+        if (parts.Length >= 2 && parts[0] == "GAMEEXE")
+        {
+            string exe = parts[1];
+            if (!_config.GameOverlayFix) return;
+            try
+            {
+                bool added = FsOpt.Apply(exe);
+                if (!ContainsPath(_config.OptimizedGames, exe))
+                {
+                    _config.OptimizedGames.Add(exe);
+                    _config.Save();
+                }
+                if (added)
+                {
+                    Log($"ottimizzazione overlay applicata: {exe}");
+                    try { GameOptimized?.Invoke(); } catch { }
+                }
+            }
+            catch (Exception ex) { Log($"fix overlay fallito: {ex.Message}"); }
+        }
+    }
+
+    private static bool ContainsPath(System.Collections.Generic.List<string> list, string path)
+    {
+        foreach (var s in list)
+            if (string.Equals(s, path, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
     }
 
     private static uint ReadRunningAppId()

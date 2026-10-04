@@ -120,6 +120,8 @@
         <label class="switch"><input type="checkbox" id="startup"><span class="slider"></span></label></div>
       <div class="toggle"><div><b id="updatesT">Controlla aggiornamenti all'avvio</b><small id="updatesS">Avvisa quando esce una nuova versione su GitHub.</small></div>
         <label class="switch"><input type="checkbox" id="updates"><span class="slider"></span></label></div>
+      <div class="toggle"><div><b id="gamefixT">Mostra le notifiche nei giochi a schermo intero</b><small id="gamefixS">Prepara i giochi perché le notifiche compaiano anche in gioco (consigliato).</small></div>
+        <label class="switch"><input type="checkbox" id="gamefix"><span class="slider"></span></label></div>
     </div>
   </div>
 
@@ -159,7 +161,7 @@ let LANG='it';
 let U=FAN_I18N.ui.it;        // current UI strings
 let POSLAB=FAN_I18N.pos.it;  // current position labels
 
-const S={style:'on', sound:'classic', position:'bottom-center', duration:4200, startup:false, updates:true, theme:'dark', filter:'tutti', language:'auto', osLang:''};
+const S={style:'on', sound:'classic', position:'bottom-center', duration:4200, startup:false, updates:true, gamefix:true, theme:'dark', filter:'tutti', language:'auto', osLang:''};
 const $=s=>document.querySelector(s);
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function send(o){ try{ window.chrome.webview.postMessage(JSON.stringify(o)); }catch(e){} }
@@ -181,6 +183,8 @@ function applyI18n(){
   $('#startupS').textContent=U.startupS;
   $('#updatesT').textContent=U.updatesT;
   $('#updatesS').textContent=U.updatesS;
+  $('#gamefixT').textContent=U.gamefixT;
+  $('#gamefixS').textContent=U.gamefixS;
   $('#disc').textContent=U.disc;
   $('#hint').innerHTML=`${U.hintPre} <b>${U.test}</b> ${U.hintMid} <b>${U.save}</b> ${U.hintPost}`;
   $('#saved').textContent=U.saved;
@@ -222,6 +226,7 @@ window.initSettings = cfg => {
   if(cfg.duration) S.duration=cfg.duration;
   if(typeof cfg.startup==='boolean') S.startup=cfg.startup;
   if(typeof cfg.checkUpdates==='boolean') S.updates=cfg.checkUpdates;
+  if(typeof cfg.gameOverlayFix==='boolean') S.gamefix=cfg.gameOverlayFix;
   if(cfg.theme) S.theme=cfg.theme;
   if(cfg.osLang) S.osLang=cfg.osLang;
   if(cfg.language) S.language=cfg.language;
@@ -229,6 +234,7 @@ window.initSettings = cfg => {
   $('#dur').value=(S.duration/1000).toString(); $('#durv').textContent=(S.duration/1000).toFixed(1)+'s';
   $('#startup').checked=S.startup;
   $('#updates').checked=S.updates;
+  $('#gamefix').checked=S.gamefix;
   setUILang(window.resolveLang(S.language, S.osLang));
 };
 
@@ -236,12 +242,13 @@ $('#dur').oninput=()=>{ S.duration=Math.round(parseFloat($('#dur').value||'4.2')
   $('#durv').textContent=(S.duration/1000).toFixed(1)+'s'; $('#durtitle').textContent=durLabel(); };
 $('#startup').onchange=()=>{ S.startup=$('#startup').checked; };
 $('#updates').onchange=()=>{ S.updates=$('#updates').checked; };
+$('#gamefix').onchange=()=>{ S.gamefix=$('#gamefix').checked; };
 $('#theme').onclick=()=>{ S.theme = S.theme==='dark'?'light':'dark'; applyTheme(); send({action:'theme', theme:S.theme}); };
 $('#lang').onchange=()=>{ S.language=$('#lang').value;
   setUILang(window.resolveLang(S.language, S.osLang));
   send({action:'language', language:S.language}); };
 
-function vals(){ return {style:S.style, position:S.position, duration:S.duration, startup:S.startup, checkUpdates:S.updates, language:S.language}; }
+function vals(){ return {style:S.style, position:S.position, duration:S.duration, startup:S.startup, checkUpdates:S.updates, gameOverlayFix:S.gamefix, language:S.language}; }
 $('#btnTest').onclick=()=> send(Object.assign({action:'test'}, vals()));
 $('#btnSave').onclick=()=>{ send(Object.assign({action:'save'}, vals()));
   const s=$('#saved'); s.classList.add('on'); setTimeout(()=>s.classList.remove('on'),1600); };

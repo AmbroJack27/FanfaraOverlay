@@ -63,6 +63,7 @@ To avoid duplicates, you can disable Steam's default one:
   each style's themed rank ladder. The installer follows your system language too.
 - **7 on-screen positions**, adjustable duration, **light/dark theme**, **start with Windows** and
   **automatic updates**.
+- **Works over fullscreen & borderless games** — Fanfara automatically prepares your Steam games so notifications show up in-game, with no setup.
 - **Big, easy-to-read** notifications, great on large and high-resolution monitors.
 
 ---
@@ -91,7 +92,7 @@ and portable to any Windows PC.
 
 ### Publishing a new version
 The repo includes `.github/workflows/build.yml`. When you publish a **Release** with a **tag**
-starting with `v` (e.g. `v0.1.9`), GitHub builds the app on its own Windows servers and attaches
+starting with `v` (e.g. `v0.1.10`), GitHub builds the app on its own Windows servers and attaches
 `Fanfara.zip` **and** `FanfaraSetup.exe` to the Release automatically. No manual compiling.
 
 ---

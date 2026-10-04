@@ -43,6 +43,7 @@ public static class SteamWorker
         var known = new HashSet<string>();
         bool primed = false;
         bool gameSeen = false;
+        bool exeEmitted = false;
         int missing = 0;
 
         while (true)
@@ -50,7 +51,20 @@ public static class SteamWorker
             // Has the real game closed? (independent of our Steam session)
             if (!string.IsNullOrEmpty(installDir))
             {
-                if (IsGameRunning(installDir)) { gameSeen = true; missing = 0; }
+                var gameExe = FindGameExe(installDir);
+                if (gameExe != null)
+                {
+                    gameSeen = true; missing = 0;
+                    // Tell the main app which .exe the game runs as, so it can make the overlay
+                    // show over it (disable fullscreen optimizations). Sent once per game run.
+                    if (!exeEmitted)
+                    {
+                        exeEmitted = true;
+                        Console.Out.WriteLine($"GAMEEXE\t{gameExe}");
+                        Console.Out.Flush();
+                        Log($"gioco exe = {gameExe}");
+                    }
+                }
                 else if (gameSeen && ++missing >= 2) { Log("gioco chiuso -> esco"); break; }
             }
 
@@ -83,20 +97,28 @@ public static class SteamWorker
         return 0;   // no SteamClient.Shutdown(): exiting releases the session and avoids the native crash
     }
 
-    /// <summary>True if any process is running from the game's install folder.</summary>
-    private static bool IsGameRunning(string installDir)
+    /// <summary>
+    /// Returns the .exe path of the running game process under <paramref name="installDir"/>,
+    /// preferring the one that actually owns a window (the real game, not a launcher/helper),
+    /// or null if nothing from the install folder is running.
+    /// </summary>
+    private static string? FindGameExe(string installDir)
     {
+        string? fallback = null;
         foreach (var p in Process.GetProcesses())
         {
             try
             {
                 var f = p.MainModule?.FileName;
                 if (f != null && f.StartsWith(installDir, StringComparison.OrdinalIgnoreCase))
-                    return true;
+                {
+                    if (p.MainWindowHandle != IntPtr.Zero) return f;  // window-owner = the game itself
+                    fallback ??= f;
+                }
             }
             catch { /* access denied / exited — ignore */ }
             finally { try { p.Dispose(); } catch { } }
         }
-        return false;
+        return fallback;
     }
 }

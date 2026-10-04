@@ -64,6 +64,7 @@ public partial class OverlayWindow : Window
     public void ShowAchievement(string name, double globalPercent, Config config)
     {
         if (!_ready) return;
+        ForceTopmost();
         var payload = new
         {
             name,
@@ -81,6 +82,7 @@ public partial class OverlayWindow : Window
     public void ShowPreview(string style, string sound, string position, double percent, string name)
     {
         if (!_ready) return;
+        ForceTopmost();
         var payload = new { name, percent, style, sound, position, durationMs = _config.DurationMs };
         Web.CoreWebView2.ExecuteScriptAsync($"window.fanfara.show({JsonSerializer.Serialize(payload)})");
     }
@@ -96,6 +98,26 @@ public partial class OverlayWindow : Window
     private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    // Re-assert top-most z-order without stealing focus — a game that took the foreground can
+    // otherwise sit above our (also top-most) overlay. Called right before each notification.
+    private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+    private const uint SWP_NOSIZE = 0x0001, SWP_NOMOVE = 0x0002, SWP_NOACTIVATE = 0x0010, SWP_SHOWWINDOW = 0x0040;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+    private void ForceTopmost()
+    {
+        try
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd != IntPtr.Zero)
+                SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
+                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+        }
+        catch { }
+    }
 
     private void MakeClickThrough()
     {

@@ -71,6 +71,7 @@ public partial class SettingsWindow : Window
                 duration = _config.DurationMs,
                 startup = _config.StartWithWindows,
                 checkUpdates = _config.CheckUpdates,
+                gameOverlayFix = _config.GameOverlayFix,
                 theme = _config.Theme,
                 language = _config.Language,
                 osLang = Config.OsLang,
@@ -124,6 +125,22 @@ public partial class SettingsWindow : Window
                 }
                 if (msg.checkUpdates is bool u) _config.CheckUpdates = u;
                 if (msg.language != null) { _config.Language = msg.language; _overlay.ApplyLanguage(); }
+                if (msg.gameOverlayFix is bool g && g != _config.GameOverlayFix)
+                {
+                    _config.GameOverlayFix = g;
+                    if (g)
+                    {
+                        // Turned on: pre-prepare the library in the background.
+                        System.Threading.Tasks.Task.Run(() => { try { SteamLibrary.PreoptimizeAll(_config); } catch { } });
+                    }
+                    else
+                    {
+                        // Turned off: undo the compatibility flag we set on games.
+                        foreach (var exe in _config.OptimizedGames) FsOpt.Remove(exe);
+                        _config.OptimizedGames.Clear();
+                        _config.ScannedDirs.Clear();
+                    }
+                }
                 _config.Save();
             }
         }
@@ -145,6 +162,7 @@ public partial class SettingsWindow : Window
         public int? duration { get; set; }
         public bool? startup { get; set; }
         public bool? checkUpdates { get; set; }
+        public bool? gameOverlayFix { get; set; }
         public string? theme { get; set; }
         public string? language { get; set; }
     }

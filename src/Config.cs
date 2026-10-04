@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -19,6 +20,13 @@ public class Config
     public bool CheckUpdates { get; set; } = true;      // check GitHub for a newer version at startup
     // UI/notification language: "auto" (follow Windows) | it | en | fr | de | es
     public string Language { get; set; } = "auto";
+    // Auto-disable Windows "fullscreen optimizations" for detected games, so the overlay
+    // shows over borderless/fullscreen titles. Per-user, no admin, reversible.
+    public bool GameOverlayFix { get; set; } = true;
+    // Game .exe paths we've applied the fix to (so we don't re-notify, and can undo on disable).
+    public List<string> OptimizedGames { get; set; } = new();
+    // Game install folders already pre-scanned, so we don't re-scan the whole library every boot.
+    public List<string> ScannedDirs { get; set; } = new();
 
     /// <summary>Supported interface languages.</summary>
     public static readonly string[] Languages = { "it", "en", "fr", "de", "es" };
@@ -57,12 +65,17 @@ public class Config
         return new Config();
     }
 
+    private static readonly object _saveLock = new();
+
     public void Save()
     {
         try
         {
-            File.WriteAllText(Path_,
-                JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+            lock (_saveLock)
+            {
+                File.WriteAllText(Path_,
+                    JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+            }
         }
         catch { /* ignore */ }
     }
