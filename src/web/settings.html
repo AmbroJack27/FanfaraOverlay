@@ -113,6 +113,8 @@
         <input type="range" id="dur" min="2" max="12" step="0.5" value="4.2"><span class="durv" id="durv">4.2s</span></div></div>
       <div class="toggle"><div><b>Avvia all'accensione del PC</b><small>Fanfara parte da sola con Windows, pronta nel tray.</small></div>
         <label class="switch"><input type="checkbox" id="startup"><span class="slider"></span></label></div>
+      <div class="toggle"><div><b>Controlla aggiornamenti all'avvio</b><small>Avvisa quando esce una nuova versione su GitHub.</small></div>
+        <label class="switch"><input type="checkbox" id="updates"><span class="slider"></span></label></div>
     </div>
   </div>
 
@@ -131,7 +133,7 @@ const POSGRID=[['top-left','top-center','top-right'],['','center',''],['bottom-l
 const POSLAB={'top-left':'In alto a sinistra','top-center':'In alto al centro','top-right':'In alto a destra','center':'Al centro','bottom-left':'In basso a sinistra','bottom-center':'In basso al centro','bottom-right':'In basso a destra'};
 const is3D=v=>v.endsWith('3d')||v==='scudo';
 
-const S={style:'arcade', sound:'classic', position:'bottom-center', duration:4200, startup:false, theme:'dark', filter:'tutti'};
+const S={style:'arcade', sound:'classic', position:'bottom-center', duration:4200, startup:false, updates:true, theme:'dark', filter:'tutti'};
 const $=s=>document.querySelector(s);
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function send(o){ try{ window.chrome.webview.postMessage(JSON.stringify(o)); }catch(e){} }
@@ -164,19 +166,22 @@ window.initSettings = cfg => {
   if(cfg.position) S.position=cfg.position;
   if(cfg.duration) S.duration=cfg.duration;
   if(typeof cfg.startup==='boolean') S.startup=cfg.startup;
+  if(typeof cfg.checkUpdates==='boolean') S.updates=cfg.checkUpdates;
   if(cfg.theme) S.theme=cfg.theme;
   $('#dur').value=(S.duration/1000).toString(); $('#durv').textContent=(S.duration/1000).toFixed(1)+'s';
   $('#durtitle').textContent='Durata · '+(S.duration/1000).toFixed(1)+'s';
   $('#startup').checked=S.startup;
+  $('#updates').checked=S.updates;
   applyTheme(); renderStyles(); renderSounds(); renderPos();
 };
 
 $('#dur').oninput=()=>{ S.duration=Math.round(parseFloat($('#dur').value||'4.2')*1000);
   $('#durv').textContent=(S.duration/1000).toFixed(1)+'s'; $('#durtitle').textContent='Durata · '+(S.duration/1000).toFixed(1)+'s'; };
 $('#startup').onchange=()=>{ S.startup=$('#startup').checked; };
+$('#updates').onchange=()=>{ S.updates=$('#updates').checked; };
 $('#theme').onclick=()=>{ S.theme = S.theme==='dark'?'light':'dark'; applyTheme(); send({action:'theme', theme:S.theme}); };
 
-function vals(){ return {style:S.style, sound:S.sound, position:S.position, duration:S.duration, startup:S.startup}; }
+function vals(){ return {style:S.style, sound:S.sound, position:S.position, duration:S.duration, startup:S.startup, checkUpdates:S.updates}; }
 $('#btnTest').onclick=()=> send(Object.assign({action:'test'}, vals()));
 $('#btnSave').onclick=()=>{ send(Object.assign({action:'save'}, vals()));
   const s=$('#saved'); s.classList.add('on'); setTimeout(()=>s.classList.remove('on'),1600); };

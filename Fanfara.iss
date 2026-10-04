@@ -4,7 +4,7 @@
 
 #define MyAppName "Fanfara"
 #ifndef MyAppVersion
-  #define MyAppVersion "0.1.3"
+  #define MyAppVersion "0.1.4"
 #endif
 #define MyAppPublisher "AmbroJack27"
 #define MyAppExeName "Fanfara.exe"
@@ -25,6 +25,10 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+; Let the installer update Fanfara even while it is running (used by the in-app auto-update).
+AppMutex=FanfaraOverlayAppMutex
+CloseApplications=yes
+RestartApplications=yes
 ; Per-user install → no UAC / admin prompt.
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64
@@ -36,11 +40,14 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "startup"; Description: "Avvia Fanfara all'accensione di Windows"; GroupDescription: "Avvio automatico:"
+; Nota: l'avvio automatico con Windows si attiva/disattiva dentro l'app (Impostazioni),
+; così c'e un unico punto di controllo e nessun disallineamento.
 
 [Files]
-; The whole self-contained publish folder (Fanfara.exe, web\, steam_api64.dll, config.json, ...)
-Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; The self-contained publish folder (Fanfara.exe, web\, steam_api64.dll, ...) — config.json excluded here.
+Source: "publish\*"; DestDir: "{app}"; Excludes: "config.json"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Install the default settings only on a fresh install, so updates keep the user's choices.
+Source: "publish\config.json"; DestDir: "{app}"; Flags: onlyifdoesntexist
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -48,10 +55,9 @@ Name: "{group}\Disinstalla {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Registry]
-; Optional "run at Windows startup" — same key the in-app toggle uses.
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; \
-  ValueName: "Fanfara"; ValueData: """{app}\{#MyAppExeName}"" --autostart"; \
-  Tasks: startup; Flags: uninsdeletevalue
+; Non crea nulla all'installazione; rimuove la voce di avvio automatico
+; (creata dall'app, se attivata) quando si disinstalla.
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueName: "Fanfara"; Flags: uninsdeletevalue dontcreatekey
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent

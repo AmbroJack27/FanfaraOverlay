@@ -16,6 +16,7 @@ public class Config
     public int PollMs { get; set; } = 1000;            // how often to check Steam for new unlocks
     public bool StartWithWindows { get; set; } = false; // launch automatically when Windows starts
     public string Theme { get; set; } = "dark";        // settings window appearance: "dark" | "light"
+    public bool CheckUpdates { get; set; } = true;      // check GitHub for a newer version at startup
 
     private static string Path_ =>
         System.IO.Path.Combine(AppContext.BaseDirectory, "config.json");

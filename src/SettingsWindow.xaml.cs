@@ -37,6 +37,7 @@ public partial class SettingsWindow : Window
                 position = _config.Position,
                 duration = _config.DurationMs,
                 startup = _config.StartWithWindows,
+                checkUpdates = _config.CheckUpdates,
                 theme = _config.Theme
             });
             Web.CoreWebView2.ExecuteScriptAsync($"window.initSettings && window.initSettings({cfg})");
@@ -76,6 +77,7 @@ public partial class SettingsWindow : Window
                     _config.StartWithWindows = s;
                     StartupManager.Apply(s);
                 }
+                if (msg.checkUpdates is bool u) _config.CheckUpdates = u;
                 _config.Save();
             }
         }
@@ -90,6 +92,7 @@ public partial class SettingsWindow : Window
         public string? position { get; set; }
         public int? duration { get; set; }
         public bool? startup { get; set; }
+        public bool? checkUpdates { get; set; }
         public string? theme { get; set; }
     }
 }

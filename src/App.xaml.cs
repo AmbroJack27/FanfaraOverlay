@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace Fanfara;
@@ -8,10 +10,14 @@ public partial class App : System.Windows.Application
     private SteamWatcher? _steam;
     private SettingsWindow? _settings;
     private System.Windows.Forms.NotifyIcon? _tray;
+    private static Mutex? _appMutex;   // lets the installer detect/close a running instance
     private readonly Config _config = Config.Load();
 
     private void OnStartup(object sender, StartupEventArgs e)
     {
+        // Named mutex the Inno Setup installer watches (AppMutex) to update while running.
+        try { _appMutex = new Mutex(true, "FanfaraOverlayAppMutex"); } catch { }
+
         // Did Windows launch us automatically at boot? (see StartupManager)
         bool autoStarted = Array.Exists(e.Args, a =>
             string.Equals(a, "--autostart", StringComparison.OrdinalIgnoreCase));
@@ -36,6 +42,34 @@ public partial class App : System.Windows.Application
         // When launched by the user, open settings so they can see/change things.
         if (!autoStarted)
             ShowSettings();
+
+        // Quiet check for a newer version on GitHub (if enabled).
+        if (_config.CheckUpdates)
+            _ = CheckForUpdatesAsync(silent: true);
+    }
+
+    private async Task CheckForUpdatesAsync(bool silent)
+    {
+        var info = await Updater.CheckAsync();
+        if (info == null)
+        {
+            if (!silent)
+                System.Windows.MessageBox.Show("Nessun aggiornamento disponibile: hai già l'ultima versione.",
+                    "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var r = System.Windows.MessageBox.Show(
+            $"È disponibile Fanfara {info.Version}.\n\nVuoi scaricarla e aggiornare ora?\n(Fanfara si chiuderà per installare la nuova versione.)",
+            "Aggiornamento disponibile", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (r != MessageBoxResult.Yes) return;
+
+        if (await Updater.DownloadAndRunAsync(info))
+            Shutdown();   // free the files so the installer can replace them
+        else
+            System.Windows.MessageBox.Show(
+                "Non è stato possibile scaricare l'aggiornamento. Riprova più tardi, oppure scaricalo dalla pagina GitHub.",
+                "Fanfara", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     private void SetupTray()
@@ -74,6 +108,7 @@ public partial class App : System.Windows.Application
         menu.Items.Add("Impostazioni", null, (_, _) => ShowSettings());
         menu.Items.Add("Prova notifica", null, (_, _) =>
             _overlay?.ShowPreview(_config.Style, _config.Sound, _config.Position, 0.6, "Anteprima!"));
+        menu.Items.Add("Controlla aggiornamenti", null, (_, _) => _ = CheckForUpdatesAsync(silent: false));
         menu.Items.Add("Esci", null, (_, _) => Shutdown());
         _tray.ContextMenuStrip = menu;
         _tray.DoubleClick += (_, _) => ShowSettings();
