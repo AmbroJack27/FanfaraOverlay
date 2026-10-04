@@ -35,7 +35,8 @@ public partial class SettingsWindow : Window
                 style = _config.Style,
                 sound = _config.Sound,
                 position = _config.Position,
-                duration = _config.DurationMs
+                duration = _config.DurationMs,
+                startup = _config.StartWithWindows
             });
             Web.CoreWebView2.ExecuteScriptAsync($"window.initSettings && window.initSettings({cfg})");
         };
@@ -65,6 +66,11 @@ public partial class SettingsWindow : Window
                 if (msg.sound != null) _config.Sound = msg.sound;
                 if (msg.position != null) _config.Position = msg.position;
                 if (msg.duration is int d && d > 0) _config.DurationMs = d;
+                if (msg.startup is bool s)
+                {
+                    _config.StartWithWindows = s;
+                    StartupManager.Apply(s);
+                }
                 _config.Save();
             }
         }
@@ -78,5 +84,6 @@ public partial class SettingsWindow : Window
         public string? sound { get; set; }
         public string? position { get; set; }
         public int? duration { get; set; }
+        public bool? startup { get; set; }
     }
 }

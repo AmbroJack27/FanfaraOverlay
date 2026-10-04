@@ -12,6 +12,14 @@ public partial class App : System.Windows.Application
 
     private void OnStartup(object sender, StartupEventArgs e)
     {
+        // Did Windows launch us automatically at boot? (see StartupManager)
+        bool autoStarted = Array.Exists(e.Args, a =>
+            string.Equals(a, "--autostart", StringComparison.OrdinalIgnoreCase));
+
+        // Keep the "run at startup" registry entry in sync with the saved preference
+        // (also refreshes the stored path if the app was moved or reinstalled).
+        StartupManager.Apply(_config.StartWithWindows);
+
         // Transparent, click-through, always-on-top overlay that renders the notifications.
         _overlay = new OverlayWindow(_config);
         _overlay.Show();
@@ -23,18 +31,38 @@ public partial class App : System.Windows.Application
         _steam.Start();
 
         SetupTray();
-        ShowSettings();   // open the settings window on launch so you can see/change things
+
+        // When launched by Windows at boot, stay quietly in the tray.
+        // When launched by the user, open settings so they can see/change things.
+        if (!autoStarted)
+            ShowSettings();
     }
 
     private void SetupTray()
     {
-        System.Drawing.Icon icon;
+        // Load our multi-size icon crisply. Prefer the packaged resource at 32x32;
+        // fall back to the exe's own icon, then to a system default.
+        System.Drawing.Icon icon = System.Drawing.SystemIcons.Application;
         try
         {
-            var exe = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
-            icon = exe != null ? System.Drawing.Icon.ExtractAssociatedIcon(exe)! : System.Drawing.SystemIcons.Application;
+            var res = System.Windows.Application.GetResourceStream(new Uri("icon.ico", UriKind.Relative));
+            if (res != null)
+                icon = new System.Drawing.Icon(res.Stream, new System.Drawing.Size(32, 32));
+            else
+            {
+                var exe = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                if (exe != null) icon = System.Drawing.Icon.ExtractAssociatedIcon(exe)!;
+            }
         }
-        catch { icon = System.Drawing.SystemIcons.Application; }
+        catch
+        {
+            try
+            {
+                var exe = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                if (exe != null) icon = System.Drawing.Icon.ExtractAssociatedIcon(exe)!;
+            }
+            catch { /* keep system default */ }
+        }
 
         _tray = new System.Windows.Forms.NotifyIcon
         {

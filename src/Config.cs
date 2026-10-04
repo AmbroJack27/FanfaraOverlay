@@ -14,6 +14,7 @@ public class Config
     public string Position { get; set; } = "bottom-center";
     public int DurationMs { get; set; } = 4200;
     public int PollMs { get; set; } = 1000;            // how often to check Steam for new unlocks
+    public bool StartWithWindows { get; set; } = false; // launch automatically when Windows starts
 
     private static string Path_ =>
         System.IO.Path.Combine(AppContext.BaseDirectory, "config.json");
