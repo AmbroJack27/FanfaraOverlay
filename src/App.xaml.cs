@@ -13,6 +13,15 @@ public partial class App : System.Windows.Application
     private static Mutex? _appMutex;   // lets the installer detect/close a running instance
     private readonly Config _config = Config.Load();
 
+    public App()
+    {
+        // Steam worker mode: run the isolated Steam process and exit, never building any UI.
+        var cl = Environment.GetCommandLineArgs();
+        int i = Array.FindIndex(cl, a => string.Equals(a, "--steam-worker", StringComparison.OrdinalIgnoreCase));
+        if (i >= 0 && i + 1 < cl.Length && uint.TryParse(cl[i + 1], out var app))
+            Environment.Exit(SteamWorker.Run(app));
+    }
+
     private void OnStartup(object sender, StartupEventArgs e)
     {
         // Named mutex the Inno Setup installer watches (AppMutex) to update while running.

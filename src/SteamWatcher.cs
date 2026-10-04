@@ -1,17 +1,19 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
-using Steamworks;   // Facepunch.Steamworks
 
 namespace Fanfara;
 
 /// <summary>
-/// Watches Steam for the running game and for freshly unlocked achievements.
-/// This build writes a diagnostic log to  %USERPROFILE%\fanfara-log.txt  so we can see
-/// exactly what happens (running AppID, Steam init, achievement scan, new unlocks).
+/// Supervises Steam achievement watching WITHOUT loading Steam into this process.
+/// It watches the registry for the running game and, for each game, launches a short-lived
+/// child process (this same exe with "--steam-worker &lt;appid&gt;") that talks to Steam and
+/// prints unlocks. When the game closes the child is stopped/exits and the Steam session is
+/// released — so the main app never crashes and Steam no longer shows the game as running.
 /// </summary>
 public class SteamWatcher
 {
@@ -20,10 +22,8 @@ public class SteamWatcher
     private CancellationTokenSource? _cts;
     private readonly int _pollMs;
     private uint _currentApp;
-    private uint _failedApp;              // an app whose Init failed; don't hammer it every tick
-    private bool _primed;                 // baseline of already-unlocked achievements established?
-    private int _tick;
-    private readonly HashSet<string> _known = new();
+    private uint _lastClosedApp;   // don't immediately respawn the game that just closed
+    private Process? _worker;
 
     private static readonly string LogPath =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "fanfara-log.txt");
@@ -42,7 +42,7 @@ public class SteamWatcher
         Task.Run(() => Loop(_cts.Token));
     }
 
-    public void Stop() { _cts?.Cancel(); TryShutdown(); }
+    public void Stop() { _cts?.Cancel(); StopWorker(); }
 
     private async Task Loop(CancellationToken ct)
     {
@@ -52,25 +52,26 @@ public class SteamWatcher
             {
                 uint app = ReadRunningAppId();
 
+                // The worker exits on its own when the real game closes.
+                if (_worker != null && _worker.HasExited)
+                {
+                    Log($"operaio terminato (era {_currentApp})");
+                    _worker.Dispose(); _worker = null;
+                    if (_currentApp != 0) { _lastClosedApp = _currentApp; _currentApp = 0; }
+                }
+
                 if (app == 0)
                 {
-                    if (_currentApp != 0) { Log($"gioco chiuso (era {_currentApp})"); Detach(); }
-                    _failedApp = 0;
+                    if (_currentApp != 0) { Log($"RunningAppID 0 (era {_currentApp})"); StopWorker(); _currentApp = 0; }
+                    _lastClosedApp = 0;   // registry cleared: the game may be launched again now
                 }
-                else if (app != _currentApp && app != _failedApp)
+                else if (app != _currentApp && app != _lastClosedApp)
                 {
                     Log($"RunningAppID -> {app}");
-                    Attach(app);
+                    StopWorker();
+                    StartWorker(app);
+                    _currentApp = app;
                 }
-
-                if (_currentApp != 0)
-                {
-                    SteamClient.RunCallbacks();
-                    ScanAchievements();
-                }
-
-                if (++_tick % 10 == 0)
-                    Log($"heartbeat: app={_currentApp} primed={_primed} known={_known.Count}");
             }
             catch (Exception ex) { Log($"errore loop: {ex.GetType().Name}: {ex.Message}"); }
 
@@ -78,69 +79,61 @@ public class SteamWatcher
         }
     }
 
-    private static uint ReadRunningAppId()
+    private void StartWorker(uint app)
     {
-        using var key = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
-        var v = key?.GetValue("RunningAppID");
-        return v is int i && i > 0 ? (uint)i : 0u;
-    }
-
-    private void Attach(uint app)
-    {
-        Detach();
         try
         {
-            SteamClient.Init(app, asyncCallbacks: false);
-            _currentApp = app;
-            _failedApp = 0;
-            _primed = false;
-            _known.Clear();
-            try { SteamUserStats.RequestCurrentStats(); }
-            catch (Exception ex) { Log($"RequestCurrentStats: {ex.Message}"); }
-            Log($"agganciato a {app}, SteamClient.IsValid={SteamClient.IsValid}");
+            var exe = Process.GetCurrentProcess().MainModule?.FileName;
+            if (string.IsNullOrEmpty(exe)) { Log("impossibile determinare il percorso dell'exe"); return; }
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = exe,
+                Arguments = $"--steam-worker {app}",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                CreateNoWindow = true
+            };
+
+            _worker = new Process { StartInfo = psi, EnableRaisingEvents = true };
+            _worker.OutputDataReceived += (_, e) => { if (e.Data != null) HandleLine(e.Data); };
+            _worker.Start();
+            _worker.BeginOutputReadLine();
+            Log($"operaio Steam avviato per {app} (pid {_worker.Id})");
         }
-        catch (Exception ex)
+        catch (Exception ex) { Log($"avvio operaio fallito: {ex.Message}"); _worker = null; }
+    }
+
+    private void StopWorker()
+    {
+        var w = _worker;
+        _worker = null;
+        if (w == null) return;
+        try { if (!w.HasExited) w.Kill(entireProcessTree: true); } catch { }
+        try { w.Dispose(); } catch { }
+    }
+
+    private void HandleLine(string line)
+    {
+        // Expected: UNLOCK \t name \t pct
+        var parts = line.Split('\t');
+        if (parts.Length >= 3 && parts[0] == "UNLOCK")
         {
-            _currentApp = 0;
-            _failedApp = app;   // stop retrying this app every second
-            Log($"Init({app}) FALLITO: {ex.GetType().Name}: {ex.Message}");
+            string name = parts[1];
+            double pct = double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var p) ? p : 50.0;
+            Log($"SBLOCCO nome='{name}' global={pct:0.0}%");
+            try { AchievementUnlocked?.Invoke(name, pct); } catch { }
         }
     }
 
-    private void Detach() { TryShutdown(); _currentApp = 0; _primed = false; _known.Clear(); }
-    private void TryShutdown() { try { if (_currentApp != 0) SteamClient.Shutdown(); } catch { } }
-
-    private void ScanAchievements()
+    private static uint ReadRunningAppId()
     {
-        int total = 0, unlocked = 0;
-        var fresh = new List<(string id, string name, double pct)>();
-
-        foreach (var a in SteamUserStats.Achievements)
+        try
         {
-            total++;
-            if (!a.State) continue;         // not unlocked
-            unlocked++;
-
-            if (_known.Contains(a.Identifier)) continue;
-
-            if (!_primed) { _known.Add(a.Identifier); continue; }  // baseline: record, don't announce
-
-            _known.Add(a.Identifier);
-            string name = string.IsNullOrEmpty(a.Name) ? a.Identifier : a.Name;
-            double pct = a.GlobalUnlocked >= 0 ? a.GlobalUnlocked * 100.0 : 50.0;
-            fresh.Add((a.Identifier, name, pct));
+            using var key = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
+            var v = key?.GetValue("RunningAppID");
+            return v is int i && i > 0 ? (uint)i : 0u;
         }
-
-        if (!_primed && total > 0)
-        {
-            _primed = true;
-            Log($"baseline: {total} achievement, {unlocked} già sbloccati");
-        }
-
-        foreach (var f in fresh)
-        {
-            Log($"SBLOCCO {f.id} nome='{f.name}' global={f.pct:0.0}%");
-            AchievementUnlocked?.Invoke(f.name, f.pct);
-        }
+        catch { return 0u; }
     }
 }
