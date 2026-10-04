@@ -8,35 +8,37 @@
 
 **Make Steam achievement unlocks as spectacular as on Xbox and PlayStation.**
 
-On Steam, unlocking an achievement shows a small, anonymous notification in the bottom-right
-corner. Fanfara replaces it with a celebratory animation whose **sound and style change based
-on the achievement's rarity**: the rarer it is (fewer players worldwide have earned it), the
-more epic the notification.
+On Steam, unlocking an achievement shows a small, anonymous notification in the corner. Fanfara
+replaces it with a celebratory, animated notification whose **style, icon and sound change based
+on the achievement's rarity**: the rarer it is (fewer players worldwide have earned it), the more
+epic the unlock.
 
-It's a **lightweight, native Windows overlay**: it won't slow down your PC and needs no hours
-of setup. Launch it, play, and it takes care of the rest.
+It's a **lightweight, native Windows overlay**: it won't slow down your PC and needs no hours of
+setup. Launch it, play, and it takes care of the rest.
 
 ---
 
 ## ⬇️ Download and use (everyone)
 
 1. Go to the **[Releases](../../releases)** section here on GitHub.
-2. Download the **`Fanfara.zip`** file of the latest version.
-3. Right-click the zip → **Extract All**.
-4. Open the extracted folder and double-click **`Fanfara.exe`**.
+2. Download the latest version:
+   - **`FanfaraSetup.exe`** — the installer (recommended): it sets everything up and keeps the app
+     **up to date automatically**.
+   - or **`Fanfara.zip`** — the portable version: extract it and run `Fanfara.exe`, nothing to install.
+3. Launch it.
 
-Nothing to install: no .NET, no terminal. Everything is bundled in the package.
+Nothing else to install: no .NET, no terminal. Everything is bundled.
 
 > ⚠️ **The first time**, Windows may show the blue "Windows protected your PC" warning. This is
 > normal for free apps that aren't signed with a paid certificate.
 > Click **"More info"** → **"Run anyway"**.
 
-On first launch the **settings** window opens: choose the notification style, the sound, the
-on-screen position and the duration, and try them right away with the **Prova** (Test) button.
-After you close it, Fanfara keeps running with an icon near the clock (bottom-right): click
-there to reopen settings or to quit.
+On first launch the **Settings** window opens: pick a style, choose the on-screen position and the
+duration, and preview it instantly with the **Prova** (Test) button. Each style already comes with
+its own sound — nothing else to configure. After you close the window, Fanfara keeps running with
+an icon near the clock (bottom-right): click there to reopen settings or to quit.
 
-Then start Steam, play, and the fanfare will appear on your first unlocked achievement. 🎮
+Then start Steam, play, and the fanfare appears on your first unlocked achievement. 🎮
 
 ### Tip: turn off Steam's own notification
 To avoid duplicates, you can disable Steam's default one:
@@ -46,12 +48,19 @@ To avoid duplicates, you can disable Steam's default one:
 
 ## ✨ What's included
 
-- **15 notification styles** — Console, Minimal, Arcade, Neon, Loot, Terminal, Pixel, Ribbon,
-  League-of-Legends-style fantasy shields, plus 3D versions of each.
-- **28 sounds** — from melodic and cinematic to 8-bit, epic orchestral, and gamer fanfares.
-- **5 rarity tiers** that change color, intensity and effects: Common, Uncommon, Rare, Epic,
-  Legendary.
-- **7 on-screen positions** to choose from.
+- **46 notification styles**, organized in **7 tabs**:
+  **Base · Console · Capcom · Square-Enix · Microsoft · Ubisoft · CD Projekt**.
+- Every style has its **own box**, a **different icon for each rarity** and a **built-in sound** —
+  all **3D and animated**. (No separate sound picker: the sound is part of the style.)
+- **10 original abstract Base styles**: Onda, Pulsar, Mosaico, Numero, Carica, Coriandoli, Nebula,
+  Tratto, Piega, Orbita.
+- Game-inspired packs with **original emblems and sounds** (no official logos or audio): Capcom,
+  Square-Enix, Microsoft/Xbox, Ubisoft, CD Projekt (The Witcher, Cyberpunk 2077…).
+- **5 rarity tiers** that change icon, color, intensity and effects — Common, Uncommon, Rare, Epic,
+  Legendary — and **Legendary always has something extra** ✨.
+- **7 on-screen positions**, adjustable duration, **light/dark theme**, **start with Windows** and
+  **automatic updates**.
+- **Big, easy-to-read** notifications, great on large and high-resolution monitors.
 
 ---
 
@@ -71,38 +80,43 @@ to run it in development, or to produce the distributable package:
 dotnet publish -c Release
 ```
 
-The finished app appears in `src/bin/Release/.../publish/`. It is *self-contained* (it bundles
-the .NET runtime), so the folder is standalone and portable to any Windows PC.
+The finished app is *self-contained* (it bundles the .NET runtime), so the folder is standalone
+and portable to any Windows PC.
 
-> The app must run **on the PC where Steam runs**. Fanfara hooks into the running game by
-> reading its AppID from the registry and using the Steamworks API as that game (no API key).
+> The app must run **on the PC where Steam runs**. Fanfara talks to the running game through the
+> Steamworks API as that game (no API key needed).
 
 ### Publishing a new version
 The repo includes `.github/workflows/build.yml`. When you publish a **Release** with a **tag**
-starting with `v` (e.g. `v0.1.0`), GitHub builds the app on its own Windows servers and attaches
-`Fanfara.zip` to the Release automatically. No manual compiling.
+starting with `v` (e.g. `v0.1.7`), GitHub builds the app on its own Windows servers and attaches
+`Fanfara.zip` **and** `FanfaraSetup.exe` to the Release automatically. No manual compiling.
 
 ---
 
 ## ⚙️ How it works (in short)
 
-- `SteamWatcher.cs` — reads the running game's AppID from the registry
-  (`HKCU\Software\Valve\Steam\RunningAppID`), initializes the Steamworks API as that game, and
-  checks every second whether a new achievement was unlocked. For each one it gets the worldwide
-  percentage (rarity) and raises an event.
-- `OverlayWindow` — a transparent, always-on-top, *click-through* window (it doesn't intercept
-  mouse clicks) that covers the screen and hosts a WebView2.
-- `web/notify.html` — the notification graphics: receives the data from the C# shell and draws
-  the unlock in the chosen style and sound, with rarity deciding colors and effects.
-- `web/settings.html` — the settings window.
-- `config.json` — the saved preferences, next to the exe.
+- `SteamWatcher.cs` — the supervisor. It launches a **separate Steam worker process** for the
+  running game, so the main app never loads Steam directly (this keeps Fanfara stable and avoids
+  the game appearing "still running" after you quit).
+- `SteamWorker.cs` — the child process. It initializes the Steamworks API **as the running game**,
+  checks every second for newly unlocked achievements (reading each one's worldwide rarity %), and
+  detects when the game closes. It reports unlocks back to the main app.
+- `OverlayWindow` — a transparent, always-on-top, *click-through* window that covers the screen and
+  hosts a WebView2.
+- `web/notify.html` — the notification graphics: 46 styles that draw the unlock with the right box,
+  icon and sound; rarity decides colors and effects.
+- `web/settings.html` — the Settings window (with a themed title bar).
+- `Updater.cs` — checks GitHub for a newer Release and updates automatically.
+- `StartupManager.cs` — optional start with Windows. `config.json` — saved preferences, next to the exe.
 
 ### Honest notes
-- The overlay appears over games in **borderless window** mode (today's standard). True
-  *exclusive fullscreen* is the only case where it might not show — the same limit as every
-  similar overlay.
-- Sounds are currently **synthesized live**: they define the character and can be replaced with
-  real audio samples later.
+- The overlay appears over games in **borderless window** mode (today's standard). True *exclusive
+  fullscreen* is the only case where it might not show — the same limit as every similar overlay.
+- Sounds are **synthesized live** inside each style: they define the character and can be swapped
+  for recorded audio later.
+
+> ℹ️ Fan project, not affiliated with or endorsed by the game companies. All trademarks belong to
+> their respective owners.
 
 ## License
 MIT — see `LICENSE`. Free to use, modify and share.
