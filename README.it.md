@@ -1,5 +1,9 @@
 # 🎉 Fanfara
 
+<p align="center">
+  <img src="media/fanfara-demo.gif" alt="Fanfara — demo" width="820">
+</p>
+
 [🇬🇧 Read in English](README.md) · **🇮🇹 Italiano**
 
 **Rendi lo sblocco degli achievement di Steam spettacolare come su Xbox e PlayStation.**
