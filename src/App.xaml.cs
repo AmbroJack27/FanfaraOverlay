@@ -24,8 +24,17 @@ public partial class App : System.Windows.Application
 
     private void OnStartup(object sender, StartupEventArgs e)
     {
-        // Named mutex the Inno Setup installer watches (AppMutex) to update while running.
-        try { _appMutex = new Mutex(true, "FanfaraOverlayAppMutex"); } catch { }
+        // Single instance: the named mutex is also what the Inno Setup installer watches (AppMutex).
+        // If another Fanfara is already running we own nothing new — quit immediately so we never
+        // end up with several overlays/Steam workers fighting each other.
+        bool createdNew;
+        try { _appMutex = new Mutex(true, "FanfaraOverlayAppMutex", out createdNew); }
+        catch { createdNew = true; }   // if we can't check, don't block the only instance
+        if (!createdNew)
+        {
+            Shutdown();
+            return;
+        }
 
         // Did Windows launch us automatically at boot? (see StartupManager)
         bool autoStarted = Array.Exists(e.Args, a =>

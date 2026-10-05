@@ -6,6 +6,16 @@ using Microsoft.Win32;
 
 namespace Fanfara;
 
+internal static class LibLog
+{
+    private static readonly string Path_ =
+        System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "fanfara-log.txt");
+    public static void Write(string m)
+    {
+        try { File.AppendAllText(Path_, $"{DateTime.Now:HH:mm:ss}  [prescan] {m}{Environment.NewLine}"); } catch { }
+    }
+}
+
 /// <summary>
 /// Finds the installed Steam games and pre-applies the overlay fix (disable fullscreen
 /// optimizations) to each game's main .exe, so Fanfara's notifications show over them from
@@ -21,11 +31,13 @@ public static class SteamLibrary
     /// <summary>Pre-optimizes every not-yet-scanned installed game. Returns how many exes were newly fixed.</summary>
     public static int PreoptimizeAll(Config config)
     {
-        int applied = 0;
+        int applied = 0, games = 0;
         bool changed = false;
         try
         {
-            foreach (var lib in GetLibraryPaths())
+            var libs = GetLibraryPaths();
+            LibLog.Write($"avvio — {libs.Count} libreria/e Steam");
+            foreach (var lib in libs)
             {
                 var common = Path.Combine(lib, "steamapps", "common");
                 if (!Directory.Exists(common)) continue;
@@ -40,6 +52,11 @@ public static class SteamLibrary
 
                     var exes = new List<string>();
                     Walk(gameDir, 0, exes);
+                    if (exes.Count > 0)
+                    {
+                        games++;
+                        LibLog.Write($"preparato {Path.GetFileName(gameDir)}: {string.Join(", ", exes.ConvertAll(Path.GetFileName))}");
+                    }
                     foreach (var exe in exes)
                     {
                         if (FsOpt.Apply(exe)) applied++;
@@ -50,8 +67,9 @@ public static class SteamLibrary
                 }
             }
             if (changed) config.Save();
+            LibLog.Write($"fine — {games} giochi nuovi, {applied} exe preparati");
         }
-        catch { /* best-effort */ }
+        catch (Exception ex) { LibLog.Write($"errore: {ex.Message}"); }
         return applied;
     }
 
