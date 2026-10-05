@@ -23,6 +23,9 @@ public class Config
     // Auto-disable Windows "fullscreen optimizations" for detected games, so the overlay
     // shows over borderless/fullscreen titles. Per-user, no admin, reversible.
     public bool GameOverlayFix { get; set; } = true;
+    // Advanced: force DWM Composed Flip (disable MPO) so the overlay also shows over games
+    // that use Frame Generation / exclusive fullscreen. Machine-wide, needs admin + a reboot.
+    public bool FrameGenFix { get; set; } = false;
     // Game .exe paths we've applied the fix to (so we don't re-notify, and can undo on disable).
     public List<string> OptimizedGames { get; set; } = new();
     // Game install folders already pre-scanned, so we don't re-scan the whole library every boot.

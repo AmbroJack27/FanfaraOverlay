@@ -95,6 +95,16 @@
     border-radius:11px; padding:12px 13px; font:600 13px var(--body); cursor:pointer}
   .langsel:focus{outline:none; border-color:var(--accent)}
 
+  /* In-app guide overlay */
+  .guide{position:absolute; inset:0; z-index:50; background:var(--bg); display:none; flex-direction:column}
+  .guide.on{display:flex}
+  .guide-head{display:flex; align-items:center; gap:12px; padding:16px 22px; border-bottom:1px solid var(--line); background:var(--bar)}
+  .guide-head h2{margin:0; flex:1; font:800 18px var(--display)}
+  .guide-body{flex:1; min-height:0; overflow:auto; padding:18px 24px 26px}
+  .guide-body section{margin:0 0 18px; max-width:760px}
+  .guide-body h3{margin:0 0 5px; font:800 14.5px var(--display); color:var(--accent)}
+  .guide-body p{margin:0 0 6px; font:400 13.5px/1.55 var(--body); color:var(--fg)}
+
   @media (max-width:760px){ .pane{grid-template-columns:1fr; overflow:auto} .colL .block{flex:none} .scroll{max-height:220px} }
 </style>
 </head>
@@ -104,6 +114,7 @@
     <div class="badge"><svg viewBox="0 0 24 24" fill="var(--accent)"><path d="M6 3 H18 V6.4 C18 10.6 15.3 13 12 13 C8.7 13 6 10.6 6 6.4 Z"/><path d="M11 12.8 H13 V15.6 H11 Z"/><path d="M8.2 15.5 H15.8 L16.9 18.6 H7.1 Z"/><path d="M6.5 18.6 H17.5 V20.3 H6.5 Z"/><path d="M6 4.6 C2.4 4.6 2.4 10.2 7 10.4 M18 4.6 C21.6 4.6 21.6 10.2 17 10.4" stroke="var(--accent)" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
     <div><h1>Fanfara</h1><small id="subtitle">Scegli come appare lo sblocco degli obiettivi</small></div>
     <div class="spacer"></div>
+    <button class="themebtn" id="guideBtn"></button>
     <button class="themebtn" id="theme"></button>
   </div>
 
@@ -122,6 +133,8 @@
         <label class="switch"><input type="checkbox" id="updates"><span class="slider"></span></label></div>
       <div class="toggle"><div><b id="gamefixT">Mostra le notifiche nei giochi a schermo intero</b><small id="gamefixS">Prepara i giochi perché le notifiche compaiano anche in gioco (consigliato).</small></div>
         <label class="switch"><input type="checkbox" id="gamefix"><span class="slider"></span></label></div>
+      <div class="toggle"><div><b id="framegenT">Compatibilità con Frame Generation (avanzato)</b><small id="framegenS">Fa comparire le notifiche anche nei giochi con Frame Generation o fullscreen esclusivo. Richiede permessi admin e un riavvio del PC.</small></div>
+        <label class="switch"><input type="checkbox" id="framegen"><span class="slider"></span></label></div>
     </div>
   </div>
 
@@ -133,9 +146,18 @@
     <button class="btn save" id="btnSave">Salva</button>
   </div>
   <div class="disc" id="disc">Progetto amatoriale, non affiliato né approvato dalle case produttrici. Tutti i marchi appartengono ai rispettivi proprietari.</div>
+
+  <div id="guide" class="guide">
+    <div class="guide-head">
+      <h2 id="guideTitle">Guida di Fanfara</h2>
+      <button class="btn test" id="guideClose">Chiudi</button>
+    </div>
+    <div class="guide-body" id="guideBody"></div>
+  </div>
 </div>
 
 <script src="i18n.js"></script>
+<script src="guide.js"></script>
 <script>
 const STYLES=[['xbox','Xbox'],['playstation','PlayStation'],['switch','Switch'],['mh','Monster Hunter'],['sf','Street Fighter'],['mm','Mega Man'],['dmc','Devil May Cry'],['dd',"Dragon's Dogma"],['dr','Dead Rising'],['dc','Dino Crisis'],['re','Resident Evil'],['ff','Final Fantasy'],['ct','Chrono Trigger'],['cc','Chrono Cross'],['xg','Xenogears'],['vs','Vagrant Story'],['som','Secret of Mana'],['kh','Kingdom Hearts'],['tr','Tomb Raider'],['dx','Deus Ex'],['ha','Halo'],['fz','Forza'],['gw','Gears of War'],['fb','Fable'],['ae','Age of Empires'],['mc','Minecraft'],['ac',"Assassin's Creed"],['r6','Rainbow Six'],['gr','Ghost Recon'],['td','The Division'],['sc','Splinter Cell'],['fc','Far Cry'],['ry','Rayman'],['an','Anno'],['wi','The Witcher'],['cp','Cyberpunk 2077'],['on','Onda'],['pu','Pulsar'],['mo','Mosaico'],['nu','Numero'],['ca','Carica'],['co','Coriandoli'],['ne','Nebula'],['tt','Tratto'],['pg','Piega'],['ob','Orbita']];
 const CONSOLE=['xbox','playstation','switch'];
@@ -161,7 +183,7 @@ let LANG='it';
 let U=FAN_I18N.ui.it;        // current UI strings
 let POSLAB=FAN_I18N.pos.it;  // current position labels
 
-const S={style:'on', sound:'classic', position:'bottom-center', duration:4200, startup:false, updates:true, gamefix:true, theme:'dark', filter:'tutti', language:'auto', osLang:''};
+const S={style:'on', sound:'classic', position:'bottom-center', duration:4200, startup:false, updates:true, gamefix:true, framegen:false, theme:'dark', filter:'tutti', language:'auto', osLang:''};
 const $=s=>document.querySelector(s);
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function send(o){ try{ window.chrome.webview.postMessage(JSON.stringify(o)); }catch(e){} }
@@ -185,6 +207,12 @@ function applyI18n(){
   $('#updatesS').textContent=U.updatesS;
   $('#gamefixT').textContent=U.gamefixT;
   $('#gamefixS').textContent=U.gamefixS;
+  $('#framegenT').textContent=U.framegenT;
+  $('#framegenS').textContent=U.framegenS;
+  $('#guideBtn').textContent='? '+U.guideBtn;
+  $('#guideTitle').textContent=U.guideTitle;
+  $('#guideClose').textContent=U.guideClose;
+  renderGuide();
   $('#disc').textContent=U.disc;
   $('#hint').innerHTML=`${U.hintPre} <b>${U.test}</b> ${U.hintMid} <b>${U.save}</b> ${U.hintPost}`;
   $('#saved').textContent=U.saved;
@@ -217,6 +245,11 @@ function renderPos(){
 }
 function applyTheme(){ $('#app').dataset.mode=S.theme; $('#theme').innerHTML = S.theme==='dark' ? MOON+'<span>'+U.dark+'</span>' : SUN+'<span>'+U.light+'</span>'; }
 
+function renderGuide(){
+  const g=(window.FAN_GUIDE && (FAN_GUIDE[LANG]||FAN_GUIDE.it)) || [];
+  $('#guideBody').innerHTML = g.map(s=>`<section><h3>${esc(s.h)}</h3>${(s.p||[]).map(x=>`<p>${esc(x)}</p>`).join('')}</section>`).join('');
+}
+
 window.initSettings = cfg => {
   if(!cfg) return;
   if(cfg.style) S.style=cfg.style;
@@ -227,6 +260,7 @@ window.initSettings = cfg => {
   if(typeof cfg.startup==='boolean') S.startup=cfg.startup;
   if(typeof cfg.checkUpdates==='boolean') S.updates=cfg.checkUpdates;
   if(typeof cfg.gameOverlayFix==='boolean') S.gamefix=cfg.gameOverlayFix;
+  if(typeof cfg.frameGenFix==='boolean') S.framegen=cfg.frameGenFix;
   if(cfg.theme) S.theme=cfg.theme;
   if(cfg.osLang) S.osLang=cfg.osLang;
   if(cfg.language) S.language=cfg.language;
@@ -235,6 +269,7 @@ window.initSettings = cfg => {
   $('#startup').checked=S.startup;
   $('#updates').checked=S.updates;
   $('#gamefix').checked=S.gamefix;
+  $('#framegen').checked=S.framegen;
   setUILang(window.resolveLang(S.language, S.osLang));
 };
 
@@ -243,7 +278,11 @@ $('#dur').oninput=()=>{ S.duration=Math.round(parseFloat($('#dur').value||'4.2')
 $('#startup').onchange=()=>{ S.startup=$('#startup').checked; };
 $('#updates').onchange=()=>{ S.updates=$('#updates').checked; };
 $('#gamefix').onchange=()=>{ S.gamefix=$('#gamefix').checked; };
+$('#framegen').onchange=()=>{ S.framegen=$('#framegen').checked;
+  send({action:'framegen', frameGenFix:S.framegen}); };
 $('#theme').onclick=()=>{ S.theme = S.theme==='dark'?'light':'dark'; applyTheme(); send({action:'theme', theme:S.theme}); };
+$('#guideBtn').onclick=()=>{ renderGuide(); $('#guide').classList.add('on'); };
+$('#guideClose').onclick=()=>{ $('#guide').classList.remove('on'); };
 $('#lang').onchange=()=>{ S.language=$('#lang').value;
   setUILang(window.resolveLang(S.language, S.osLang));
   send({action:'language', language:S.language}); };

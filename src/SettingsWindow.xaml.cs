@@ -61,27 +61,31 @@ public partial class SettingsWindow : Window
 
         Web.CoreWebView2.WebMessageReceived += OnWebMessage;
 
-        Web.CoreWebView2.NavigationCompleted += (_, _) =>
-        {
-            var cfg = JsonSerializer.Serialize(new
-            {
-                style = _config.Style,
-                sound = _config.Sound,
-                position = _config.Position,
-                duration = _config.DurationMs,
-                startup = _config.StartWithWindows,
-                checkUpdates = _config.CheckUpdates,
-                gameOverlayFix = _config.GameOverlayFix,
-                theme = _config.Theme,
-                language = _config.Language,
-                osLang = Config.OsLang,
-                version = VersionString()
-            });
-            Web.CoreWebView2.ExecuteScriptAsync($"window.initSettings && window.initSettings({cfg})");
-        };
+        Web.CoreWebView2.NavigationCompleted += (_, _) => PushConfig();
 
         var html = Path.Combine(AppContext.BaseDirectory, "web", "settings.html");
         Web.CoreWebView2.Navigate(new Uri(html).AbsoluteUri);
+    }
+
+    /// <summary>Send the current config to the web layer (also used to re-sync a toggle on cancel).</summary>
+    private void PushConfig()
+    {
+        var cfg = JsonSerializer.Serialize(new
+        {
+            style = _config.Style,
+            sound = _config.Sound,
+            position = _config.Position,
+            duration = _config.DurationMs,
+            startup = _config.StartWithWindows,
+            checkUpdates = _config.CheckUpdates,
+            gameOverlayFix = _config.GameOverlayFix,
+            frameGenFix = _config.FrameGenFix,
+            theme = _config.Theme,
+            language = _config.Language,
+            osLang = Config.OsLang,
+            version = VersionString()
+        });
+        Web.CoreWebView2.ExecuteScriptAsync($"window.initSettings && window.initSettings({cfg})");
     }
 
     private void OnWebMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs args)
@@ -102,6 +106,36 @@ public partial class SettingsWindow : Window
             else if (msg.action == "theme")
             {
                 if (msg.theme != null) { _config.Theme = msg.theme; _config.Save(); ApplyTitleBar(msg.theme != "light"); }
+            }
+            else if (msg.action == "framegen")
+            {
+                if (msg.frameGenFix is bool fg)
+                {
+                    var lang = _config.EffectiveLanguage;
+                    bool ok = Mpo.SetDisabled(fg);
+                    if (ok)
+                    {
+                        _config.FrameGenFix = fg;
+                        _config.Save();
+                        _overlay.SetFrameGenFix(fg);   // start/stop the keep-on-top helper
+                        var r = System.Windows.MessageBox.Show(
+                            Loc.S(lang, "mpoRestartBody"), Loc.S(lang, "mpoRestartTitle"),
+                            MessageBoxButton.YesNo, MessageBoxImage.Information);
+                        if (r == MessageBoxResult.Yes)
+                        {
+                            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                                { FileName = "shutdown", Arguments = "/r /t 5", UseShellExecute = true, CreateNoWindow = true }); }
+                            catch { }
+                        }
+                    }
+                    else
+                    {
+                        // UAC cancelled / failed — don't change anything, and re-sync the toggle.
+                        System.Windows.MessageBox.Show(Loc.S(lang, "mpoCancelBody"), "Fanfara",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                        PushConfig();
+                    }
+                }
             }
             else if (msg.action == "language")
             {
@@ -163,6 +197,7 @@ public partial class SettingsWindow : Window
         public bool? startup { get; set; }
         public bool? checkUpdates { get; set; }
         public bool? gameOverlayFix { get; set; }
+        public bool? frameGenFix { get; set; }
         public string? theme { get; set; }
         public string? language { get; set; }
     }

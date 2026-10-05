@@ -92,7 +92,7 @@ su qualunque PC Windows.
 
 ### Pubblicare una nuova versione
 Il repo include `.github/workflows/build.yml`. Quando pubblichi una **Release** con un **tag** che
-inizia con `v` (es. `v0.1.11`), GitHub compila l'app sui propri server Windows e allega
+inizia con `v` (es. `v0.1.12`), GitHub compila l'app sui propri server Windows e allega
 automaticamente `Fanfara.zip` **e** `FanfaraSetup.exe` alla Release. Nessuna compilazione manuale.
 
 ---
@@ -116,6 +116,7 @@ automaticamente `Fanfara.zip` **e** `FanfaraSetup.exe` alla Release. Nessuna com
 ### Note oneste
 - L'overlay compare sui giochi in modalità **finestra senza bordi** (lo standard di oggi). Solo nel
   vero *fullscreen esclusivo* potrebbe non apparire — lo stesso limite di ogni overlay simile.
+- I giochi che usano la **Frame Generation** o il **fullscreen esclusivo** possono nascondere qualsiasi overlay esterno. Attiva l'opzione avanzata **“Compatibilità con Frame Generation”** nelle Impostazioni (richiede permessi admin e un riavvio una tantum) per vedere le notifiche anche lì.
 - I suoni sono **sintetizzati dal vivo** dentro ogni stile: ne definiscono il carattere e potranno
   essere sostituiti con campioni audio registrati in futuro.
 

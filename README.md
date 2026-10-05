@@ -92,7 +92,7 @@ and portable to any Windows PC.
 
 ### Publishing a new version
 The repo includes `.github/workflows/build.yml`. When you publish a **Release** with a **tag**
-starting with `v` (e.g. `v0.1.11`), GitHub builds the app on its own Windows servers and attaches
+starting with `v` (e.g. `v0.1.12`), GitHub builds the app on its own Windows servers and attaches
 `Fanfara.zip` **and** `FanfaraSetup.exe` to the Release automatically. No manual compiling.
 
 ---
@@ -116,6 +116,7 @@ starting with `v` (e.g. `v0.1.11`), GitHub builds the app on its own Windows ser
 ### Honest notes
 - The overlay appears over games in **borderless window** mode (today's standard). True *exclusive
   fullscreen* is the only case where it might not show — the same limit as every similar overlay.
+- Games that use **Frame Generation** or **true exclusive fullscreen** may hide any external overlay. Turn on the **advanced "Frame Generation compatibility"** option in Settings (needs admin rights and a one-time restart) to make notifications show there too.
 - Sounds are **synthesized live** inside each style: they define the character and can be swapped
   for recorded audio later.
 

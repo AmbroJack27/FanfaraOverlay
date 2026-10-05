@@ -48,6 +48,29 @@ public partial class OverlayWindow : Window
 
         var html = Path.Combine(AppContext.BaseDirectory, "web", "notify.html");
         Web.CoreWebView2.Navigate(new Uri(html).AbsoluteUri);
+
+        // If the advanced Frame Generation fix is on, keep re-asserting top-most so the overlay
+        // stays composited over FG / exclusive-fullscreen games.
+        SetFrameGenFix(_config.FrameGenFix);
+    }
+
+    // Keeps DWM compositing our topmost window every frame, which (with MPO disabled) holds the
+    // game in Composed Flip so the overlay stays visible even with Frame Generation.
+    private System.Windows.Threading.DispatcherTimer? _keepTop;
+
+    /// <summary>Start/stop the keep-on-top helper used by the advanced Frame Generation fix.</summary>
+    public void SetFrameGenFix(bool on)
+    {
+        if (on)
+        {
+            if (_keepTop == null)
+            {
+                _keepTop = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+                _keepTop.Tick += (_, _) => ForceTopmost();
+            }
+            _keepTop.Start();
+        }
+        else _keepTop?.Stop();
     }
 
     /// <summary>Push the effective language (from config + OS) into the web layer.</summary>
