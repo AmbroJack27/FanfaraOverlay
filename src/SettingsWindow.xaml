@@ -4,8 +4,8 @@
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="Fanfara — Impostazioni"
         Icon="icon.ico"
-        Width="1060" Height="760"
-        MinWidth="760" MinHeight="600"
+        Width="1060" Height="820"
+        MinWidth="760" MinHeight="640"
         WindowStartupLocation="CenterScreen"
         Background="#0b0f18">
     <Grid>

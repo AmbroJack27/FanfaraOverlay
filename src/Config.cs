@@ -14,6 +14,7 @@ public class Config
     // bottom-center | top-center | center | top-right | bottom-right | top-left | bottom-left
     public string Position { get; set; } = "bottom-center";
     public int DurationMs { get; set; } = 4200;
+    public int Volume { get; set; } = 100;             // notification sound volume, 0..100
     public int PollMs { get; set; } = 1000;            // how often to check Steam for new unlocks
     public bool StartWithWindows { get; set; } = false; // launch automatically when Windows starts
     public string Theme { get; set; } = "dark";        // settings window appearance: "dark" | "light"

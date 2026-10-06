@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="430" viewBox="0 0 900 430">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#121a2b"/><stop offset="1" stop-color="#0a0e16"/>
+    </linearGradient>
+    <radialGradient id="gold" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="#fff2c2"/><stop offset="45%" stop-color="#f5c242"/>
+      <stop offset="100%" stop-color="#7a5513"/>
+    </radialGradient>
+    <linearGradient id="goldFlat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd868"/><stop offset="1" stop-color="#e0a52a"/>
+    </linearGradient>
+    <radialGradient id="gloss" cx="50%" cy="22%" r="60%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset="60%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#f5c242" stop-opacity=".55"/><stop offset="100%" stop-color="#f5c242" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>
+
+  <rect width="900" height="430" rx="22" fill="url(#bg)"/>
+  <text x="450" y="52" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="800" fill="#eaf0ff">Esempio di immagini SVG (vettoriali)</text>
+  <text x="450" y="80" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#9fb0cc">Nitide a ogni dimensione · leggere · animabili — ma stile grafico, non fotorealistico</text>
+
+  <!-- LEFT: flat / graphic -->
+  <g transform="translate(250,250)">
+    <circle r="120" fill="url(#glow)" filter="url(#soft)"/>
+    <circle r="92" fill="url(#goldFlat)" stroke="#5a3d0a" stroke-width="4"/>
+    <circle r="92" fill="none" stroke="#fff3c9" stroke-width="2" opacity=".5"/>
+    <path d="M0 -52 L15 -16 L54 -16 L23 8 L34 46 L0 22 L-34 46 L-23 8 L-54 -16 L-15 -16 Z" fill="#2a1c04"/>
+    <text x="0" y="150" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#cdd8ef">Grafico / piatto</text>
+  </g>
+
+  <!-- RIGHT: glossy pseudo-3D -->
+  <g transform="translate(650,250)">
+    <ellipse cx="0" cy="104" rx="70" ry="14" fill="#000" opacity=".45" filter="url(#soft)"/>
+    <circle r="120" fill="url(#glow)" filter="url(#soft)"/>
+    <circle r="94" fill="url(#gold)" stroke="#4a3208" stroke-width="3"/>
+    <circle r="94" fill="url(#gloss)"/>
+    <path d="M0 -50 L15 -15 L53 -15 L22 9 L33 46 L0 23 L-33 46 L-22 9 L-53 -15 L-15 -15 Z"
+          fill="#fff4d0" stroke="#8a6a1e" stroke-width="1.5"/>
+    <path d="M0 -50 L15 -15 L0 -8 Z" fill="#ffffff" opacity=".7"/>
+    <text x="0" y="150" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#cdd8ef">Lucido / finto-3D</text>
+  </g>
+</svg>

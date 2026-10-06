@@ -973,6 +973,31 @@
   .ff.leave,.ct.leave,.cc.leave,.xg.leave,.vs.leave,.som.leave,.kh.leave,.tr.leave,.dx.leave,.ha.leave,.fz.leave,.gw.leave,.fb.leave,.ae.leave,.mc.leave,.ac.leave,.r6.leave,.gr.leave,.td.leave,.sc.leave,.fc.leave,.ry.leave,.an.leave{animation:a3-out .4s ease-in forwards}
   @media (prefers-reduced-motion: reduce){ .ff.enter,.ct.enter,.cc.enter,.xg.enter,.vs.enter,.som.enter,.kh.enter,.tr.enter,.dx.enter,.ha.enter,.fz.enter,.gw.enter,.fb.enter,.ae.enter,.mc.enter,.ac.enter,.r6.enter,.gr.enter,.td.enter,.sc.enter,.fc.enter,.ry.enter,.an.enter,
     .ff.enter .em,.ct.enter .em,.cc.enter .em,.xg.enter .em,.vs.enter .em,.som.enter .em,.kh.enter .em,.tr.enter .em,.dx.enter .em,.ha.enter .em,.fz.enter .em,.gw.enter .em,.fb.enter .em,.ae.enter .em,.mc.enter .em,.ac.enter .em,.r6.enter .em,.gr.enter .em,.td.enter .em,.sc.enter .em,.fc.enter .em,.ry.enter .em,.an.enter .em{animation:none !important} }
+  /* ===== STYLE — FANTASY (real emblems + orchestral sound) ===== */
+  .fan{position:relative; width:100%; display:flex; flex-direction:column; align-items:center;
+    text-align:center; --fc:#9aa7bd; transition:opacity .42s ease, transform .42s ease}
+  .fan.tier-common{--fc:#9aa7bd} .fan.tier-uncommon{--fc:#59d185} .fan.tier-rare{--fc:#49a7ff}
+  .fan.tier-epic{--fc:#b98cff} .fan.tier-legendary{--fc:#ffcf4d}
+  .fan.leave{opacity:0; transform:translateY(12px) scale(.97)}
+  .fan-emwrap{position:relative; width:220px; height:220px; display:flex; align-items:center; justify-content:center}
+  .fan-glow{position:absolute; left:50%; top:50%; width:230px; height:230px; transform:translate(-50%,-50%);
+    background:radial-gradient(circle, var(--fc), transparent 62%); mix-blend-mode:screen; opacity:0;
+    animation:fan-burst 1.4s ease-out .04s forwards; pointer-events:none}
+  .fan.tier-legendary .fan-glow{animation:fan-legpulse 1.8s ease-in-out .04s infinite}
+  .fan-img{max-width:220px; max-height:220px; width:auto; height:auto;
+    filter:drop-shadow(0 8px 26px rgba(0,0,0,.55)); transform:scale(.82); opacity:0;
+    animation:fan-pop .85s cubic-bezier(.2,.9,.25,1) .02s forwards}
+  .fan-shine{position:absolute; top:4%; left:-45%; width:34%; height:90%; transform:skewX(-18deg);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
+    opacity:0; mix-blend-mode:screen; animation:fan-sweep .9s ease-in-out .5s forwards; pointer-events:none}
+  .fan-name{margin-top:4px; font:800 23px 'Cinzel',serif; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.6)}
+  .fan-rar{margin-top:3px; font:700 14px 'Cinzel',serif; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--fc); text-shadow:0 0 14px var(--fc)}
+  .fan-rar small{color:#9fb0cc; font-weight:600; letter-spacing:0; text-shadow:none}
+  @keyframes fan-pop{0%{opacity:0;transform:scale(.82)}60%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+  @keyframes fan-burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}26%{opacity:.85;transform:translate(-50%,-50%) scale(1.15)}100%{opacity:.4;transform:translate(-50%,-50%) scale(1)}}
+  @keyframes fan-legpulse{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(1)}50%{opacity:.92;transform:translate(-50%,-50%) scale(1.14)}}
+  @keyframes fan-sweep{0%{left:-45%;opacity:0}22%{opacity:.8}100%{left:120%;opacity:0}}
 </style>
 </head>
 <body>
@@ -1435,6 +1460,22 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
   function buildPkg(key,t){ const el=document.createElement("div"); el.className=key+(PKG_CLASS[key]?" "+PKG_CLASS[key]:"")+" tier-"+t.id; el.innerHTML=PKG_INNER[key](t.name||"Obiettivo", TI[t.id]); return el; }
 
 
+  // ===== FANTASY style — real crest images + orchestral sound =====
+  const FAN_IMG = { common:"fantasy_common", uncommon:"fantasy_uncommon",
+                    rare:"fantasy_rare", epic:"fantasy_epic", legendary:"fantasy_legendary" };
+  function buildFantasy(t){
+    const el = document.createElement("div"); el.className = "fan tier-"+t.id;
+    el.innerHTML =
+      '<div class="fan-emwrap">'+
+        '<div class="fan-glow"></div>'+
+        '<img class="fan-img" src="img/'+(FAN_IMG[t.id]||FAN_IMG.common)+'.png" alt="">'+
+        '<div class="fan-shine"></div><div class="sparks"></div>'+
+      '</div>'+
+      '<div class="fan-name">'+t.name+'</div>'+
+      '<div class="fan-rar">'+t.label+' <small>· '+t.pct+'</small></div>';
+    return el;
+  }
+
   function build(t){
     if(PKG_INNER[style]) return buildPkg(style, t);
     switch(style){
@@ -1450,6 +1491,7 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
       case "neon": return buildNeon(t);
       case "terminale": return buildTerminal(t);
       case "loot": return buildLoot(t);
+      case "fantasy": return buildFantasy(t);
       case "nastro3d": return build3D(t, buildBanner);
       case "pixel3d": return build3D(t, buildPixel);
       case "neon3d": return build3D(t, buildNeon);
@@ -1477,8 +1519,9 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
     const o = Object.assign({}, DEFAULT, opts||{});
     clearCurrent();
     style = o.style; currentSound = o.sound;
+    notifVol = (o.volume==null ? 100 : Number(o.volume)) / 100;   // 0..1 master volume
     // Console & Capcom styles come as a package: use their signature sound.
-    const PKG_SOUND = { xbox:"c_xbox", playstation:"c_ps", switch:"c_switch",
+    const PKG_SOUND = { fantasy:"c_fantasy", xbox:"c_xbox", playstation:"c_ps", switch:"c_switch",
       mh:"c_mh", sf:"c_sf", mm:"c_mm", dmc:"c_dmc", dd:"c_dd", dr:"c_dr", dc:"c_dc", re:"c_re",
       ff:"c_ff", ct:"c_ct", cc:"c_cc", xg:"c_xg", vs:"c_vs", som:"c_som", kh:"c_kh", tr:"c_tr", dx:"c_dx",
       ha:"c_ha",fz:"c_fz",gw:"c_gw",fb:"c_fb",ae:"c_ae",mc:"c_mc",ac:"c_ac",r6:"c_r6",gr:"c_gr",td:"c_td",sc:"c_sc",fc:"c_fc",ry:"c_ry",an:"c_an", wi:"c_wi", cp:"c_cp", on:"c_on", pu:"c_pu", mo:"c_mo", nu:"c_nu", ca:"c_ca", co:"c_co", ne:"c_ne", tt:"c_tt", pg:"c_pg", ob:"c_ob" };
@@ -1507,13 +1550,18 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
   /* ---------- synthesised sound ---------- */
   let actx = null;
   function ctx(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+  // Master volume node: every synthesised voice routes through here, so the user's
+  // volume setting scales all sound styles. (The Fantasy style's sampled stingers are
+  // HTMLAudio elements and get their volume set directly in fantasySfx.)
+  let _master = null, notifVol = 1;
+  function master(c){ if(!_master){ _master = c.createGain(); _master.gain.value = notifVol; _master.connect(c.destination); } return _master; }
   /* (generic sound library removed — every style now carries its own integrated sound) */
   /* ---- richer console SFX (warm, with reverb) ---- */
   let _rvb=null,_rvbSend=null;
   function reverbBus(c){
     if(!_rvb){ _rvb=c.createConvolver(); const len=c.sampleRate*2.4, b=c.createBuffer(2,len,c.sampleRate);
       for(let ch=0;ch<2;ch++){ const d=b.getChannelData(ch); for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.4); }
-      _rvb.buffer=b; const wet=c.createGain(); wet.gain.value=0.5; _rvb.connect(wet).connect(c.destination); _rvbSend=c.createGain(); _rvbSend.connect(_rvb); }
+      _rvb.buffer=b; const wet=c.createGain(); wet.gain.value=0.5; _rvb.connect(wet).connect(master(c)); _rvbSend=c.createGain(); _rvbSend.connect(_rvb); }
     return _rvbSend;
   }
   function voiceR(c,t0,freq,dur,o){ o=o||{}; const amp=c.createGain(), f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=o.cutoff||2400; f.Q.value=0.7;
@@ -1521,10 +1569,10 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
       if(o.detune) osc.detune.value=(i-(a.length-1)/2)*o.detune; if(o.glide) osc.frequency.exponentialRampToValueAtTime(o.glide,t0+dur);
       osc.connect(f); osc.start(t0); osc.stop(t0+dur+0.1); });
     const peak=o.gain||0.14, atk=o.attack||0.03; amp.gain.setValueAtTime(0.0001,t0); amp.gain.linearRampToValueAtTime(peak,t0+atk); amp.gain.exponentialRampToValueAtTime(0.0005,t0+dur);
-    f.connect(amp); amp.connect(c.destination); const rs=c.createGain(); rs.gain.value=(o.reverb!=null?o.reverb:0.35)*peak*4; amp.connect(rs); rs.connect(reverbBus(c)); }
+    f.connect(amp); amp.connect(master(c)); const rs=c.createGain(); rs.gain.value=(o.reverb!=null?o.reverb:0.35)*peak*4; amp.connect(rs); rs.connect(reverbBus(c)); }
   function bellR(c,t0,freq,dur,gain,rev){ [[1,1],[2.0,0.45],[3.01,0.22],[4.7,0.1]].forEach(([m,a])=>{ const osc=c.createOscillator(), g=c.createGain();
     osc.type="sine"; osc.frequency.value=freq*m; g.gain.setValueAtTime(0.0001,t0); g.gain.linearRampToValueAtTime((gain||0.18)*a,t0+0.006); g.gain.exponentialRampToValueAtTime(0.0005,t0+dur);
-    osc.connect(g); g.connect(c.destination); const rs=c.createGain(); rs.gain.value=(rev!=null?rev:0.4)*(gain||0.18)*a*4; g.connect(rs); rs.connect(reverbBus(c)); osc.start(t0); osc.stop(t0+dur+0.05); }); }
+    osc.connect(g); g.connect(master(c)); const rs=c.createGain(); rs.gain.value=(rev!=null?rev:0.4)*(gain||0.18)*a*4; g.connect(rs); rs.connect(reverbBus(c)); osc.start(t0); osc.stop(t0+dur+0.05); }); }
   function xboxSfx(c,n,t){ voiceR(c,n,392,0.55,{types:["sawtooth","triangle"],detune:9,gain:0.13,cutoff:1900,attack:0.02,reverb:0.3});
     voiceR(c,n+0.1,587,0.8,{types:["sawtooth","triangle"],detune:9,gain:0.15,cutoff:2500,attack:0.025,reverb:0.4}); bellR(c,n+0.1,1174,0.7,0.07,0.55);
     if(t.fx===5) bellR(c,n+0.32,2349,0.6,0.05,0.6); }
@@ -1534,7 +1582,7 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
     voiceR(c,n,392,0.5,{types:["triangle"],gain:0.06,cutoff:1400,attack:0.02,reverb:0.3}); if(t.fx===5) bellR(c,n+0.45,2637,0.6,0.08,0.4); }
 
   function noiseR(c,t0,dur,g){ const n=c.createBufferSource(), b=c.createBuffer(1,Math.max(1,c.sampleRate*dur),c.sampleRate), d=b.getChannelData(0);
-    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2); n.buffer=b; const gg=c.createGain(); gg.gain.value=g||0.1; n.connect(gg).connect(c.destination); n.start(t0); }
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2); n.buffer=b; const gg=c.createGain(); gg.gain.value=g||0.1; n.connect(gg).connect(master(c)); n.start(t0); }
   const _leg = t => t.fx===5;
   function mhSfx(c,n,t){ voiceR(c,n,65,0.7,{types:["sine"],gain:0.14,cutoff:600}); [262,330,392].forEach((f,i)=> voiceR(c,n+0.04*i,f,0.9,{types:["sawtooth","triangle"],detune:8,gain:0.1,cutoff:2000,attack:0.05,reverb:0.4})); bellR(c,n+0.15,784,0.8,0.06,0.5); if(_leg(t)){ voiceR(c,n+0.4,523,0.9,{types:["sawtooth"],gain:0.08,cutoff:2600,reverb:0.5}); bellR(c,n+0.5,1568,1,0.06,0.6);} }
   function sfSfx(c,n,t){ noiseR(c,n,0.12,0.14); voiceR(c,n,80,0.4,{types:["sine"],gain:0.16,cutoff:500,glide:50}); [440,554].forEach(f=> voiceR(c,n+0.02,f,0.5,{types:["sawtooth","square"],detune:6,gain:0.1,cutoff:2200,attack:0.005,reverb:0.3})); noiseR(c,n+0.1,0.6,0.05); if(_leg(t)){ voiceR(c,n+0.3,660,0.6,{types:["sawtooth"],gain:0.1,cutoff:2600,reverb:0.4}); bellR(c,n+0.3,1760,0.6,0.06,0.5);} }
@@ -1563,8 +1611,8 @@ function voiceSweep(c,t0,f,dur,o){o=o||{};
   if(o.vib){const lfo=c.createOscillator();lfg=c.createGain();lfo.type='sine';lfo.frequency.value=o.vibRate||5;lfg.gain.value=o.vib;lfo.connect(lfg);lfo.start(t0);lfo.stop(t0+dur+0.1);}
   (o.types||['sawtooth','triangle']).forEach((ty,i,a)=>{const os=c.createOscillator();os.type=ty;os.frequency.setValueAtTime(f,t0);if(o.glide)os.frequency.exponentialRampToValueAtTime(o.glide,t0+dur);if(o.detune)os.detune.value=(i-(a.length-1)/2)*o.detune;if(lfg)lfg.connect(os.frequency);os.connect(fl);os.start(t0);os.stop(t0+dur+0.1);});
   const pk=o.gain||0.12,atk=o.attack||0.06;amp.gain.setValueAtTime(0.0001,t0);amp.gain.linearRampToValueAtTime(pk,t0+atk);amp.gain.exponentialRampToValueAtTime(0.0005,t0+dur);
-  fl.connect(amp);amp.connect(c.destination);const rs=c.createGain();rs.gain.value=(o.reverb!=null?o.reverb:0.4)*pk*4;amp.connect(rs);rs.connect(reverbBus(c));
-  if(o.breath){const nb=c.createBufferSource(),bb=c.createBuffer(1,Math.max(1,c.sampleRate*dur),c.sampleRate),dd=bb.getChannelData(0);for(let i=0;i<dd.length;i++)dd[i]=Math.random()*2-1;nb.buffer=bb;const nf=c.createBiquadFilter();nf.type='bandpass';nf.frequency.value=f*2.2;nf.Q.value=0.7;const ng=c.createGain();ng.gain.setValueAtTime(0.0001,t0);ng.gain.linearRampToValueAtTime(o.breath,t0+atk+0.05);ng.gain.exponentialRampToValueAtTime(0.0005,t0+dur);nb.connect(nf).connect(ng).connect(c.destination);nb.start(t0);nb.stop(t0+dur);}
+  fl.connect(amp);amp.connect(master(c));const rs=c.createGain();rs.gain.value=(o.reverb!=null?o.reverb:0.4)*pk*4;amp.connect(rs);rs.connect(reverbBus(c));
+  if(o.breath){const nb=c.createBufferSource(),bb=c.createBuffer(1,Math.max(1,c.sampleRate*dur),c.sampleRate),dd=bb.getChannelData(0);for(let i=0;i<dd.length;i++)dd[i]=Math.random()*2-1;nb.buffer=bb;const nf=c.createBiquadFilter();nf.type='bandpass';nf.frequency.value=f*2.2;nf.Q.value=0.7;const ng=c.createGain();ng.gain.setValueAtTime(0.0001,t0);ng.gain.linearRampToValueAtTime(o.breath,t0+atk+0.05);ng.gain.exponentialRampToValueAtTime(0.0005,t0+dur);nb.connect(nf).connect(ng).connect(master(c));nb.start(t0);nb.stop(t0+dur);}
 }
   function haSfx(c,n,t){ voiceSweep(c,n,65,1.6,{types:['sine'],gain:0.08,cutoff0:300,cutoff1:600}); [262,330,392].forEach(f=>voiceSweep(c,n,f,1.6,{types:['triangle','sine'],detune:6,gain:0.07,cutoff0:500,cutoff1:1900,attack:0.25,vib:3,vibRate:4.5,breath:0.02,reverb:0.6})); voiceSweep(c,n+0.1,523,1.5,{types:['triangle'],gain:0.05,cutoff0:800,cutoff1:2200,attack:0.3,vib:4,breath:0.015,reverb:0.65}); if((t.fx===5))voiceSweep(c,n+0.5,659,1.3,{types:['sine'],gain:0.05,vib:4,reverb:0.65}); }
   function fzSfx(c,n,t){ voiceSweep(c,n,70,0.7,{types:['sawtooth','sawtooth'],detune:16,gain:0.1,cutoff0:500,cutoff1:1800,glide:420,breath:0.03,reverb:0.2}); bellR(c,n+0.28,880,0.5,0.06,0.3); bellR(c,n+0.34,1176,0.5,0.05,0.3); if((t.fx===5))voiceSweep(c,n+0.45,140,0.7,{types:['sawtooth'],gain:0.09,cutoff1:2200,glide:700}); }
@@ -1581,20 +1629,20 @@ function voiceSweep(c,t0,f,dur,o){o=o||{};
   function rySfx(c,n,t){ [784,988,1175,1568].forEach((f,i)=>{bellR(c,n+i*0.08,f,0.4,0.13,0.3);voiceSweep(c,n+i*0.08,f/2,0.15,{types:['triangle'],gain:0.03,cutoff1:1600,attack:0.004});}); if((t.fx===5)){bellR(c,n+0.4,2093,0.5,0.1,0.35);bellR(c,n+0.5,2637,0.5,0.08,0.4);} }
   function anSfx(c,n,t){ voiceSweep(c,n,49,1.4,{types:['sine'],gain:0.1,cutoff0:150,cutoff1:450}); [262,330,392].forEach(f=>voiceSweep(c,n,f,1.4,{types:['sawtooth','triangle'],detune:9,gain:0.07,cutoff0:300,cutoff1:2000,fatk:0.2,attack:0.1,vib:3,breath:0.015,reverb:0.55})); bellR(c,n+0.2,1046,1,0.05,0.55); if((t.fx===5)){[523,659].forEach(f=>voiceSweep(c,n+0.4,f,1,{types:['triangle'],gain:0.05,vib:4,reverb:0.6}));bellR(c,n+0.5,1568,0.9,0.05,0.6);} }
   /* CD Projekt SFX */
-  function noiseB(c,t0,dur,g,band){const n=c.createBufferSource(),b=c.createBuffer(1,Math.max(1,c.sampleRate*dur),c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);n.buffer=b;const g2=c.createGain();g2.gain.value=g||0.1;if(band){const bp=c.createBiquadFilter();bp.type="bandpass";bp.frequency.value=band;bp.Q.value=0.8;n.connect(bp);bp.connect(g2);}else{n.connect(g2);}g2.connect(c.destination);n.start(t0);}
+  function noiseB(c,t0,dur,g,band){const n=c.createBufferSource(),b=c.createBuffer(1,Math.max(1,c.sampleRate*dur),c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);n.buffer=b;const g2=c.createGain();g2.gain.value=g||0.1;if(band){const bp=c.createBiquadFilter();bp.type="bandpass";bp.frequency.value=band;bp.Q.value=0.8;n.connect(bp);bp.connect(g2);}else{n.connect(g2);}g2.connect(master(c));n.start(t0);}
   /* plucked string (hammered-dulcimer-ish) for The Witcher */
 function pluck(c,t0,f,g){const o=c.createOscillator(),o2=c.createOscillator(),gg=c.createGain(),fl=c.createBiquadFilter();
   o.type='triangle';o2.type='sawtooth';o.frequency.value=f;o2.frequency.value=f;o2.detune.value=6;
   fl.type='lowpass';fl.frequency.setValueAtTime(3200,t0);fl.frequency.exponentialRampToValueAtTime(700,t0+0.5);
   gg.gain.setValueAtTime(0.0001,t0);gg.gain.linearRampToValueAtTime(g,t0+0.004);gg.gain.exponentialRampToValueAtTime(0.0005,t0+0.6);
-  o.connect(fl);o2.connect(fl);fl.connect(gg);gg.connect(c.destination);const rs=c.createGain();rs.gain.value=0.5*g*4;gg.connect(rs);rs.connect(reverbBus(c));
+  o.connect(fl);o2.connect(fl);fl.connect(gg);gg.connect(master(c));const rs=c.createGain();rs.gain.value=0.5*g*4;gg.connect(rs);rs.connect(reverbBus(c));
   o.start(t0);o2.start(t0);o.stop(t0+0.7);o2.stop(t0+0.7);}
 /* bright synth pluck (square+saw, lowpass decay) for Cyberpunk */
 function syn(c,t0,f,g){const o=c.createOscillator(),o2=c.createOscillator(),gg=c.createGain(),fl=c.createBiquadFilter();
   o.type='square';o2.type='sawtooth';o.frequency.value=f;o2.frequency.value=f;o2.detune.value=9;
   fl.type='lowpass';fl.frequency.setValueAtTime(4600,t0);fl.frequency.exponentialRampToValueAtTime(900,t0+0.22);fl.Q.value=4;
   gg.gain.setValueAtTime(0.0001,t0);gg.gain.linearRampToValueAtTime(g,t0+0.004);gg.gain.exponentialRampToValueAtTime(0.0004,t0+0.24);
-  o.connect(fl);o2.connect(fl);fl.connect(gg);gg.connect(c.destination);
+  o.connect(fl);o2.connect(fl);fl.connect(gg);gg.connect(master(c));
   const rs=c.createGain();rs.gain.value=0.2*g*4;gg.connect(rs);rs.connect(reverbBus(c));
   o.start(t0);o2.start(t0);o.stop(t0+0.32);o2.stop(t0+0.32);}
   function wiSfx(c,n,t){ voiceSweep(c,n,55,2.0,{types:['sawtooth','sine'],detune:7,gain:0.1,cutoff0:150,cutoff1:850,attack:0.32,vib:2.5,vibRate:4,breath:0.018,reverb:0.5});
@@ -1628,7 +1676,7 @@ function syn(c,t0,f,g){const o=c.createOscillator(),o2=c.createOscillator(),gg=c
     } }
 
   /* BASE SFX */
-  function blip(c,t0,f,g){const o=c.createOscillator(),gg=c.createGain();o.type='square';o.frequency.value=f;gg.gain.setValueAtTime(0.0001,t0);gg.gain.linearRampToValueAtTime(g,t0+0.003);gg.gain.exponentialRampToValueAtTime(0.0004,t0+0.1);o.connect(gg).connect(c.destination);const rs=c.createGain();rs.gain.value=0.15*g*4;gg.connect(rs);rs.connect(reverbBus(c));o.start(t0);o.stop(t0+0.12);}
+  function blip(c,t0,f,g){const o=c.createOscillator(),gg=c.createGain();o.type='square';o.frequency.value=f;gg.gain.setValueAtTime(0.0001,t0);gg.gain.linearRampToValueAtTime(g,t0+0.003);gg.gain.exponentialRampToValueAtTime(0.0004,t0+0.1);o.connect(gg).connect(master(c));const rs=c.createGain();rs.gain.value=0.15*g*4;gg.connect(rs);rs.connect(reverbBus(c));o.start(t0);o.stop(t0+0.12);}
   function onSfx(c,n,t){ voiceSweep(c,n,220,1.2,{types:['sine','triangle'],detune:4,gain:0.1,cutoff0:500,cutoff1:2400,attack:0.08,vib:9,vibRate:6,reverb:0.4}); voiceSweep(c,n,110,1.2,{types:['sine'],gain:0.07,cutoff0:300,cutoff1:1200,attack:0.1,vib:5,vibRate:5,reverb:0.3}); if((t.fx===5)){voiceSweep(c,n+0.4,330,1.0,{types:['sine'],gain:0.06,vib:10,vibRate:7,reverb:0.45});} }
   function puSfx(c,n,t){ const reps=(t.fx===5)?5:4; for(let k=0;k<reps;k++){ bellR(c,n+k*0.18,660*Math.pow(1.12,k),0.5,0.1*Math.pow(0.78,k),0.5); } voiceSweep(c,n,120,0.8,{types:['sine'],gain:0.06,cutoff1:900,attack:0.02,reverb:0.4}); }
   function moSfx(c,n,t){ const seq=[523.3,659.3,784,587.3,880]; const k=(t.fx===5)?5:4; for(let x=0;x<k;x++){ bellR(c,n+x*0.1,seq[x%seq.length],0.35,0.12,0.25); } if((t.fx===5))bellR(c,n+0.5,1046.5,0.5,0.1,0.3); }
@@ -1640,7 +1688,25 @@ function syn(c,t0,f,g){const o=c.createOscillator(),o2=c.createOscillator(),gg=c
   function pgSfx(c,n,t){ [0,0.14,0.28].forEach((t,x)=>noiseB(c,n+t,0.12,0.05,1400+x*500)); voiceSweep(c,n+0.1,392,0.7,{types:['triangle','sine'],detune:4,gain:0.07,cutoff0:700,cutoff1:2000,attack:0.04,reverb:0.4}); bellR(c,n+0.34,784,0.7,0.06,0.4); if((t.fx===5))bellR(c,n+0.5,1176,0.6,0.05,0.45); }
   function obSfx(c,n,t){ const arp=[523.3,659.3,784,659.3]; const reps=(t.fx===5)?8:6; for(let x=0;x<reps;x++){ voiceSweep(c,n+x*0.1,arp[x%arp.length],0.3,{types:['triangle'],gain:0.06,cutoff0:900,cutoff1:2200,attack:0.01,reverb:0.4}); } bellR(c,n+0.2,1046.5,1.0,0.05,0.5); if((t.fx===5))bellR(c,n+0.6,1568,0.9,0.05,0.55); }
 
+  /* ---------- Fantasy: real sampled-orchestra stingers (one per rarity) ---------- */
+  const FAN_SND = { common:"fantasy_com", uncommon:"fantasy_non", rare:"fantasy_raro",
+                    epic:"fantasy_epi", legendary:"fantasy_leg" };
+  const fanAudio = {};
+  (function preloadFantasy(){
+    try{
+      for(const id in FAN_SND){
+        const a = new Audio("snd/"+FAN_SND[id]+".ogg");
+        a.preload = "auto"; a.load(); fanAudio[id] = a;
+      }
+    }catch(e){}
+  })();
+  function fantasySfx(c, t0, t){
+    const a = fanAudio[t.id];
+    if(a){ try{ a.pause(); a.currentTime = 0; a.volume = Math.max(0, Math.min(1, notifVol)); const p = a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
+  }
+
   const THEMES = {
+    c_fantasy:{custom:fantasySfx},
     c_xbox:{custom:xboxSfx}, c_ps:{custom:psSfx}, c_switch:{custom:switchSfx},
     c_mh:{custom:mhSfx}, c_sf:{custom:sfSfx}, c_mm:{custom:mmSfx}, c_dmc:{custom:dmcSfx},
     c_dd:{custom:ddSfx}, c_dr:{custom:drSfx}, c_dc:{custom:dcSfx}, c_re:{custom:reSfx},
@@ -1651,6 +1717,7 @@ function syn(c,t0,f,g){const o=c.createOscillator(),o2=c.createOscillator(),gg=c
   };
   function playTier(t){
     const c = ctx(); if(c.state==="suspended") c.resume();
+    if(_master) _master.gain.value = notifVol;   // apply current volume to synth styles
     const th = THEMES[currentSound];
     if(th && th.custom){ th.custom(c, c.currentTime + 0.02, t); }
   }

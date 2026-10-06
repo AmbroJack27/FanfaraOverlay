@@ -33,7 +33,13 @@ public partial class OverlayWindow : Window
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        var env = await CoreWebView2Environment.CreateAsync();
+        // Allow the overlay's notification sounds (WebAudio + the Fantasy style's sampled
+        // stingers) to play without a user gesture — the overlay is never clicked.
+        var opts = new CoreWebView2EnvironmentOptions
+        {
+            AdditionalBrowserArguments = "--autoplay-policy=no-user-gesture-required"
+        };
+        var env = await CoreWebView2Environment.CreateAsync(null, null, opts);
         await Web.EnsureCoreWebView2Async(env);
 
         Web.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
@@ -95,18 +101,19 @@ public partial class OverlayWindow : Window
             style = config.Style,        // "arcade" | "neon" | "loot" | "terminale" | ...
             sound = config.Sound,        // "classic" | "epico" | "levelup" | ...
             position = config.Position,  // bottom-center | top-center | center | top-right | ...
-            durationMs = config.DurationMs
+            durationMs = config.DurationMs,
+            volume = config.Volume       // 0..100 notification sound volume
         };
         var json = JsonSerializer.Serialize(payload);
         Web.CoreWebView2.ExecuteScriptAsync($"window.fanfara.show({json})");
     }
 
     /// <summary>Preview with explicit settings (used by the settings window's "Prova" button).</summary>
-    public void ShowPreview(string style, string sound, string position, double percent, string name)
+    public void ShowPreview(string style, string sound, string position, double percent, string name, int volume = 100)
     {
         if (!_ready) return;
         ForceTopmost();
-        var payload = new { name, percent, style, sound, position, durationMs = _config.DurationMs };
+        var payload = new { name, percent, style, sound, position, durationMs = _config.DurationMs, volume };
         Web.CoreWebView2.ExecuteScriptAsync($"window.fanfara.show({JsonSerializer.Serialize(payload)})");
     }
 

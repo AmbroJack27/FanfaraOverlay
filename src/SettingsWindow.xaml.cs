@@ -54,7 +54,14 @@ public partial class SettingsWindow : Window
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        var env = await CoreWebView2Environment.CreateAsync();
+        // Must match the overlay window's environment options exactly: WebView2 allows only one
+        // set of browser arguments per user-data folder per process, so a mismatch would leave
+        // this window blank.
+        var opts = new CoreWebView2EnvironmentOptions
+        {
+            AdditionalBrowserArguments = "--autoplay-policy=no-user-gesture-required"
+        };
+        var env = await CoreWebView2Environment.CreateAsync(null, null, opts);
         await Web.EnsureCoreWebView2Async(env);
         Web.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
         Web.CoreWebView2.Settings.IsStatusBarEnabled = false;
@@ -76,6 +83,7 @@ public partial class SettingsWindow : Window
             sound = _config.Sound,
             position = _config.Position,
             duration = _config.DurationMs,
+            volume = _config.Volume,
             startup = _config.StartWithWindows,
             checkUpdates = _config.CheckUpdates,
             gameOverlayFix = _config.GameOverlayFix,
@@ -101,7 +109,8 @@ public partial class SettingsWindow : Window
                     msg.style ?? _config.Style,
                     msg.sound ?? _config.Sound,
                     msg.position ?? _config.Position,
-                    0.6, Loc.S(_config.EffectiveLanguage, "preview"));
+                    0.6, Loc.S(_config.EffectiveLanguage, "preview"),
+                    msg.volume ?? _config.Volume);
             }
             else if (msg.action == "theme")
             {
@@ -152,6 +161,7 @@ public partial class SettingsWindow : Window
                 if (msg.sound != null) _config.Sound = msg.sound;
                 if (msg.position != null) _config.Position = msg.position;
                 if (msg.duration is int d && d > 0) _config.DurationMs = d;
+                if (msg.volume is int vol && vol >= 0 && vol <= 100) _config.Volume = vol;
                 if (msg.startup is bool s)
                 {
                     _config.StartWithWindows = s;
@@ -194,6 +204,7 @@ public partial class SettingsWindow : Window
         public string? sound { get; set; }
         public string? position { get; set; }
         public int? duration { get; set; }
+        public int? volume { get; set; }
         public bool? startup { get; set; }
         public bool? checkUpdates { get; set; }
         public bool? gameOverlayFix { get; set; }
