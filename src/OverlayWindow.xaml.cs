@@ -90,13 +90,14 @@ public partial class OverlayWindow : Window
     }
 
     /// <summary>Ask the web layer to show a notification for an unlocked achievement.</summary>
-    public void ShowAchievement(string name, double globalPercent, Config config)
+    public void ShowAchievement(string name, double globalPercent, string desc, Config config)
     {
         if (!_ready) return;
         ForceTopmost();
         var payload = new
         {
             name,
+            desc,                        // the achievement's description (what you unlocked)
             percent = globalPercent,     // web maps this to the rarity tier
             style = config.Style,        // "arcade" | "neon" | "loot" | "terminale" | ...
             sound = config.Sound,        // "classic" | "epico" | "levelup" | ...
@@ -109,11 +110,11 @@ public partial class OverlayWindow : Window
     }
 
     /// <summary>Preview with explicit settings (used by the settings window's "Prova" button).</summary>
-    public void ShowPreview(string style, string sound, string position, double percent, string name, int volume = 100)
+    public void ShowPreview(string style, string sound, string position, double percent, string name, int volume = 100, string desc = "")
     {
         if (!_ready) return;
         ForceTopmost();
-        var payload = new { name, percent, style, sound, position, durationMs = _config.DurationMs, volume };
+        var payload = new { name, desc, percent, style, sound, position, durationMs = _config.DurationMs, volume };
         Web.CoreWebView2.ExecuteScriptAsync($"window.fanfara.show({JsonSerializer.Serialize(payload)})");
     }
 

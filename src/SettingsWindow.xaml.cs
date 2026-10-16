@@ -110,7 +110,7 @@ public partial class SettingsWindow : Window
                     msg.sound ?? _config.Sound,
                     msg.position ?? _config.Position,
                     0.6, Loc.S(_config.EffectiveLanguage, "preview"),
-                    msg.volume ?? _config.Volume);
+                    msg.volume ?? _config.Volume, Loc.S(_config.EffectiveLanguage, "previewDesc"));
             }
             else if (msg.action == "theme")
             {

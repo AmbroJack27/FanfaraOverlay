@@ -991,6 +991,13 @@
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
     opacity:0; mix-blend-mode:screen; animation:fan-sweep .9s ease-in-out .5s forwards; pointer-events:none}
   .fan-name{margin-top:4px; font:800 23px 'Cinzel',serif; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.6)}
+  /* achievement description line, shared across styles */
+  .fdesc{font:500 13px 'Segoe UI',Arial,sans-serif; color:#cdd7e6; line-height:1.3; margin-top:4px; max-width:40ch;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; opacity:.92}
+  .fan .fdesc{margin-top:7px; font-size:17px; color:#c3cedd; max-width:30ch; text-align:center}
+  .mini .fdesc, .tm .fdesc{display:none}   /* minimal & terminal handle it their own way */
+  .px .fdesc{font:400 9px 'Press Start 2P',monospace; line-height:1.5; color:#cfd8e6; -webkit-line-clamp:3; max-width:28ch}
+  .pkg-desc{margin:3px 0 2px; max-width:32ch}
   .fan-rar{margin-top:3px; font:700 14px 'Cinzel',serif; letter-spacing:.16em; text-transform:uppercase;
     color:var(--fc); text-shadow:0 0 14px var(--fc)}
   .fan-rar small{color:#9fb0cc; font-weight:600; letter-spacing:0; text-shadow:none}
@@ -1037,12 +1044,16 @@
     return {id:"common", label:TIER[0], fx:1};
   }
 
+  // Achievement description line (what you unlocked). Escaped; shown only when present.
+  function esc(s){ return String(s==null?"":s).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];}); }
+  function descLine(t, cls){ return t.desc ? '<div class="fdesc'+(cls?' '+cls:'')+'">'+esc(t.desc)+'</div>' : ''; }
+
   function buildConsole(t){
     const el = document.createElement("div"); el.className = "plaque tier-"+t.id;
     el.innerHTML =
       '<span class="accent"></span><div class="icon">'+GLYPH+'</div>'+
       '<div class="txt"><div class="eyebrow">'+CONLAB.xbox+'</div>'+
-      '<div class="name">'+t.name+'</div>'+
+      '<div class="name">'+t.name+'</div>'+descLine(t)+
       '<div class="meta"><span class="rarity">'+t.label+'</span> · '+t.pct+'</div></div>'+
       '<div class="shine"><i></i></div><div class="sparks"></div>';
     return el;
@@ -1058,7 +1069,7 @@
     const el = document.createElement("div"); el.className = "arc tier-"+t.id;
     el.innerHTML =
       '<div class="a-bar"></div><div class="a-label">'+CONLAB.xbox+'</div>'+
-      '<div class="a-name">'+t.name+'</div>'+
+      '<div class="a-name">'+t.name+'</div>'+descLine(t)+
       '<div class="a-rar"><b>'+t.label+'</b> · '+t.pct+'</div>'+
       '<div class="a-bar b2"></div><div class="sparks"></div>';
     return el;
@@ -1069,7 +1080,7 @@
       '<div class="a3-stage"><div class="a3-slab">'+
         '<div class="a3-glow"></div><div class="a3-ico">'+GLYPH+'</div>'+
         '<div class="a3-bar"></div><div class="a3-label">'+CONLAB.xbox+'</div>'+
-        '<div class="a3-name">'+t.name+'</div>'+
+        '<div class="a3-name">'+t.name+'</div>'+descLine(t)+
         '<div class="a3-rar"><b>'+t.label+'</b> · '+t.pct+'</div>'+
         '<div class="sparks"></div>'+
       '</div></div>';
@@ -1100,7 +1111,7 @@
         '<div class="sh-content">'+
           '<div class="sh-emblem">'+GLYPH+'</div>'+
           '<div class="sh-divider"></div>'+
-          '<div class="sh-name">'+t.name+'</div>'+
+          '<div class="sh-name">'+t.name+'</div>'+descLine(t)+
           '<div class="sh-rar"><b>'+t.label+'</b> · '+t.pct+'</div>'+
         '</div>'+
         '<div class="sparks"></div>'+
@@ -1110,26 +1121,27 @@
   function buildBanner(t){
     const el=document.createElement("div"); el.className="nb tier-"+t.id;
     el.innerHTML='<div class="nb-ribbon"><div class="nb-emblem">'+GLYPH+'</div>'+
-      '<div class="nb-txt"><div class="nb-name">'+t.name+'</div>'+
+      '<div class="nb-txt"><div class="nb-name">'+t.name+'</div>'+descLine(t)+
       '<div class="nb-rar"><b>'+t.label+'</b> · '+t.pct+'</div></div></div><div class="sparks"></div>';
     return el;
   }
   function buildPixel(t){
     const el=document.createElement("div"); el.className="px tier-"+t.id;
     el.innerHTML='<div class="px-box"><div class="px-emblem">'+GLYPH+'</div>'+
-      '<div class="px-name">'+t.name+'</div><div class="px-rar">'+t.label+' '+t.pct+'</div></div><div class="sparks"></div>';
+      '<div class="px-name">'+t.name+'</div>'+descLine(t)+'<div class="px-rar">'+t.label+' '+t.pct+'</div></div><div class="sparks"></div>';
     return el;
   }
   function buildNeon(t){
     const el=document.createElement("div"); el.className="ne tier-"+t.id;
     el.innerHTML='<div class="ne-card"><div class="ne-grid"></div><div class="ne-emblem">'+GLYPH+'</div>'+
-      '<div class="ne-name">'+t.name+'</div><div class="ne-rar">'+t.label+' · '+t.pct+'</div></div>';
+      '<div class="ne-name">'+t.name+'</div>'+descLine(t)+'<div class="ne-rar">'+t.label+' · '+t.pct+'</div></div>';
     return el;
   }
   function buildTerminal(t){
     const el=document.createElement("div"); el.className="tm tier-"+t.id;
     el.innerHTML='<div class="tm-panel"><div class="tm-head">▚ ACHIEVEMENT.SYS</div>'+
       '<div class="tm-line">&gt; unlock: <span class="tm-name">'+t.name+'</span><span class="tm-cur">_</span></div>'+
+      (t.desc ? '<div class="tm-line tm-dim">&gt; info: '+esc(t.desc)+'</div>' : '')+
       '<div class="tm-line tm-dim">&gt; rarity: <b>'+t.label+'</b> // '+t.pct+'</div></div>';
     return el;
   }
@@ -1137,7 +1149,7 @@
     const el=document.createElement("div"); el.className="lt tier-"+t.id;
     el.innerHTML='<div class="lt-beam"></div><div class="lt-card"><div class="lt-emblem">'+GLYPH+'</div>'+
       '<div class="lt-info"><div class="lt-kicker">'+CONLAB.xbox+'</div>'+
-      '<div class="lt-name">'+t.name+'</div><div class="lt-rar"><b>'+t.label+'</b> · '+t.pct+'</div></div></div><div class="sparks"></div>';
+      '<div class="lt-name">'+t.name+'</div>'+descLine(t)+'<div class="lt-rar"><b>'+t.label+'</b> · '+t.pct+'</div></div></div><div class="sparks"></div>';
     return el;
   }
   function build3D(t, base){
@@ -1156,21 +1168,21 @@
     const el=document.createElement("div"); el.className="xb tier-"+t.id;
     el.innerHTML='<div class="ring">'+(t.id==="legendary"?DIAMOND_SVG:STAR_SVG)+'</div>'+
       '<div class="xb-info"><div class="xb-lab">'+CONLAB.xbox+'</div>'+
-      '<div class="xb-name">'+t.name+'</div><div class="xb-rar">'+t.label+' · '+t.pct+'</div></div>'+SPK;
+      '<div class="xb-name">'+t.name+'</div>'+descLine(t)+'<div class="xb-rar">'+t.label+' · '+t.pct+'</div></div>'+SPK;
     return el;
   }
   function buildPlaystation(t){
     const el=document.createElement("div"); el.className="ps tier-"+t.id;
     el.innerHTML='<div class="ps-tro">'+TROPHY_METAL_SVG+'</div>'+
       '<div class="ps-info"><div class="ps-lab">'+CONLAB.ps+'</div>'+
-      '<div class="ps-name">'+t.name+'</div><div class="ps-mt">'+(PSM[t.id]||PSM.common)+' · '+t.pct+'</div></div>'+SPK;
+      '<div class="ps-name">'+t.name+'</div>'+descLine(t)+'<div class="ps-mt">'+(PSM[t.id]||PSM.common)+' · '+t.pct+'</div></div>'+SPK;
     return el;
   }
   function buildSwitch(t){
     const el=document.createElement("div"); el.className="ni tier-"+t.id;
     el.innerHTML='<div class="ni-em">'+STAR_SVG+'</div>'+
       '<div class="ni-info"><div class="ni-lab">'+CONLAB.ni+'</div>'+
-      '<div class="ni-name">'+t.name+'</div><div class="ni-rar">'+t.label+' · '+t.pct+'</div></div>'+SPK;
+      '<div class="ni-name">'+t.name+'</div>'+descLine(t)+'<div class="ni-rar">'+t.label+' · '+t.pct+'</div></div>'+SPK;
     return el;
   }
 
@@ -1457,7 +1469,17 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
     ob:(n,i)=>`${PKG_EMB.ob(i)}<div class="nm">${n}</div><div class="rr">${PKG_RANKS.ob[i]}</div>${SPK}`
   };
   const PKG_CLASS={on:"cen",pu:"cen",ob:"cen"};
-  function buildPkg(key,t){ const el=document.createElement("div"); el.className=key+(PKG_CLASS[key]?" "+PKG_CLASS[key]:"")+" tier-"+t.id; el.innerHTML=PKG_INNER[key](t.name||"Obiettivo", TI[t.id]); return el; }
+  function buildPkg(key,t){
+    const el=document.createElement("div"); el.className=key+(PKG_CLASS[key]?" "+PKG_CLASS[key]:"")+" tier-"+t.id;
+    el.innerHTML=PKG_INNER[key](t.name||"Obiettivo", TI[t.id]);
+    if(t.desc){
+      const dl=document.createElement("div"); dl.className="fdesc pkg-desc"; dl.textContent=t.desc;
+      const nm=el.querySelector(".nm");               // brand templates put the title in .nm
+      if(nm && nm.parentNode) nm.parentNode.insertBefore(dl, nm.nextSibling);
+      else el.appendChild(dl);
+    }
+    return el;
+  }
 
 
   // ===== FANTASY style — real crest images + orchestral sound =====
@@ -1471,7 +1493,7 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
         '<img class="fan-img" src="img/'+(FAN_IMG[t.id]||FAN_IMG.common)+'.png" alt="">'+
         '<div class="fan-shine"></div><div class="sparks"></div>'+
       '</div>'+
-      '<div class="fan-name">'+t.name+'</div>'+
+      '<div class="fan-name">'+t.name+'</div>'+descLine(t)+
       '<div class="fan-rar">'+t.label+' <small>· '+t.pct+'</small></div>';
     return el;
   }
@@ -1529,6 +1551,7 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
     const pct = (o.percent==null ? 55 : o.percent);
     const t = tierFromPercent(pct);
     t.name = o.name || "Obiettivo";
+    t.desc = (o.desc || "").toString().trim();
     t.pct  = Number(pct).toFixed(1) + "%";
     zone.className = "pos-" + (o.position || "bottom-center");
     const el = build(t); zone.appendChild(el); current = el;

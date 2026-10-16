@@ -17,7 +17,7 @@ namespace Fanfara;
 /// </summary>
 public class SteamWatcher
 {
-    public event Action<string, double>? AchievementUnlocked;
+    public event Action<string, double, string>? AchievementUnlocked;
     /// <summary>Raised once when a game's overlay fix was newly applied (user should restart that game).</summary>
     public event Action? GameOptimized;
 
@@ -120,13 +120,14 @@ public class SteamWatcher
     {
         var parts = line.Split('\t');
 
-        // UNLOCK \t name \t pct
+        // UNLOCK \t name \t pct \t desc
         if (parts.Length >= 3 && parts[0] == "UNLOCK")
         {
             string name = parts[1];
             double pct = double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var p) ? p : 50.0;
+            string desc = parts.Length >= 4 ? parts[3] : "";
             Log($"SBLOCCO nome='{name}' global={pct:0.0}%");
-            try { AchievementUnlocked?.Invoke(name, pct); } catch { }
+            try { AchievementUnlocked?.Invoke(name, pct, desc); } catch { }
             return;
         }
 

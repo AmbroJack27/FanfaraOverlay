@@ -55,8 +55,8 @@ public partial class App : System.Windows.Application
 
         // Watch Steam for the running game and freshly unlocked achievements.
         _steam = new SteamWatcher(_config);
-        _steam.AchievementUnlocked += (name, percent) =>
-            _overlay?.Dispatcher.Invoke(() => _overlay.ShowAchievement(name, percent, _config));
+        _steam.AchievementUnlocked += (name, percent, desc) =>
+            _overlay?.Dispatcher.Invoke(() => _overlay.ShowAchievement(name, percent, desc, _config));
         _steam.GameOptimized += () => Dispatcher.Invoke(ShowRestartGameTip);
         _steam.Start();
 
@@ -133,7 +133,8 @@ public partial class App : System.Windows.Application
         var menu = new System.Windows.Forms.ContextMenuStrip();
         menu.Items.Add(Loc.S(lang, "settings"), null, (_, _) => ShowSettings());
         menu.Items.Add(Loc.S(lang, "testNotif"), null, (_, _) =>
-            _overlay?.ShowPreview(_config.Style, _config.Sound, _config.Position, 0.6, Loc.S(_config.EffectiveLanguage, "preview")));
+            _overlay?.ShowPreview(_config.Style, _config.Sound, _config.Position, 0.6,
+                Loc.S(_config.EffectiveLanguage, "preview"), _config.Volume, Loc.S(_config.EffectiveLanguage, "previewDesc")));
         menu.Items.Add(Loc.S(lang, "checkUpdates"), null, (_, _) => _ = CheckForUpdatesAsync(silent: false));
         menu.Items.Add(Loc.S(lang, "quit"), null, (_, _) => Shutdown());
         _tray.ContextMenuStrip = menu;
