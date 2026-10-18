@@ -62,21 +62,34 @@ public partial class OverlayWindow : Window
 
     // Keeps DWM compositing our topmost window every frame, which (with MPO disabled) holds the
     // game in Composed Flip so the overlay stays visible even with Frame Generation.
+    // The keep-on-top helper runs ONLY while a notification is on screen — not continuously.
+    // Re-asserting top-most every frame during normal play caused micro-stutter with Frame Generation.
     private System.Windows.Threading.DispatcherTimer? _keepTop;
+    private bool _frameGenFix;
+    private DateTime _keepTopUntil;
 
-    /// <summary>Start/stop the keep-on-top helper used by the advanced Frame Generation fix.</summary>
+    /// <summary>Enable/disable the advanced Frame Generation fix.</summary>
     public void SetFrameGenFix(bool on)
     {
-        if (on)
+        _frameGenFix = on;
+        if (!on) _keepTop?.Stop();
+    }
+
+    /// <summary>While the FG fix is on, keep the overlay on top for one notification's lifetime, then stop.</summary>
+    private void PulseKeepTop(int durationMs)
+    {
+        if (!_frameGenFix) return;
+        _keepTopUntil = DateTime.UtcNow.AddMilliseconds(durationMs + 1500);
+        if (_keepTop == null)
         {
-            if (_keepTop == null)
+            _keepTop = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+            _keepTop.Tick += (_, _) =>
             {
-                _keepTop = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
-                _keepTop.Tick += (_, _) => ForceTopmost();
-            }
-            _keepTop.Start();
+                ForceTopmost();
+                if (DateTime.UtcNow >= _keepTopUntil) _keepTop!.Stop();
+            };
         }
-        else _keepTop?.Stop();
+        if (!_keepTop.IsEnabled) _keepTop.Start();
     }
 
     /// <summary>Push the effective language (from config + OS) into the web layer.</summary>
@@ -94,6 +107,7 @@ public partial class OverlayWindow : Window
     {
         if (!_ready) return;
         ForceTopmost();
+        PulseKeepTop(config.DurationMs);   // keep on top only while this notification is visible
         var payload = new
         {
             name,
@@ -114,6 +128,7 @@ public partial class OverlayWindow : Window
     {
         if (!_ready) return;
         ForceTopmost();
+        PulseKeepTop(_config.DurationMs);   // keep on top only while this preview is visible
         var payload = new { name, desc, percent, style, sound, position, durationMs = _config.DurationMs, volume };
         Web.CoreWebView2.ExecuteScriptAsync($"window.fanfara.show({JsonSerializer.Serialize(payload)})");
     }
