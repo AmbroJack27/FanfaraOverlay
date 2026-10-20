@@ -45,6 +45,11 @@ public static class SteamWorker
         bool gameSeen = false;
         bool exeEmitted = false;
         int missing = 0;
+        // How many seconds the game process may be absent before we conclude it really closed.
+        // Must be generous: many games launch through a launcher/bootstrapper that briefly leaves
+        // NO process in the install folder during the hand-off to the real game (e.g. AC titles,
+        // Ubisoft Connect). A short threshold made Fanfara quit mid-startup and miss every unlock.
+        const int CloseGraceSeconds = 30;
 
         while (true)
         {
@@ -65,7 +70,7 @@ public static class SteamWorker
                         Log($"gioco exe = {gameExe}");
                     }
                 }
-                else if (gameSeen && ++missing >= 2) { Log("gioco chiuso -> esco"); break; }
+                else if (gameSeen && ++missing >= CloseGraceSeconds) { Log($"gioco assente da {missing}s -> esco"); break; }
             }
 
             try { SteamClient.RunCallbacks(); } catch { }
