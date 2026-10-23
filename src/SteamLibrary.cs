@@ -48,7 +48,7 @@ public static class SteamLibrary
 
                 foreach (var gameDir in gameDirs)
                 {
-                    if (ContainsCI(config.ScannedDirs, gameDir)) continue;   // already done
+                    if (config.IsScanned(gameDir)) continue;   // already done (thread-safe)
 
                     var exes = new List<string>();
                     Walk(gameDir, 0, exes);
@@ -60,9 +60,9 @@ public static class SteamLibrary
                     foreach (var exe in exes)
                     {
                         if (FsOpt.Apply(exe)) applied++;
-                        if (!ContainsCI(config.OptimizedGames, exe)) config.OptimizedGames.Add(exe);
+                        config.AddOptimizedGame(exe);       // thread-safe add + dedupe
                     }
-                    config.ScannedDirs.Add(gameDir);
+                    config.AddScannedDir(gameDir);          // thread-safe
                     changed = true;
                 }
             }

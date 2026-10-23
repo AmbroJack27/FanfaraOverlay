@@ -1537,7 +1537,22 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
   function clearCurrent(){ if(timer){clearTimeout(timer); timer=null;} if(current){current.remove(); current=null;} }
 
   const DEFAULT = { style:"xbox", sound:"classic", position:"bottom-center", durationMs:4200 };
+
+  // ---- notification queue: several unlocks at once are shown one after another ----
+  let fanQueue = [], fanBusy = false; const FAN_MAXQ = 6;
   function show(opts){
+    if(!opts) return;
+    fanQueue.push(opts);
+    if(fanQueue.length > FAN_MAXQ) fanQueue.shift();   // if they pile up, drop the oldest
+    if(!fanBusy) pump();
+  }
+  function pump(){
+    if(fanBusy || !fanQueue.length) return;
+    fanBusy = true;
+    present(fanQueue.shift());
+  }
+
+  function present(opts){
     const o = Object.assign({}, DEFAULT, opts||{});
     clearCurrent();
     style = o.style; currentSound = o.sound;
@@ -1550,7 +1565,7 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
     if(PKG_SOUND[style]) currentSound = PKG_SOUND[style];
     const pct = (o.percent==null ? 55 : o.percent);
     const t = tierFromPercent(pct);
-    t.name = o.name || "Obiettivo";
+    t.name = esc(o.name || "Obiettivo");   // escape: achievement names can contain < > &
     t.desc = (o.desc || "").toString().trim();
     t.pct  = Number(pct).toFixed(1) + "%";
     zone.className = "pos-" + (o.position || "bottom-center");
@@ -1567,7 +1582,11 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
     if(!el) return;
     el.classList.remove("enter");
     el.classList.add("leave");
-    setTimeout(()=>{ if(el===current){ el.remove(); current=null; } }, 580);
+    setTimeout(()=>{
+      if(el===current){ el.remove(); current=null; }
+      fanBusy = false;
+      if(fanQueue.length) setTimeout(pump, 220);   // brief gap, then the next notification
+    }, 580);
   }
 
   /* ---------- synthesised sound ---------- */

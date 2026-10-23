@@ -17,7 +17,8 @@ namespace Fanfara;
 /// </summary>
 public class SteamWatcher
 {
-    public event Action<string, double, string>? AchievementUnlocked;
+    // name, globalPercent, description, appid, apiName (appid+api feed the History/Collection store)
+    public event Action<string, double, string, uint, string>? AchievementUnlocked;
     /// <summary>Raised once when a game's overlay fix was newly applied (user should restart that game).</summary>
     public event Action? GameOptimized;
 
@@ -27,6 +28,12 @@ public class SteamWatcher
     private uint _currentApp;
     private uint _lastClosedApp;   // don't immediately respawn the game that just closed
     private Process? _worker;
+    // If the worker dies unexpectedly (crash / Steam init hiccup) WHILE the game is still running,
+    // we respawn it instead of giving up and missing every later unlock. Bounded so a genuinely
+    // broken worker (e.g. Steam not running) doesn't spin forever. Reset once the worker proves
+    // healthy (it emits a line) or when a new game starts.
+    private volatile int _workerRetries;
+    private const int MaxWorkerRetries = 3;
 
     private static readonly string LogPath =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "fanfara-log.txt");
@@ -55,23 +62,40 @@ public class SteamWatcher
             {
                 uint app = ReadRunningAppId();
 
-                // The worker exits on its own when the real game closes.
+                // The worker exits on its own (exit code 0) when it detects the real game closed.
+                // Any other exit while the game is still running is unexpected (a crash or a Steam
+                // init hiccup): respawn the worker a few times rather than silently stop notifying.
                 if (_worker != null && _worker.HasExited)
                 {
-                    Log($"operaio terminato (era {_currentApp})");
+                    int code = SafeExitCode(_worker);
                     _worker.Dispose(); _worker = null;
-                    if (_currentApp != 0) { _lastClosedApp = _currentApp; _currentApp = 0; }
+
+                    bool gameStillRunning = _currentApp != 0 && app == _currentApp;
+                    if (code != 0 && gameStillRunning && _workerRetries < MaxWorkerRetries)
+                    {
+                        _workerRetries++;
+                        Log($"operaio uscito inatteso (code {code}), gioco {_currentApp} ancora attivo -> riavvio {_workerRetries}/{MaxWorkerRetries}");
+                        StartWorker(_currentApp);   // keep _currentApp; next poll checks health again
+                    }
+                    else
+                    {
+                        Log($"operaio terminato (era {_currentApp}, code {code})");
+                        if (_currentApp != 0) { _lastClosedApp = _currentApp; _currentApp = 0; }
+                        _workerRetries = 0;
+                    }
                 }
 
                 if (app == 0)
                 {
                     if (_currentApp != 0) { Log($"RunningAppID 0 (era {_currentApp})"); StopWorker(); _currentApp = 0; }
                     _lastClosedApp = 0;   // registry cleared: the game may be launched again now
+                    _workerRetries = 0;
                 }
                 else if (app != _currentApp && app != _lastClosedApp)
                 {
                     Log($"RunningAppID -> {app}");
                     StopWorker();
+                    _workerRetries = 0;
                     StartWorker(app);
                     _currentApp = app;
                 }
@@ -116,18 +140,28 @@ public class SteamWatcher
         try { w.Dispose(); } catch { }
     }
 
+    private static int SafeExitCode(Process p)
+    {
+        try { return p.ExitCode; } catch { return -1; }
+    }
+
     private void HandleLine(string line)
     {
+        // The worker produced output, so it initialized fine — clear the unexpected-exit retry count.
+        _workerRetries = 0;
+
         var parts = line.Split('\t');
 
-        // UNLOCK \t name \t pct \t desc
+        // UNLOCK \t name \t pct \t desc \t appid \t api
         if (parts.Length >= 3 && parts[0] == "UNLOCK")
         {
             string name = parts[1];
             double pct = double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var p) ? p : 50.0;
             string desc = parts.Length >= 4 ? parts[3] : "";
-            Log($"SBLOCCO nome='{name}' global={pct:0.0}%");
-            try { AchievementUnlocked?.Invoke(name, pct, desc); } catch { }
+            uint appid = parts.Length >= 5 && uint.TryParse(parts[4], out var ai) ? ai : 0u;
+            string api = parts.Length >= 6 ? parts[5] : "";
+            Log($"SBLOCCO nome='{name}' global={pct:0.0}% app={appid}");
+            try { AchievementUnlocked?.Invoke(name, pct, desc, appid, api); } catch { }
             return;
         }
 
@@ -139,11 +173,8 @@ public class SteamWatcher
             try
             {
                 bool added = FsOpt.Apply(exe);
-                if (!ContainsPath(_config.OptimizedGames, exe))
-                {
-                    _config.OptimizedGames.Add(exe);
+                if (_config.AddOptimizedGame(exe))   // thread-safe add + dedupe
                     _config.Save();
-                }
                 if (added)
                 {
                     Log($"ottimizzazione overlay applicata: {exe}");
@@ -152,13 +183,6 @@ public class SteamWatcher
             }
             catch (Exception ex) { Log($"fix overlay fallito: {ex.Message}"); }
         }
-    }
-
-    private static bool ContainsPath(System.Collections.Generic.List<string> list, string path)
-    {
-        foreach (var s in list)
-            if (string.Equals(s, path, StringComparison.OrdinalIgnoreCase)) return true;
-        return false;
     }
 
     private static uint ReadRunningAppId()

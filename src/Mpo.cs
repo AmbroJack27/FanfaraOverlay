@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Fanfara;
 
@@ -20,8 +21,13 @@ public static class Mpo
     /// <summary>
     /// Enable (disabled=true) or revert (disabled=false) the MPO-off setting, elevated.
     /// Returns true on success, false if the user cancelled UAC or the command failed.
+    ///
+    /// Runs on a background thread: launching reg.exe with the "runas" verb shows a UAC prompt,
+    /// and both that prompt and the subsequent WaitForExit would otherwise block the UI thread,
+    /// freezing the settings window for as long as the prompt is on screen. The caller awaits this
+    /// and resumes on the UI thread (to show the follow-up message boxes).
     /// </summary>
-    public static bool SetDisabled(bool disabled)
+    public static Task<bool> SetDisabledAsync(bool disabled) => Task.Run(() =>
     {
         try
         {
@@ -51,5 +57,5 @@ public static class Mpo
             // Win32Exception here means the user cancelled the UAC prompt.
             return false;
         }
-    }
+    });
 }

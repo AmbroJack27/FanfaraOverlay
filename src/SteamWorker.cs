@@ -89,9 +89,11 @@ public static class SteamWorker
                     string name = string.IsNullOrEmpty(a.Name) ? a.Identifier : a.Name;
                     // Achievement description (what you unlocked). Strip tabs/newlines so it stays on one IPC line.
                     string desc = (a.Description ?? "").Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ').Trim();
+                    string api = (a.Identifier ?? "").Replace('\t', ' ').Trim();   // Steam's internal id, for the history store
                     double pct = a.GlobalUnlocked >= 0 ? a.GlobalUnlocked * 100.0 : 50.0;
                     Log($"SBLOCCO {name} ({pct.ToString("0.0", CultureInfo.InvariantCulture)}%)");
-                    Console.Out.WriteLine($"UNLOCK\t{name}\t{pct.ToString("0.0", CultureInfo.InvariantCulture)}\t{desc}");
+                    // UNLOCK \t name \t pct \t desc \t appid \t api  (appid+api added for the History/Collection store)
+                    Console.Out.WriteLine($"UNLOCK\t{name}\t{pct.ToString("0.0", CultureInfo.InvariantCulture)}\t{desc}\t{appId}\t{api}");
                     Console.Out.Flush();
                 }
                 if (!primed && total > 0) { primed = true; Log($"baseline: {total} achievement"); }

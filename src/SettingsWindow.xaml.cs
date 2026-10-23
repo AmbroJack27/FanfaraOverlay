@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -12,11 +13,16 @@ public partial class SettingsWindow : Window
 {
     private readonly Config _config;
     private readonly OverlayWindow _overlay;
+    private readonly AchievementStore _store;
+    private string? _pendingPage;   // page to open first (home by default)
+    private bool _coreReady;
 
-    public SettingsWindow(Config config, OverlayWindow overlay)
+    public SettingsWindow(Config config, OverlayWindow overlay, AchievementStore store, string? initialPage = null)
     {
         _config = config;
         _overlay = overlay;
+        _store = store;
+        _pendingPage = initialPage;
         InitializeComponent();
         Loaded += OnLoaded;
     }
@@ -33,6 +39,23 @@ public partial class SettingsWindow : Window
     {
         base.OnSourceInitialized(e);
         ApplyTitleBar(_config.Theme != "light");
+    }
+
+    /// <summary>Set true right before a real app shutdown so the window can actually close.</summary>
+    public bool AllowRealClose;
+
+    // Closing the window (the X) hides it to the tray instead of destroying it, so reopening from
+    // the tray shows the same window — no reload, and the logo intro does NOT play again. The intro
+    // runs only on a fresh app launch, when the window is created for the first time.
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        if (!AllowRealClose)
+        {
+            e.Cancel = true;
+            Hide();
+            return;
+        }
+        base.OnClosing(e);
     }
 
     private void ApplyTitleBar(bool dark)
@@ -67,11 +90,62 @@ public partial class SettingsWindow : Window
         Web.CoreWebView2.Settings.IsStatusBarEnabled = false;
 
         Web.CoreWebView2.WebMessageReceived += OnWebMessage;
+        Web.CoreWebView2.NavigationCompleted += (_, _) => OnNavigated();
 
-        Web.CoreWebView2.NavigationCompleted += (_, _) => PushConfig();
+        _coreReady = true;
+        Web.CoreWebView2.Navigate(PageUrl(_pendingPage ?? "home.html"));
+    }
 
-        var html = Path.Combine(AppContext.BaseDirectory, "web", "settings.html");
-        Web.CoreWebView2.Navigate(new Uri(html).AbsoluteUri);
+    /// <summary>Full file:// URL for a web page, carrying the current theme + language so it opens correctly.</summary>
+    private string PageUrl(string page)
+    {
+        var html = Path.Combine(AppContext.BaseDirectory, "web", page);
+        var uri = new Uri(html).AbsoluteUri;
+        string theme = _config.Theme == "light" ? "light" : "dark";
+        return uri + "?theme=" + theme + "&lang=" + _config.EffectiveLanguage;
+    }
+
+    /// <summary>Switch the in-app screen (home / settings / history / collection) — no new window.</summary>
+    public void NavigateTo(string page)
+    {
+        _pendingPage = page;
+        if (_coreReady && Web.CoreWebView2 != null)
+        {
+            try { Web.CoreWebView2.Navigate(PageUrl(page)); } catch { }
+        }
+    }
+
+    private void OnNavigated()
+    {
+        var src = Web.CoreWebView2?.Source ?? "";
+        if (src.Contains("settings.html")) PushConfig();
+        else if (src.Contains("history.html") || src.Contains("collection.html")) InjectData();
+        // home.html themes itself from the URL params — nothing to inject.
+    }
+
+    private void InjectData()
+    {
+        try { Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraInit && window.fanfaraInit({BuildDataJson()})"); }
+        catch { }
+    }
+
+    /// <summary>The JSON payload the History/Collection screens consume (theme, language, records).</summary>
+    private string BuildDataJson()
+    {
+        var items = (_store?.All() ?? new System.Collections.Generic.List<AchievementRecord>())
+            .Select(r => new { name = r.Name, game = r.Game, desc = r.Desc, p = r.Percent, unlock = r.Unlock, api = r.Api, appid = r.Appid, icon = r.Icon });
+        return JsonSerializer.Serialize(new { theme = _config.Theme, lang = _config.EffectiveLanguage, items });
+    }
+
+    /// <summary>Re-send data if the History/Collection screen is currently showing (after a live unlock or sync).</summary>
+    public void RefreshData()
+    {
+        try
+        {
+            var src = Web.CoreWebView2?.Source ?? "";
+            if (src.Contains("history.html") || src.Contains("collection.html")) InjectData();
+        }
+        catch { }
     }
 
     /// <summary>Send the current config to the web layer (also used to re-sync a toggle on cancel).</summary>
@@ -96,7 +170,7 @@ public partial class SettingsWindow : Window
         Web.CoreWebView2.ExecuteScriptAsync($"window.initSettings && window.initSettings({cfg})");
     }
 
-    private void OnWebMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs args)
+    private async void OnWebMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs args)
     {
         try
         {
@@ -121,7 +195,7 @@ public partial class SettingsWindow : Window
                 if (msg.frameGenFix is bool fg)
                 {
                     var lang = _config.EffectiveLanguage;
-                    bool ok = Mpo.SetDisabled(fg);
+                    bool ok = await Mpo.SetDisabledAsync(fg);   // elevated reg.exe off the UI thread
                     if (ok)
                     {
                         _config.FrameGenFix = fg;
@@ -180,9 +254,9 @@ public partial class SettingsWindow : Window
                     else
                     {
                         // Turned off: undo the compatibility flag we set on games.
-                        foreach (var exe in _config.OptimizedGames) FsOpt.Remove(exe);
-                        _config.OptimizedGames.Clear();
-                        _config.ScannedDirs.Clear();
+                        // ClearGameFixes() snapshots + clears both lists under the config lock,
+                        // so a background pre-scan can't be mutating them while we iterate.
+                        foreach (var exe in _config.ClearGameFixes()) FsOpt.Remove(exe);
                     }
                 }
                 _config.Save();

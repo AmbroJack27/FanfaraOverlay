@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Collezione Fanfara</title>
+<script>(function(){try{var m=location.search.match(/[?&]theme=(dark|light)/);var t=m?m[1]:(localStorage.getItem('fanfara-theme')||'dark');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
+<style>
+  .back{ cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 14px; flex:0 0 auto; background:var(--panel); border:1px solid var(--line); border-radius:10px; color:var(--fg); font:700 12.5px var(--display); letter-spacing:.02em; margin-right:4px; transition:.15s }
+  .back:hover{ border-color:color-mix(in srgb,var(--rare) 50%, var(--line)) }
+  .back svg{ width:16px; height:16px }
+  :root{
+    color-scheme: light;
+    --bg:#eef1f7; --bg-2:#ffffff; --panel:#ffffff; --panel-2:#f3f6fb;
+    --fg:#161c2b; --muted:#5b6478; --faint:#9aa3b5; --line:rgba(16,24,40,.12);
+    --glow1:rgba(76,141,255,.10); --glow2:rgba(176,120,255,.08);
+    --common:#6b7488; --uncommon:#2f9e4f; --rare:#2f6fe0; --epic:#8b43e0; --legendary:#B8860B;
+    --display:'Oxanium','Segoe UI',ui-sans-serif,system-ui,sans-serif;
+    --body:'Archivo','Segoe UI',ui-sans-serif,system-ui,sans-serif;
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#0a0e17; --bg-2:#0d1220; --panel:#161c2b; --panel-2:#1d2437;
+    --fg:#E8EBF3; --muted:#8b93a7; --faint:#5b6478; --line:rgba(255,255,255,.10);
+    --glow1:rgba(76,141,255,.12); --glow2:rgba(176,120,255,.10);
+    --common:#8A93A6; --uncommon:#4ac46a; --rare:#4C8DFF; --epic:#B078FF; --legendary:#F5C242;
+  }
+  .tier-common{--tier:var(--common)} .tier-uncommon{--tier:var(--uncommon)}
+  .tier-rare{--tier:var(--rare)} .tier-epic{--tier:var(--epic)} .tier-legendary{--tier:var(--legendary)}
+  *{box-sizing:border-box} html,body{height:100%}
+  [hidden]{display:none!important}   /* the popup starts hidden until a card is clicked */
+  body{ margin:0; background:radial-gradient(1200px 600px at 80% -10%, var(--glow1), transparent 60%), radial-gradient(900px 500px at 0% 0%, var(--glow2), transparent 55%), var(--bg); color:var(--fg); font-family:var(--body); line-height:1.5; -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:1560px; margin:0 auto; padding:0 30px }
+  .top{ position:sticky; top:0; z-index:15; background:color-mix(in srgb,var(--bg-2) 92%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line) }
+  .top .wrap{ display:flex; align-items:center; gap:14px; padding:14px 20px }
+  .brand{ display:flex; align-items:center; gap:10px }
+  .brand .mark{ width:30px; height:30px; color:var(--legendary) }
+  .brand b{ font:800 18px/1 var(--display) } .brand span{ font:600 12px/1.3 var(--display); letter-spacing:.18em; text-transform:uppercase; color:var(--muted); display:block }
+  .hdr-actions{ margin-left:auto; display:flex; align-items:center; gap:10px }
+  .count{ font:600 12.5px var(--display); color:var(--muted); background:var(--panel); border:1px solid var(--line); padding:8px 12px; border-radius:999px; white-space:nowrap } .count b{ color:var(--legendary) }
+  .tbtn{ cursor:pointer; display:grid; place-items:center; width:36px; height:36px; background:var(--panel); border:1px solid var(--line); border-radius:10px; color:var(--fg) }
+  .tbtn svg{ width:17px; height:17px } .tbtn .moon{display:none}
+  :root[data-theme="dark"] .tbtn .sun{display:none} :root[data-theme="dark"] .tbtn .moon{display:block}
+  .intro{ display:flex; align-items:baseline; gap:10px; margin-top:20px; margin-bottom:14px; flex-wrap:wrap }
+  .intro h1{ margin:0; font:800 26px var(--display) } .intro p{ margin:0; color:var(--muted); font-size:14.5px }
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px }
+  .chip{ --tier:var(--muted); cursor:pointer; font:600 13.5px var(--display); background:var(--panel); border:1px solid var(--line); color:var(--muted); padding:9px 15px; border-radius:999px }
+  .chip.on{ color:var(--tier); background:color-mix(in srgb,var(--tier) 15%, transparent); border-color:color-mix(in srgb,var(--tier) 55%, transparent) }
+  .chip.all.on{ color:var(--fg); background:var(--panel-2); border-color:var(--line) }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(234px,1fr)); gap:22px; padding-bottom:100px; perspective:1100px }
+  .ccard{ --tier:var(--common); --depth:6px; position:relative; border-radius:16px; overflow:hidden; cursor:pointer; background:var(--panel); border:2px solid color-mix(in srgb,var(--tier) 68%, var(--line)); box-shadow:0 14px 30px -20px rgba(0,0,0,.5), 0 0 16px -13px var(--tier); transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .25s; transform-origin:center }
+  .ccard:hover{ box-shadow:0 26px 48px -20px rgba(0,0,0,.6), 0 0 40px -6px var(--tier); z-index:2 }
+  .ccard.tier-uncommon{--depth:8px} .ccard.tier-rare{--depth:10px} .ccard.tier-epic{--depth:12px} .ccard.tier-legendary{--depth:16px; border-color:var(--legendary) }
+  .art{ position:relative; aspect-ratio:1/1; overflow:hidden;
+    background:radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--acc,#4C8DFF) 46%, #060910), #060910 78%) }
+  .art::after{ content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:radial-gradient(125% 115% at 50% 46%, transparent 52%, rgba(0,0,0,.55)) }
+  .layer{ position:absolute; inset:0; z-index:2 } .layer svg{ width:100%; height:100% } .layer.em{ transition:transform .28s cubic-bezier(.2,.8,.2,1); display:grid; place-items:center }
+  .layer.em img{ width:58%; height:58%; object-fit:contain; border-radius:12px; filter:drop-shadow(0 6px 14px rgba(0,0,0,.5)) }
+  .gem{ position:absolute; top:11px; right:11px; z-index:4; display:inline-flex; align-items:center; gap:6px; font:700 11.5px var(--display); letter-spacing:.08em; text-transform:uppercase; color:#fff; background:color-mix(in srgb,var(--tier) 72%, #0a0d16); border:1px solid color-mix(in srgb,#fff 35%, transparent); padding:5px 11px; border-radius:999px }
+  .gem i{ width:8px; height:8px; border-radius:50%; background:#fff; box-shadow:0 0 6px #fff }
+  .plate{ padding:15px 16px 16px; background:var(--panel); position:relative; z-index:3 }
+  .plate .nm{ font:700 17px/1.25 var(--display) } .plate .gm{ font-size:13.5px; color:var(--muted); margin-top:4px }
+  .plate .desc{ font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
+  .big .plate .desc{ -webkit-line-clamp:unset; display:block; font-size:14px; margin-top:10px; color:var(--fg) }
+  .plate .foot{ display:flex; align-items:center; justify-content:space-between; margin-top:13px; gap:8px }
+  .plate .pct{ font:800 18px var(--display); color:var(--tier); font-variant-numeric:tabular-nums } .plate .date{ font:600 13px var(--display); color:var(--faint) }
+  .glare{ position:absolute; inset:0; z-index:3; pointer-events:none; mix-blend-mode:screen; opacity:0; transition:opacity .25s ease; background:radial-gradient(circle at var(--mx,50%) var(--my,40%), rgba(255,255,255,.22), transparent 42%) }
+  .modal{ position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:18px }
+  .modal .backdrop{ position:absolute; inset:0; background:rgba(5,7,13,.72); backdrop-filter:blur(4px) }
+  .dialog{ position:relative; width:min(340px,100%); perspective:1000px }
+  .dialog .close{ position:absolute; top:-14px; right:-14px; z-index:5; width:34px; height:34px; border-radius:50%; cursor:pointer; display:grid; place-items:center; background:var(--panel); color:var(--fg); border:1px solid var(--line); box-shadow:0 6px 18px rgba(0,0,0,.4) } .dialog .close svg{ width:16px; height:16px }
+  .big .plate{ padding:18px 18px 19px } .big .plate .nm{ font-size:22px } .big .plate .gm{ font-size:14.5px } .big .plate .pct{ font-size:19px }
+  .big .unlock{ display:flex; align-items:center; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line); color:var(--muted); font-size:14px } .big .unlock svg{ width:16px; height:16px; color:var(--tier) }
+  .empty{ display:none; text-align:center; color:var(--muted); padding:70px 20px } .empty.show{ display:block } .empty .big2{ font:700 16px var(--display); color:var(--fg); margin-bottom:8px }
+  .pager{ position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; align-items:center; justify-content:center; gap:16px;
+    padding:14px 0 calc(14px + env(safe-area-inset-bottom,0px)); background:color-mix(in srgb,var(--bg-2) 92%, transparent); backdrop-filter:blur(10px); border-top:1px solid var(--line) }
+  .pager button{ cursor:pointer; background:var(--panel); border:1px solid var(--line); color:var(--fg); border-radius:10px; padding:10px 20px; font:700 13.5px var(--display) }
+  .pager button:hover:not([disabled]){ border-color:color-mix(in srgb,var(--rare) 50%, var(--line)) }
+  .pager button[disabled]{ opacity:.4; cursor:default }
+  .pager .info{ font:600 12.5px var(--display); color:var(--muted); min-width:130px; text-align:center; font-variant-numeric:tabular-nums }
+  .foot-note{ color:var(--faint); font-size:11.5px; text-align:center; padding:4px 0 40px }
+  @media (max-width:480px){ .grid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px } .count{display:none} }
+  @media (prefers-reduced-motion:reduce){ .ccard,.layer.em{ transition:none } }
+</style></head>
+<body>
+<div class="top"><div class="wrap">
+  <a class="back" id="back" href="home.html?home=1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>Home</a>
+  <div class="brand"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><div><b>Fanfara</b><span id="s-sub">Collezione</span></div></div>
+  <div class="hdr-actions">
+    <span class="count" id="count"></span>
+    <button class="tbtn" id="theme" aria-label="Tema">
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <div class="intro"><h1 id="t-title">La tua collezione</h1><p id="t-sub">Ogni obiettivo sbloccato diventa una carta. Clicca per vederla in grande.</p></div>
+  <div class="chips" id="chips"></div>
+  <div class="grid" id="grid"></div>
+  <div class="pager" id="pager"></div>
+  <div class="empty" id="empty"><div class="big2" id="empty-big"></div><div id="empty-sub"></div></div>
+  <div class="foot-note" id="foot"></div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="backdrop" data-close></div>
+  <div class="dialog"><button class="close" id="close" aria-label="Chiudi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button><div id="dialogCard"></div></div>
+</div>
+
+<script>
+  var STR={
+    it:{sub:'Collezione',title:'La tua collezione',subt:'Ogni obiettivo sbloccato diventa una carta. Clicca per vederla in grande.',
+        all:'Tutte',foot:'Più raro è l’obiettivo, più la sua carta ha risalto.',cards:'carte',leg:'leggendarie',
+        emptyBig:'Collezione vuota',emptySub:'Sblocca obiettivi con Fanfara, o sincronizza lo storico dal menu nella barra delle applicazioni.',
+        players:'dei giocatori',unlocked:'Sbloccato il',prev:'Indietro',next:'Avanti',pg:'Pagina {c} di {t}'},
+    en:{sub:'Collection',title:'Your collection',subt:'Every unlocked achievement becomes a card. Click to see it large.',
+        all:'All',foot:'The rarer the achievement, the more its card stands out.',cards:'cards',leg:'legendary',
+        emptyBig:'Collection empty',emptySub:'Unlock achievements with Fanfara, or sync your history from the tray menu.',
+        players:'of players',unlocked:'Unlocked on',prev:'Back',next:'Next',pg:'Page {c} of {t}'}
+  };
+  var TIERLAB={ it:['Comune','Non comune','Raro','Epico','Leggendario'], en:['Common','Uncommon','Rare','Epic','Legendary'],
+    fr:['Commun','Peu commun','Rare','Épique','Légendaire'], de:['Gewöhnlich','Ungewöhnlich','Selten','Episch','Legendär'], es:['Común','Poco común','Raro','Épico','Legendario'] };
+  var LABF={ it:['Tutte','Leggendari','Epici','Rari','Non comuni','Comuni'], en:['All','Legendary','Epic','Rare','Uncommon','Common'] };
+  var LANG='it', S=STR.it, TL=TIERLAB.it, LF=LABF.it, LOCALE='it-IT';
+  var LOCMAP={it:'it-IT',en:'en-GB',fr:'fr-FR',de:'de-DE',es:'es-ES'};
+
+  var GLYPH={ crown:'M3 18h18M4 18l-1-9 5 4 4-8 4 8 5-4-1 9', swords:'M3 21l8-8M14 10l7-7M14 4h6v6M10 14l-7 7M10 21H4v-6',
+    skull:'M12 2a8 8 0 0 0-8 8v4l2 2v3h12v-3l2-2v-4a8 8 0 0 0-8-8z', flame:'M12 2s5 4 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4 0 2 1 2.5 2 2 1-.6 1-2.5-1-8z',
+    star:'M12 2l2.9 6.3L22 9.6l-5 4.6 1.3 7.3L12 18l-6.3 3.5L7 14.2 2 9.6l7.1-1.3z', bolt:'M13 2L4 14h7l-1 8 9-12h-7z',
+    wing:'M21 6c-6 0-12 4-14 11 4-4 8-5 11-4M3 17c3-9 11-11 16-11', serpent:'M4 8c4 0 4 8 8 8s4-8 8-8M4 16c4 0 4-7 8-7' };
+  var GKEYS=Object.keys(GLYPH);
+
+  function hash(s){ s=String(s||''); var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0); }
+  function glyphFor(k){ return GKEYS[hash(k)%GKEYS.length]; }
+  function colorFor(game){ var h=hash(game)%360; return { accent:'hsl('+h+',58%,47%)', ink:'hsl('+h+',88%,78%)' }; }
+
+  var TIERID=['common','uncommon','rare','epic','legendary'];
+  function tierIdx(p){ if(p==null) return 0; if(p<1)return 4; if(p<5)return 3; if(p<10)return 2; if(p<40)return 1; return 0; }
+  function fmtPct(p){ return p==null ? '—' : p.toLocaleString(LOCALE,{minimumFractionDigits:1,maximumFractionDigits:1})+'%'; }
+  function fmtDate(ep){ if(!ep)return ''; try{ return new Date(ep*1000).toLocaleDateString(LOCALE,{day:'numeric',month:'short'}); }catch(e){ return ''; } }
+  function fmtFull(ep){ if(!ep)return ''; try{ var d=new Date(ep*1000); return d.toLocaleDateString(LOCALE,{day:'numeric',month:'long',year:'numeric'})+' · '+d.toLocaleTimeString(LOCALE,{hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  function artBg(c,i,hasIcon){
+    var a=c.accent, bg='bg'+i, sh='sh'+i, vg='vg'+i;
+    var shield = hasIcon ? '' :
+      '<path d="M150 56 L226 86 Q226 184 150 240 Q74 184 74 86 Z" fill="url(#'+sh+')" stroke="'+a+'" stroke-width="3.5" stroke-opacity="0.8"/>'
+      +'<path d="M150 56 L226 86 Q226 184 150 240 Q74 184 74 86 Z" fill="none" stroke="#fff" stroke-width="1" stroke-opacity="0.22"/>';
+    return '<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>'
+      +'<radialGradient id="'+bg+'" cx="50%" cy="42%" r="80%"><stop offset="0%" stop-color="'+a+'" stop-opacity="0.85"/><stop offset="46%" stop-color="'+a+'" stop-opacity="0.32"/><stop offset="100%" stop-color="#05070d"/></radialGradient>'
+      +'<linearGradient id="'+sh+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+a+'" stop-opacity="0.9"/><stop offset="60%" stop-color="'+a+'" stop-opacity="0.45"/><stop offset="100%" stop-color="#0a0d16" stop-opacity="0.92"/></linearGradient>'
+      +'<radialGradient id="'+vg+'" cx="50%" cy="46%" r="72%"><stop offset="55%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity="0.5"/></radialGradient>'
+      +'</defs><rect width="300" height="300" fill="#05070d"/><rect width="300" height="300" fill="url(#'+bg+')"/>'+shield+'<rect width="300" height="300" fill="url(#'+vg+')"/></svg>';
+  }
+  function artEm(c,i){
+    var g=GLYPH[c.g]||GLYPH.star, a=c.accent, ink=c.ink, gl='gl'+i, ca='ca'+i;
+    return '<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>'
+      +'<radialGradient id="'+ca+'" cx="50%" cy="44%" r="55%"><stop offset="0%" stop-color="'+ink+'" stop-opacity="0.6"/><stop offset="100%" stop-color="'+ink+'" stop-opacity="0"/></radialGradient>'
+      +'<linearGradient id="'+gl+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="55%" stop-color="'+ink+'"/><stop offset="100%" stop-color="'+a+'"/></linearGradient>'
+      +'</defs><circle cx="150" cy="142" r="74" fill="url(#'+ca+')"/>'
+      +'<g transform="translate(150 146) scale(4.8) translate(-12 -12)" stroke="url(#'+gl+')" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))"><path d="'+g+'"/></g></svg>';
+  }
+  function emLayer(c,i){
+    if(c.icon) return '<div class="layer em"><img src="'+esc(c.icon)+'" alt="" onerror="this.style.display=\'none\'"></div>';
+    return '<div class="layer em">'+artEm(c,i)+'</div>';
+  }
+
+  var CARDS=[], active='all', page=0; var PER=25;
+
+  function setLang(l){ LANG=STR[l]?l:'en'; S=STR[LANG]||STR.en; TL=TIERLAB[LANG]||TIERLAB.en; LF=LABF[LANG]||LABF.en; LOCALE=LOCMAP[LANG]||'en-GB';
+    document.documentElement.lang=LANG;
+    document.getElementById('s-sub').textContent=S.sub; document.getElementById('t-title').textContent=S.title;
+    document.getElementById('t-sub').textContent=S.subt; document.getElementById('foot').textContent=S.foot;
+    document.getElementById('empty-big').textContent=S.emptyBig; document.getElementById('empty-sub').textContent=S.emptySub;
+    updateBack();
+  }
+  function updateBack(){
+    var t=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';
+    document.getElementById('back').setAttribute('href','home.html?home=1&theme='+t+'&lang='+LANG);
+  }
+
+  window.fanfaraInit=function(payload){
+    try{
+      if(payload.theme==='dark') document.documentElement.setAttribute('data-theme','dark');
+      else if(payload.theme==='light') document.documentElement.removeAttribute('data-theme');
+      setLang(payload.lang||'it');
+      CARDS=(payload.items||[]).map(function(r){
+        var col=colorFor(r.game); var ti=tierIdx(r.p==null?null:r.p);
+        return { name:r.name||'', game:r.game||'', desc:r.desc||'', p:(r.p==null?null:r.p), unlock:r.unlock||0, icon:r.icon||'',
+          g:glyphFor(r.api||r.name), accent:col.accent, ink:col.ink, tier:TIERID[ti], tlab:TL[ti] };
+      });
+      CARDS.sort(function(a,b){ return (a.p==null?101:a.p)-(b.p==null?101:b.p); });
+      count(); chips(); render();
+    }catch(e){}
+  };
+
+  var ORDER=['all','legendary','epic','rare','uncommon','common'];
+  function chips(){
+    document.getElementById('chips').innerHTML=ORDER.map(function(id,idx){
+      var lab=LF[idx];
+      return '<button class="chip tier-'+id+(id==='all'?' all':'')+(id===active?' on':'')+'" data-f="'+id+'">'+lab+'</button>';
+    }).join('');
+  }
+  function face(c,i){
+    return '<div class="art" style="--acc:'+c.accent+'">'+emLayer(c,i)
+      +'<div class="glare"></div><span class="gem"><i></i>'+c.tlab+'</span></div>'
+      +'<div class="plate"><div class="nm">'+esc(c.name)+'</div><div class="gm">'+esc(c.game)+'</div>'
+      +(c.desc?'<div class="desc">'+esc(c.desc)+'</div>':'')
+      +'<div class="foot"><span class="pct">'+fmtPct(c.p)+'</span><span class="date">'+fmtDate(c.unlock)+'</span></div></div>';
+  }
+  function render(){
+    var filtered=[];
+    CARDS.forEach(function(c,i){ if(active==='all'||c.tier===active) filtered.push({c:c,i:i}); });
+    var total=filtered.length, pages=Math.max(1,Math.ceil(total/PER));
+    if(page>=pages) page=pages-1; if(page<0) page=0;
+    var slice=filtered.slice(page*PER, page*PER+PER);
+
+    var grid=document.getElementById('grid');
+    grid.innerHTML=slice.map(function(o){ return '<div class="ccard tier-'+o.c.tier+'" data-i="'+o.i+'">'+face(o.c,o.i)+'</div>'; }).join('');
+    document.getElementById('empty').className = CARDS.length? 'empty':'empty show';
+    Array.prototype.forEach.call(grid.querySelectorAll('.ccard'), function(card){ tiltCard(card,10); });
+
+    var pager=document.getElementById('pager');
+    if(total>PER){
+      pager.style.display='flex';
+      pager.innerHTML='<button id="prev"'+(page<=0?' disabled':'')+'>‹ '+S.prev+'</button>'
+        +'<span class="info">'+S.pg.replace('{c}',page+1).replace('{t}',pages)+'</span>'
+        +'<button id="next"'+(page>=pages-1?' disabled':'')+'>'+S.next+' ›</button>';
+      document.getElementById('prev').onclick=function(){ if(page>0){page--; render(); window.scrollTo(0,0);} };
+      document.getElementById('next').onclick=function(){ if(page<pages-1){page++; render(); window.scrollTo(0,0);} };
+    } else pager.style.display='none';
+  }
+  function count(){
+    var leg=CARDS.filter(function(c){return c.p!=null && c.p<1;}).length;
+    document.getElementById('count').innerHTML=CARDS.length+' '+S.cards+' · <b>'+leg+' '+S.leg+'</b>';
+  }
+
+  var REDUCE=false; try{ REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+  var activeCard=null;
+  function resetCard(card){
+    if(!card) return;
+    var em=card.querySelector('.layer.em'), g=card.querySelector('.glare');
+    card.style.transition='transform .4s cubic-bezier(.2,.8,.2,1)'; card.style.transform='';
+    if(em){ em.style.transition='transform .4s cubic-bezier(.2,.8,.2,1)'; em.style.transform=''; }
+    if(g) g.style.opacity='0';
+  }
+  function tiltCard(card,max){
+    if(REDUCE) return;
+    var g=card.querySelector('.glare'), em=card.querySelector('.layer.em');
+    card.addEventListener('pointermove',function(e){
+      var r=card.getBoundingClientRect();
+      if(r.width<10 || r.height<10) return;               // layout not ready — skip (prevents a stuck card)
+      var px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+      if(px<0||px>1||py<0||py>1) return;                  // pointer outside — ignore stray value
+      activeCard=card;
+      card.style.transition='transform .08s ease';
+      card.style.transform='rotateX('+((0.5-py)*max).toFixed(2)+'deg) rotateY('+((px-0.5)*max).toFixed(2)+'deg) scale(1.04)';
+      if(em){ var d=parseFloat(getComputedStyle(card).getPropertyValue('--depth'))||8; em.style.transition='transform .08s ease';
+        em.style.transform='translate('+((px-0.5)*d).toFixed(1)+'px,'+((py-0.5)*d).toFixed(1)+'px)'; }
+      if(g){ g.style.setProperty('--mx',(px*100).toFixed(1)+'%'); g.style.setProperty('--my',(py*100).toFixed(1)+'%'); g.style.opacity='1'; }
+    });
+    function leave(){ if(activeCard===card) activeCard=null; resetCard(card); }
+    card.addEventListener('pointerleave',leave);
+    card.addEventListener('pointercancel',leave);
+  }
+  // Scrolling while hovering can leave a card tilted — reset the active one on any scroll.
+  window.addEventListener('scroll',function(){ var c=activeCard; activeCard=null; resetCard(c); }, true);
+
+  var modal=document.getElementById('modal');
+  function openCard(i){
+    var c=CARDS[i]; if(!c) return;
+    document.getElementById('dialogCard').innerHTML=
+      '<div class="ccard big tier-'+c.tier+'"><div class="art" style="--acc:'+c.accent+'">'+emLayer(c,'M'+i)
+      +'<div class="glare"></div><span class="gem"><i></i>'+c.tlab+'</span></div>'
+      +'<div class="plate"><div class="nm">'+esc(c.name)+'</div><div class="gm">'+esc(c.game)+'</div>'
+      +(c.desc?'<div class="desc">'+esc(c.desc)+'</div>':'')
+      +'<div class="foot"><span class="pct">'+fmtPct(c.p)+' '+S.players+'</span></div>'
+      +(c.unlock?'<div class="unlock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'+S.unlocked+' '+fmtFull(c.unlock)+'</div>':'')
+      +'</div></div>';
+    modal.hidden=false;
+    var big=document.getElementById('dialogCard').querySelector('.ccard'); if(big) tiltCard(big,12);
+    document.getElementById('close').focus();
+  }
+  function closeCard(){ modal.hidden=true; }
+  document.getElementById('grid').addEventListener('click',function(e){ var card=e.target.closest('.ccard'); if(!card)return; openCard(+card.dataset.i); });
+  document.getElementById('close').addEventListener('click',closeCard);
+  modal.addEventListener('click',function(e){ if(e.target.hasAttribute('data-close')) closeCard(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape' && !modal.hidden) closeCard(); });
+
+  (function(){
+    var root=document.documentElement;
+    document.getElementById('theme').addEventListener('click',function(){
+      var dark=root.getAttribute('data-theme')==='dark';
+      if(dark){ root.removeAttribute('data-theme'); try{localStorage.setItem('fanfara-theme','light');}catch(e){} }
+      else { root.setAttribute('data-theme','dark'); try{localStorage.setItem('fanfara-theme','dark');}catch(e){} }
+      try{ window.chrome.webview.postMessage(JSON.stringify({action:'theme', theme:(root.getAttribute('data-theme')==='dark'?'dark':'light')})); }catch(e){}
+      updateBack();
+    });
+    document.getElementById('chips').addEventListener('click',function(e){ var b=e.target.closest('.chip'); if(!b)return; active=b.dataset.f; page=0; chips(); render(); });
+  })();
+
+  (function(){ var m=location.search.match(/[?&]lang=([a-z]{2})/); setLang(m?m[1]:'it'); count(); chips(); render(); })();
+</script>
+</body></html>

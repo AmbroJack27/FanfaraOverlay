@@ -1,0 +1,9 @@
+# Cloudflare Worker config for the Fanfara Steam history proxy.
+# The Steam Web API key is NOT stored here — it is set as a secret (see README.md).
+
+name = "fanfara-steam"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# No account_id needed: `wrangler login` handles authentication.
+# No KV/bindings needed: the Worker uses the built-in edge cache.

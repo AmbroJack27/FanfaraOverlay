@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,6 +14,9 @@ public partial class App : System.Windows.Application
     private System.Windows.Forms.NotifyIcon? _tray;
     private static Mutex? _appMutex;   // lets the installer detect/close a running instance
     private readonly Config _config = Config.Load();
+
+    private AchievementStore? _store;        // local history/collection, shared by live unlocks + backfill
+    private int _backfillRunning;            // 0/1 guard so only one sync runs at a time
 
     public App()
     {
@@ -49,14 +54,35 @@ public partial class App : System.Windows.Application
         if (_config.GameOverlayFix)
             Task.Run(() => { try { SteamLibrary.PreoptimizeAll(_config); } catch { } });
 
+        // Local store of unlocked achievements (feeds the History + Collection windows).
+        _store = new AchievementStore();
+
         // Transparent, click-through, always-on-top overlay that renders the notifications.
         _overlay = new OverlayWindow(_config);
         _overlay.Show();
 
         // Watch Steam for the running game and freshly unlocked achievements.
         _steam = new SteamWatcher(_config);
-        _steam.AchievementUnlocked += (name, percent, desc) =>
+        _steam.AchievementUnlocked += (name, percent, desc, appid, api) =>
+        {
             _overlay?.Dispatcher.Invoke(() => _overlay.ShowAchievement(name, percent, desc, _config));
+            // Record the live unlock so it appears in History/Collection even without a full sync.
+            try
+            {
+                _store?.Upsert(new AchievementRecord
+                {
+                    Appid = appid,
+                    Api = string.IsNullOrEmpty(api) ? "live:" + name : api,
+                    Name = name,
+                    Desc = desc,
+                    Unlock = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    Percent = percent
+                });
+                _store?.Save();
+                RefreshData();
+            }
+            catch { }
+        };
         _steam.GameOptimized += () => Dispatcher.Invoke(ShowRestartGameTip);
         _steam.Start();
 
@@ -70,6 +96,16 @@ public partial class App : System.Windows.Application
         // Quiet check for a newer version on GitHub (if enabled).
         if (_config.CheckUpdates)
             _ = CheckForUpdatesAsync(silent: true);
+
+        // First launch imports everything (with a welcome); afterwards a quiet background refresh at
+        // startup (when it's been a while) keeps History/Collection current — new unlocks, achievements
+        // earned while Fanfara was closed or on another PC, and real icons for live-captured unlocks.
+        if (_config.SyncHistory)
+        {
+            bool firstRun = !_config.HistoryImported || (_store?.Count ?? 0) == 0;
+            if (firstRun || SyncIsStale())
+                _ = RunBackfillAsync(manual: false, firstRun: firstRun);
+        }
     }
 
     private async Task CheckForUpdatesAsync(bool silent)
@@ -131,12 +167,16 @@ public partial class App : System.Windows.Application
         };
         var lang = _config.EffectiveLanguage;
         var menu = new System.Windows.Forms.ContextMenuStrip();
-        menu.Items.Add(Loc.S(lang, "settings"), null, (_, _) => ShowSettings());
+        menu.Items.Add(Loc.S(lang, "openApp"), null, (_, _) => ShowSettings());
+        menu.Items.Add(Loc.S(lang, "history"), null, (_, _) => ShowSettings("history.html"));
+        menu.Items.Add(Loc.S(lang, "collection"), null, (_, _) => ShowSettings("collection.html"));
+        menu.Items.Add(Loc.S(lang, "syncNow"), null, (_, _) => _ = RunBackfillAsync(manual: true));
+        menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
         menu.Items.Add(Loc.S(lang, "testNotif"), null, (_, _) =>
             _overlay?.ShowPreview(_config.Style, _config.Sound, _config.Position, 0.6,
                 Loc.S(_config.EffectiveLanguage, "preview"), _config.Volume, Loc.S(_config.EffectiveLanguage, "previewDesc")));
         menu.Items.Add(Loc.S(lang, "checkUpdates"), null, (_, _) => _ = CheckForUpdatesAsync(silent: false));
-        menu.Items.Add(Loc.S(lang, "quit"), null, (_, _) => Shutdown());
+        menu.Items.Add(Loc.S(lang, "quit"), null, (_, _) => QuitApp());
         _tray.ContextMenuStrip = menu;
         _tray.DoubleClick += (_, _) => ShowSettings();
     }
@@ -152,15 +192,104 @@ public partial class App : System.Windows.Application
         catch { /* notifications disabled — ignore */ }
     }
 
-    private void ShowSettings()
+    /// <summary>Show the single app window, optionally jumping straight to a screen (history/collection).</summary>
+    private void ShowSettings(string? page = null)
     {
         if (_settings == null)
         {
-            _settings = new SettingsWindow(_config, _overlay!);
-            _settings.Closed += (_, _) => _settings = null;
+            // First creation of the app window — the logo intro plays here, once.
+            _settings = new SettingsWindow(_config, _overlay!, _store!, page);
             _settings.Show();
         }
+        else
+        {
+            // Window already exists (just hidden to tray): show it again without reloading,
+            // so the intro does not replay. Jump to a screen only if one was requested.
+            if (page != null) _settings.NavigateTo(page);
+            if (!_settings.IsVisible) _settings.Show();
+        }
+        if (_settings.WindowState == System.Windows.WindowState.Minimized)
+            _settings.WindowState = System.Windows.WindowState.Normal;
         _settings.Activate();
+    }
+
+    /// <summary>Re-send data to the window if it is currently showing the History/Collection screen.</summary>
+    private void RefreshData()
+    {
+        try { Dispatcher.Invoke(() => _settings?.RefreshData()); }
+        catch { }
+    }
+
+    /// <summary>True if it's been long enough since the last successful sync to refresh again.</summary>
+    private bool SyncIsStale()
+    {
+        if (string.IsNullOrEmpty(_config.LastSyncUtc)) return true;
+        if (DateTime.TryParse(_config.LastSyncUtc, null, System.Globalization.DateTimeStyles.RoundtripKind, out var last))
+            return (DateTime.UtcNow - last) > TimeSpan.FromHours(12);
+        return true;
+    }
+
+    /// <summary>
+    /// Imports/refreshes the achievement history from Steam through the proxy.
+    /// Three modes: manual (tray button → message box), firstRun (welcome + result balloon),
+    /// periodic (silent; only announces newly found achievements).
+    /// </summary>
+    private async Task RunBackfillAsync(bool manual, bool firstRun = false)
+    {
+        if (_store == null) return;
+        if (Interlocked.Exchange(ref _backfillRunning, 1) == 1)
+        {
+            if (manual) Balloon(Loc.S(_config.EffectiveLanguage, "syncBusy"));
+            return;
+        }
+        var lang = _config.EffectiveLanguage;
+
+        // Start feedback: a note for a manual sync, a welcome on the first import, nothing for a quiet refresh.
+        if (manual) Balloon(Loc.S(lang, "syncStart"));
+        else if (firstRun) Balloon(Loc.S(lang, "syncWelcome"));
+
+        try
+        {
+            var hist = new SteamHistory(_config, _store);
+            var res = await hist.BackfillAsync();
+            switch (res)
+            {
+                case SteamHistory.Result.Ok:
+                    RefreshData();
+                    if (manual) System.Windows.MessageBox.Show(string.Format(Loc.S(lang, "syncDone"), _store.Count), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
+                    else if (firstRun) Balloon(string.Format(Loc.S(lang, "syncDone"), _store.Count));
+                    else if (hist.LastAdded > 0) Balloon(string.Format(Loc.S(lang, "syncNew"), hist.LastAdded));   // quiet refresh: only if there's something new
+                    break;
+                case SteamHistory.Result.ProfilePrivate:
+                    if (manual) System.Windows.MessageBox.Show(Loc.S(lang, "syncPrivate"), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
+                    else if (firstRun) Balloon(Loc.S(lang, "syncPrivate"));
+                    break;
+                case SteamHistory.Result.NoSteamId:
+                    if (manual) System.Windows.MessageBox.Show(Loc.S(lang, "syncNoId"), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
+                    break;
+                case SteamHistory.Result.NoProxy:
+                    if (manual) System.Windows.MessageBox.Show(Loc.S(lang, "syncNoProxy"), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
+                    break;
+                default:
+                    if (manual) System.Windows.MessageBox.Show(Loc.S(lang, "syncError"), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
+                    break;
+            }
+        }
+        catch { if (manual) System.Windows.MessageBox.Show(Loc.S(lang, "syncError"), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information); }
+        finally { Interlocked.Exchange(ref _backfillRunning, 0); }
+    }
+
+    private void Balloon(string text)
+    {
+        try { Dispatcher.Invoke(() => _tray?.ShowBalloonTip(8000, "Fanfara", text, System.Windows.Forms.ToolTipIcon.Info)); }
+        catch { }
+    }
+
+    /// <summary>Really quit (from the tray "Quit"): allow the window to close, then shut down.</summary>
+    private void QuitApp()
+    {
+        if (_settings != null) _settings.AllowRealClose = true;
+        Shutdown();
     }
 
     protected override void OnExit(ExitEventArgs e)

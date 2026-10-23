@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fanfara</title>
+<script>(function(){try{var m=location.search.match(/[?&]theme=(dark|light)/);var t=m?m[1]:(localStorage.getItem('fanfara-theme')||'dark');
+if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#eef1f7; --bg-2:#ffffff; --panel:#ffffff; --panel-2:#f3f6fb;
+    --fg:#161c2b; --muted:#5b6478; --faint:#9aa3b5; --line:rgba(16,24,40,.12);
+    --gold:#B8860B; --a1:#4C8DFF; --a2:#B078FF;
+    --aurora:.26;
+    --display:'Oxanium','Segoe UI',ui-sans-serif,system-ui,sans-serif;
+    --body:'Archivo','Segoe UI',ui-sans-serif,system-ui,sans-serif;
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#070a12; --bg-2:#0c111d; --panel:#141b2b; --panel-2:#1b2235;
+    --fg:#E8EBF3; --muted:#8b93a7; --faint:#5b6478; --line:rgba(255,255,255,.10);
+    --gold:#F5C242; --aurora:.6;
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  [hidden]{display:none!important}
+  body{ margin:0; overflow:hidden; background:var(--bg); color:var(--fg); font-family:var(--body); -webkit-font-smoothing:antialiased; }
+
+  /* ---------- animated aurora background ---------- */
+  .aurora{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; opacity:var(--aurora) }
+  .aurora .b{ position:absolute; border-radius:50%; filter:blur(80px); mix-blend-mode:screen; animation:drift 20s ease-in-out infinite }
+  .b1{ width:560px; height:560px; background:radial-gradient(circle,var(--a1),transparent 62%); left:-8%; top:-16%; }
+  .b2{ width:520px; height:520px; background:radial-gradient(circle,var(--a2),transparent 62%); right:-8%; top:-4%; animation-delay:-7s }
+  .b3{ width:480px; height:480px; background:radial-gradient(circle,var(--gold),transparent 64%); left:24%; bottom:-24%; animation-delay:-13s; opacity:.7 }
+  .b4{ width:420px; height:420px; background:radial-gradient(circle,var(--a1),transparent 64%); right:16%; bottom:-20%; animation-delay:-4s; opacity:.6 }
+  @keyframes drift{ 0%,100%{ transform:translate(0,0) scale(1) } 33%{ transform:translate(44px,34px) scale(1.1) } 66%{ transform:translate(-34px,22px) scale(.95) } }
+  body::after{ content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:radial-gradient(130% 120% at 50% 40%, transparent 52%, color-mix(in srgb,var(--bg) 85%, transparent) 100%) }
+
+  .screen{ position:relative; z-index:1; height:100%; display:flex; flex-direction:column; opacity:0; transition:opacity .5s ease }
+  .screen.show{ opacity:1 }
+  .top{ display:flex; align-items:center; gap:12px; padding:22px 30px }
+  .brand{ display:flex; align-items:center; gap:11px }
+  .brand .mk{ width:30px; height:30px; color:var(--gold); filter:drop-shadow(0 0 10px color-mix(in srgb,var(--gold) 40%, transparent)) }
+  .brand b{ font:800 18px/1 var(--display); letter-spacing:.01em }
+  .tbtn{ margin-left:auto; cursor:pointer; display:grid; place-items:center; width:40px; height:40px; background:color-mix(in srgb,var(--panel) 70%, transparent); border:1px solid var(--line); border-radius:12px; color:var(--fg); backdrop-filter:blur(6px); transition:.15s }
+  .tbtn:hover{ border-color:color-mix(in srgb,var(--a1) 50%, var(--line)) }
+  .tbtn svg{ width:18px; height:18px } .tbtn .moon{display:none} :root[data-theme="dark"] .tbtn .sun{display:none} :root[data-theme="dark"] .tbtn .moon{display:block}
+
+  .center{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:0 30px 40px }
+  .boxes{ display:grid; grid-template-columns:repeat(2,1fr); gap:24px; max-width:960px; width:100% }
+  .box{ --c:var(--a1); position:relative; overflow:hidden; cursor:pointer; text-decoration:none; color:inherit;
+    background:linear-gradient(165deg, color-mix(in srgb,var(--c) 16%, var(--panel)), color-mix(in srgb,var(--panel) 92%, transparent));
+    border:1px solid color-mix(in srgb,var(--c) 30%, var(--line)); border-radius:22px; padding:30px 26px 26px;
+    display:flex; flex-direction:column; gap:15px; min-height:258px; backdrop-filter:blur(6px);
+    box-shadow:0 24px 50px -30px rgba(0,0,0,.6);
+    opacity:0; transform:translateY(26px) scale(.97);
+    transition:transform .32s cubic-bezier(.2,.8,.2,1), box-shadow .32s, border-color .32s, background .32s }
+  .box.in{ animation:boxIn .7s cubic-bezier(.2,.9,.3,1.2) forwards }
+  @keyframes boxIn{ to{ opacity:1; transform:translateY(0) scale(1) } }
+  .box:hover{ transform:translateY(-10px) scale(1.025);
+    box-shadow:0 40px 70px -28px rgba(0,0,0,.65), 0 0 50px -16px var(--c);
+    border-color:color-mix(in srgb,var(--c) 62%, transparent) }
+  .box .sheen{ position:absolute; inset:0; pointer-events:none; mix-blend-mode:screen; opacity:0; transition:opacity .45s;
+    background:radial-gradient(130% 90% at 50% -10%, color-mix(in srgb,var(--c) 36%, transparent), transparent 62%) }
+  .box:hover .sheen{ opacity:1 }
+  .box .ic{ position:relative; width:60px; height:60px; border-radius:16px; display:grid; place-items:center; color:var(--c);
+    background:color-mix(in srgb,var(--c) 18%, transparent); border:1px solid color-mix(in srgb,var(--c) 36%, transparent);
+    transition:transform .32s cubic-bezier(.2,.9,.3,1.3) }
+  .box .ic::before{ content:""; position:absolute; inset:-6px; border-radius:20px; z-index:-1;
+    background:radial-gradient(circle, color-mix(in srgb,var(--c) 45%, transparent), transparent 70%);
+    opacity:.0; animation:halo 4s ease-in-out infinite }
+  .box.c1 .ic::before{ animation-delay:0s } .box.c2 .ic::before{ animation-delay:-1.3s } .box.c3 .ic::before{ animation-delay:-2.6s }
+  @keyframes halo{ 0%,100%{ opacity:.12; transform:scale(.9) } 50%{ opacity:.4; transform:scale(1.1) } }
+  .box:hover .ic{ transform:translateY(-4px) rotate(-5deg) scale(1.08) }
+  .box .ic svg{ width:30px; height:30px }
+  .box h3{ margin:0; font:700 19px var(--display); letter-spacing:.01em }
+  .box p{ margin:0; font-size:13.5px; color:var(--muted); flex:1; line-height:1.5 }
+  .box .go{ display:inline-flex; align-items:center; gap:7px; font:700 13px var(--display); letter-spacing:.04em; color:var(--c) }
+  .box .go svg{ width:16px; height:16px; transition:transform .25s } .box:hover .go svg{ transform:translateX(5px) }
+  .box.c1{ --c:var(--a1) } .box.c2{ --c:var(--gold) } .box.c3{ --c:var(--a2) } .box.c4{ --c:#2fd0c6 }
+
+  /* ---------- intro ---------- */
+  #intro{ position:fixed; inset:0; z-index:50; display:grid; place-items:center; background:var(--bg); transition:opacity .55s ease, visibility .55s }
+  #intro.gone{ opacity:0; visibility:hidden }
+  .intro-wrap{ display:flex; flex-direction:column; align-items:center; gap:18px }
+  .logo{ width:104px; height:104px; color:var(--gold); animation:logoIn 1s cubic-bezier(.2,.9,.3,1.2) both }
+  .logo svg{ width:100%; height:100% }
+  .glint{ animation:glow 1.7s ease-in-out .4s both }
+  @keyframes logoIn{ 0%{ transform:scale(.4) rotate(-12deg); opacity:0 } 60%{ opacity:1 } 100%{ transform:scale(1) rotate(0); opacity:1 } }
+  @keyframes glow{ 0%,100%{ filter:drop-shadow(0 0 6px color-mix(in srgb,var(--gold) 40%, transparent)) } 50%{ filter:drop-shadow(0 0 26px color-mix(in srgb,var(--gold) 85%, transparent)) } }
+  .word{ font:800 44px var(--display); letter-spacing:.04em; display:flex; gap:.02em }
+  .word span{ display:inline-block; opacity:0; transform:translateY(14px); animation:letterIn .5s cubic-bezier(.2,.9,.3,1.2) forwards }
+  @keyframes letterIn{ to{ opacity:1; transform:translateY(0) } }
+  .tag{ font:600 12px var(--display); letter-spacing:.32em; text-transform:uppercase; color:var(--muted); opacity:0; animation:fadeIn .6s ease .95s forwards }
+  @keyframes fadeIn{ to{ opacity:1 } }
+
+  @media (max-width:860px){ .boxes{ grid-template-columns:1fr; max-width:480px } .box{ min-height:0 } .center{ overflow:auto; align-items:flex-start; padding-top:20px } }
+  @media (prefers-reduced-motion:reduce){ *{ animation:none!important; transition:none!important } #intro{display:none} .screen{opacity:1} .box{opacity:1; transform:none} .aurora{display:none} }
+</style></head>
+<body>
+<div class="aurora"><div class="b b1"></div><div class="b b2"></div><div class="b b3"></div><div class="b b4"></div></div>
+
+<div id="intro"><div class="intro-wrap">
+  <div class="logo glint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></div>
+  <div class="word" id="word"></div>
+  <div class="tag">Achievement, in grande</div>
+</div></div>
+
+<div class="screen" id="screen">
+  <div class="top">
+    <div class="brand"><svg class="mk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><b>Fanfara</b></div>
+    <button class="tbtn" id="theme" aria-label="Tema">
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+  <div class="center">
+    <div class="boxes">
+      <a class="box c1" id="b-cust" href="settings.html">
+        <span class="sheen"></span>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 12h2M10 12h10M4 17h7M15 17h5"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="13" cy="17" r="2"/></svg></div>
+        <h3 id="b-cust-t">Personalizza Fanfara</h3>
+        <p id="b-cust-s">Stili, suoni, posizione e durata delle notifiche.</p>
+        <span class="go" id="b-cust-g">Apri <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="box c2" id="b-hist" href="history.html">
+        <span class="sheen"></span>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4"/><path d="M12 8v4l3 2"/></svg></div>
+        <h3 id="b-hist-t">Cronologia Achievement</h3>
+        <p id="b-hist-s">Tutti i tuoi sblocchi, giorno per giorno.</p>
+        <span class="go" id="b-hist-g">Apri <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="box c3" id="b-coll" href="collection.html">
+        <span class="sheen"></span>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="13" height="16" rx="2"/><path d="M8 2.5l10 2.2a2 2 0 0 1 1.5 2.4l-2.3 10.6"/><circle cx="9.5" cy="10" r="1.6"/></svg></div>
+        <h3 id="b-coll-t">Collezione Achievement</h3>
+        <p id="b-coll-s">I tuoi obiettivi più rari come carte da collezione.</p>
+        <span class="go" id="b-coll-g">Apri <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="box c4" id="b-guide" href="guide.html">
+        <span class="sheen"></span>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c-1.6-1.4-4-2-7-2v13c3 0 5.4.6 7 2 1.6-1.4 4-2 7-2V5c-3 0-5.4.6-7 2z"/><path d="M12 7v13"/></svg></div>
+        <h3 id="b-guide-t">Guida</h3>
+        <p id="b-guide-s">Come funziona Fanfara, spiegato semplice.</p>
+        <span class="go" id="b-guide-g">Apri <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  var STR={
+    it:{custT:'Personalizza Fanfara',custS:'Stili, suoni, posizione e durata delle notifiche.',
+        histT:'Cronologia Achievement',histS:'Tutti i tuoi sblocchi, giorno per giorno.',collT:'Collezione Achievement',collS:'I tuoi obiettivi più rari come carte da collezione.',
+        guideT:'Guida',guideS:'Come funziona Fanfara, spiegato semplice.',go:'Apri'},
+    en:{custT:'Customize Fanfara',custS:'Styles, sounds, position and duration of notifications.',
+        histT:'Achievement History',histS:'All your unlocks, day by day.',collT:'Achievement Collection',collS:'Your rarest achievements as collectible cards.',
+        guideT:'Guide',guideS:'How Fanfara works, explained simply.',go:'Open'}
+  };
+  function L(){ try{ var p=location.search.match(/[?&]lang=([a-z]{2})/); if(p)return p[1]; }catch(e){} return 'it'; }
+  function themeNow(){ return document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light'; }
+  function withCtx(href){ return href.split('?')[0]+'?theme='+themeNow()+'&lang='+L(); }
+
+  (function setLang(){
+    var l=STR[L()]?L():'en', S=STR[l];
+    document.getElementById('b-cust-t').textContent=S.custT; document.getElementById('b-cust-s').textContent=S.custS;
+    document.getElementById('b-hist-t').textContent=S.histT; document.getElementById('b-hist-s').textContent=S.histS;
+    document.getElementById('b-coll-t').textContent=S.collT; document.getElementById('b-coll-s').textContent=S.collS;
+    document.getElementById('b-guide-t').textContent=S.guideT; document.getElementById('b-guide-s').textContent=S.guideS;
+    ['b-cust-g','b-hist-g','b-coll-g','b-guide-g'].forEach(function(id){ document.getElementById(id).childNodes[0].nodeValue=S.go+' '; });
+    var w=document.getElementById('word'); 'Fanfara'.split('').forEach(function(ch,i){ var s=document.createElement('span'); s.textContent=ch; s.style.animationDelay=(0.35+i*0.06)+'s'; w.appendChild(s); });
+  })();
+
+  function wireLinks(){ ['b-cust','b-hist','b-coll','b-guide'].forEach(function(id){ var a=document.getElementById(id); a.setAttribute('href', withCtx(a.getAttribute('href'))); }); }
+  wireLinks();
+
+  document.getElementById('theme').addEventListener('click',function(){
+    var dark=themeNow()==='dark';
+    if(dark){ document.documentElement.removeAttribute('data-theme'); try{localStorage.setItem('fanfara-theme','light');}catch(e){} }
+    else { document.documentElement.setAttribute('data-theme','dark'); try{localStorage.setItem('fanfara-theme','dark');}catch(e){} }
+    try{ window.chrome.webview.postMessage(JSON.stringify({action:'theme', theme:themeNow()})); }catch(e){}
+    ['b-cust','b-hist','b-coll','b-guide'].forEach(function(id){ var a=document.getElementById(id); a.setAttribute('href', withCtx(a.getAttribute('href').split('?')[0])); });
+  });
+
+  function reveal(){
+    document.getElementById('screen').classList.add('show');
+    document.querySelectorAll('.box').forEach(function(b,i){ b.style.animationDelay=(i*0.1)+'s'; b.classList.add('in'); });
+  }
+  var skip=/[?&]home=1/.test(location.search);
+  var reduce=false; try{ reduce=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+  if(skip||reduce){ document.getElementById('intro').classList.add('gone'); reveal(); }
+  else { setTimeout(function(){ document.getElementById('intro').classList.add('gone'); reveal(); }, 1700); }
+</script>
+</body></html>
