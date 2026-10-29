@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Classifica Fanfara</title>
+<script>(function(){try{var m=location.search.match(/[?&]theme=(dark|light)/);var t=m?m[1]:(localStorage.getItem('fanfara-theme')||'dark');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#eef1f7; --bg-2:#ffffff; --panel:#ffffff; --panel-2:#f3f6fb;
+    --fg:#161c2b; --muted:#5b6478; --faint:#9aa3b5; --line:rgba(16,24,40,.12);
+    --glow1:rgba(255,159,69,.12); --glow2:rgba(76,141,255,.08);
+    --acc:#E08A1E; --gold:#D4A017; --silver:#9aa3b5; --bronze:#c07a3e; --ok:#2f9e4f;
+    --display:'Oxanium','Segoe UI',ui-sans-serif,system-ui,sans-serif;
+    --body:'Archivo','Segoe UI',ui-sans-serif,system-ui,sans-serif;
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#0a0e17; --bg-2:#0d1220; --panel:#161c2b; --panel-2:#1d2437;
+    --fg:#E8EBF3; --muted:#8b93a7; --faint:#5b6478; --line:rgba(255,255,255,.10);
+    --glow1:rgba(255,159,69,.14); --glow2:rgba(76,141,255,.10);
+    --acc:#ff9f45; --gold:#F5C242; --silver:#c6cde0; --bronze:#d58a52; --ok:#4ac46a;
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  [hidden]{display:none!important}
+  body{ margin:0; background:radial-gradient(1200px 600px at 85% -10%, var(--glow1), transparent 60%), radial-gradient(900px 500px at 0% 0%, var(--glow2), transparent 55%), var(--bg); color:var(--fg); font-family:var(--body); line-height:1.5; -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 24px }
+
+  .top{ position:sticky; top:0; z-index:15; background:color-mix(in srgb,var(--bg-2) 92%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line) }
+  .top .wrap{ display:flex; align-items:center; gap:14px; padding:14px 24px }
+  .back{ cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:7px; height:36px; padding:0 14px; background:var(--panel); border:1px solid var(--line); border-radius:10px; color:var(--fg); font:700 12.5px var(--display); letter-spacing:.02em; transition:.15s }
+  .back:hover{ border-color:color-mix(in srgb,var(--acc) 50%, var(--line)) } .back svg{ width:16px; height:16px }
+  .brand{ display:flex; align-items:center; gap:10px }
+  .brand .mark{ width:30px; height:30px; color:var(--acc) }
+  .brand b{ font:800 18px/1 var(--display) } .brand span{ font:600 12px/1.3 var(--display); letter-spacing:.18em; text-transform:uppercase; color:var(--muted); display:block }
+  .tbtn{ margin-left:auto; cursor:pointer; display:grid; place-items:center; width:36px; height:36px; background:var(--panel); border:1px solid var(--line); border-radius:10px; color:var(--fg) }
+  .tbtn svg{ width:17px; height:17px } .tbtn .moon{display:none}
+  :root[data-theme="dark"] .tbtn .sun{display:none} :root[data-theme="dark"] .tbtn .moon{display:block}
+
+  .tabs{ display:flex; gap:8px; margin:20px 0 18px; flex-wrap:wrap }
+  .tab{ cursor:pointer; font:700 13.5px var(--display); background:var(--panel); border:1px solid var(--line); color:var(--muted); padding:10px 16px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; transition:.15s }
+  .tab svg{ width:16px; height:16px }
+  .tab.on{ color:var(--acc); background:color-mix(in srgb,var(--acc) 15%, transparent); border-color:color-mix(in srgb,var(--acc) 55%, transparent) }
+  .tab .n{ font-size:12px; color:var(--faint); font-variant-numeric:tabular-nums } .tab.on .n{ color:color-mix(in srgb,var(--acc) 80%, var(--fg)) }
+
+  .panel{ padding-bottom:70px }
+  .lead{ margin:0 0 16px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap }
+  .lead h1{ margin:0; font:800 24px var(--display) } .lead p{ margin:0; color:var(--muted); font-size:14px }
+
+  /* ---- 100% game cards ---- */
+  .games{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:22px }
+  .gcard{ position:relative; border-radius:14px; overflow:hidden; background:var(--panel); border:1px solid var(--line); box-shadow:0 14px 30px -22px rgba(0,0,0,.5); transition:transform .22s, box-shadow .22s }
+  .gcard:hover{ transform:translateY(-4px); box-shadow:0 24px 44px -24px rgba(0,0,0,.6), 0 0 30px -14px var(--ok) }
+  .gcard .art{ position:relative; aspect-ratio:2/3; overflow:hidden; background:linear-gradient(160deg, color-mix(in srgb,var(--acc) 40%, #0a0d16), #0a0d16) }
+  .gcard .art .cap{ width:100%; height:100%; object-fit:cover; display:block }
+  .gcard .art.noimg::after{ content:attr(data-ini); position:absolute; inset:0; display:grid; place-items:center; font:800 44px var(--display); color:rgba(255,255,255,.85) }
+  .gcard .badge{ position:absolute; top:10px; right:10px; z-index:2; display:inline-flex; align-items:center; gap:5px; font:800 12px var(--display); letter-spacing:.04em; color:#07140b; background:var(--ok); border-radius:999px; padding:4px 10px; box-shadow:0 4px 10px rgba(0,0,0,.35) }
+  .gcard .badge svg{ width:12px; height:12px }
+  .gcard .plate{ padding:11px 12px 13px }
+  .gcard .nm{ font:700 14px/1.25 var(--display); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:35px }
+  .gcard .meta{ font-size:12px; color:var(--muted); margin-top:5px }
+
+  /* ---- ranking list ---- */
+  .board{ display:flex; flex-direction:column; gap:10px; max-width:840px }
+  .row{ display:flex; align-items:center; gap:16px; background:var(--panel); border:1px solid var(--line); border-radius:15px; padding:15px 20px }
+  .row.you{ border-color:color-mix(in srgb,var(--acc) 60%, var(--line)); background:color-mix(in srgb,var(--acc) 10%, var(--panel)) }
+  .row .rk{ flex:0 0 auto; width:38px; height:38px; border-radius:11px; display:grid; place-items:center; font:800 17px var(--display); color:var(--faint); background:var(--panel-2); border:1px solid var(--line); font-variant-numeric:tabular-nums }
+  /* podium: bigger rows + metallic rank badge */
+  .row.r1, .row.r2, .row.r3{ padding:18px 20px }
+  .row.r1{ border-color:color-mix(in srgb,var(--gold) 55%, var(--line)); box-shadow:0 0 30px -16px var(--gold) }
+  .row.r2{ border-color:color-mix(in srgb,var(--silver) 50%, var(--line)) }
+  .row.r3{ border-color:color-mix(in srgb,var(--bronze) 50%, var(--line)) }
+  .row.r1 .rk{ width:44px; height:44px; font-size:19px; border:none; color:#3a2a00; background:linear-gradient(145deg,#ffe08a,#e0a81e) }
+  .row.r2 .rk{ width:42px; height:42px; border:none; color:#242a36; background:linear-gradient(145deg,#eef2fa,#aab3c6) }
+  .row.r3 .rk{ width:42px; height:42px; border:none; color:#2a1600; background:linear-gradient(145deg,#e7b483,#b76f38) }
+  .row .av{ flex:0 0 auto; width:48px; height:48px; border-radius:12px; object-fit:cover; background:var(--panel-2); border:1px solid var(--line) }
+  .row.r1 .av{ width:56px; height:56px }
+  .row .who{ flex:1; min-width:0; font:700 16.5px var(--display); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .row.r1 .who{ font-size:18px }
+  .row .who .tag{ margin-left:8px; font:700 11px var(--display); letter-spacing:.06em; text-transform:uppercase; color:var(--acc); background:color-mix(in srgb,var(--acc) 16%, transparent); border:1px solid color-mix(in srgb,var(--acc) 45%, transparent); padding:2px 8px; border-radius:999px; vertical-align:middle }
+  .row .sc{ flex:0 0 auto; text-align:right; font:800 25px var(--display); color:var(--fg); font-variant-numeric:tabular-nums; line-height:1 }
+  .row.r1 .sc{ font-size:30px; color:var(--gold) }
+  .row .sc small{ display:block; font:600 11px var(--display); letter-spacing:.03em; color:var(--faint); margin-top:4px; text-transform:uppercase }
+  .row.pending{ opacity:.6 } .row.pending .sc{ color:var(--faint); font-size:15px }
+
+  /* ---- consent / join ---- */
+  .consent{ max-width:560px; background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:26px 26px 24px }
+  .consent .cic{ width:54px; height:54px; border-radius:14px; display:grid; place-items:center; color:var(--acc); background:color-mix(in srgb,var(--acc) 16%, transparent); border:1px solid color-mix(in srgb,var(--acc) 38%, transparent); margin-bottom:14px } .consent .cic svg{ width:28px; height:28px }
+  .consent h2{ margin:0 0 8px; font:800 20px var(--display) }
+  .consent p{ margin:0 0 14px; color:var(--muted); font-size:14.5px }
+  .consent ul{ margin:0 0 18px; padding-left:18px; color:var(--muted); font-size:13.5px } .consent li{ margin:4px 0 }
+  .btn{ cursor:pointer; border:1px solid var(--line); background:var(--panel-2); color:var(--fg); border-radius:11px; padding:11px 18px; font:700 14px var(--display); transition:.15s }
+  .btn:hover{ border-color:color-mix(in srgb,var(--acc) 50%, var(--line)) }
+  .btn.primary{ background:var(--acc); color:#1a1205; border-color:transparent } .btn.primary:hover{ filter:brightness(1.05) }
+  .btn[disabled]{ opacity:.55; cursor:default }
+  .note{ color:var(--faint); font-size:12.5px; margin-top:14px }
+
+  .joined-bar{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; background:color-mix(in srgb,var(--ok) 10%, var(--panel)); border:1px solid color-mix(in srgb,var(--ok) 40%, var(--line)); border-radius:13px; padding:13px 18px; margin-bottom:16px; max-width:840px }
+  .joined-bar .ok{ color:var(--ok); display:inline-flex; align-items:center; gap:8px; font:700 14px var(--display) } .joined-bar .ok svg{ width:18px; height:18px }
+  .joined-bar .spacer{ flex:1 }
+
+  .info{ color:var(--muted); font-size:14px; background:var(--panel); border:1px dashed var(--line); border-radius:12px; padding:14px 16px; max-width:840px }
+  .loading{ color:var(--muted); font-size:14px; padding:30px 4px; display:flex; align-items:center; gap:10px }
+  .spin{ width:18px; height:18px; border:2px solid var(--line); border-top-color:var(--acc); border-radius:50%; animation:spin .8s linear infinite } @keyframes spin{ to{ transform:rotate(360deg) } }
+  .empty{ text-align:center; color:var(--muted); padding:60px 20px } .empty .big{ font:700 16px var(--display); color:var(--fg); margin-bottom:8px }
+  .pending-note{ color:var(--faint); font-size:13px; margin-top:12px; max-width:840px }
+  @media (max-width:480px){ .games{ grid-template-columns:repeat(auto-fill,minmax(132px,1fr)); gap:12px } }
+  @media (prefers-reduced-motion:reduce){ .gcard{ transition:none } .spin{ animation:none } }
+</style></head>
+<body>
+<div class="top"><div class="wrap">
+  <a class="back" id="back" href="home.html?home=1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg><span id="t-back">Home</span></a>
+  <div class="brand"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><div><b>Fanfara</b><span id="t-sub">Classifica</span></div></div>
+  <button class="tbtn" id="theme" aria-label="Tema">
+    <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+</div></div>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab on" data-tab="mine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span id="t-tab-mine">I tuoi giochi</span> <span class="n" id="n-mine"></span></button>
+    <button class="tab" data-tab="world"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg><span id="t-tab-world">Mondiale</span></button>
+    <button class="tab" data-tab="friends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span id="t-tab-friends">Amici</span></button>
+  </div>
+
+  <!-- TAB: your 100% games -->
+  <div class="panel" id="p-mine">
+    <div class="lead"><h1 id="m-title">I tuoi giochi al 100%</h1><p id="m-sub"></p></div>
+    <div class="games" id="games"></div>
+    <div class="empty" id="m-empty" hidden><div class="big" id="m-empty-big"></div><div id="m-empty-sub"></div></div>
+  </div>
+
+  <!-- TAB: world -->
+  <div class="panel" id="p-world" hidden></div>
+
+  <!-- TAB: friends -->
+  <div class="panel" id="p-friends" hidden></div>
+</div>
+
+<script>
+  var STR={
+    it:{ back:'Home', sub:'Classifica', tabMine:'I tuoi giochi', tabWorld:'Mondiale', tabFriends:'Amici',
+      mTitle:'I tuoi giochi al 100%', mSubOne:'{n} gioco completato — tutti gli obiettivi sbloccati.', mSubMany:'{n} giochi completati — tutti gli obiettivi sbloccati.', mSubZero:'Ancora nessun gioco completato al 100%.',
+      achOne:'{n} obiettivo', achMany:'{n} obiettivi', completed:'completato il',
+      mEmptyBig:'Nessun gioco al 100%… per ora', mEmptySub:'Completa tutti gli obiettivi di un gioco e comparirà qui come carta. Sincronizza lo storico dal menu nella barra delle applicazioni se non vedi i tuoi giochi.',
+      joinTitle:'Entra nella classifica mondiale', joinBody:'Entrando, il tuo <b>nome Steam</b>, il tuo <b>avatar</b> e il numero di <b>giochi completati al 100%</b> diventano visibili agli altri utenti di Fanfara. Puoi uscire quando vuoi.',
+      joinLi1:'Serve un profilo Steam <b>pubblico</b> (dettagli dei giochi).', joinLi2:'Il punteggio è calcolato dal server dai tuoi dati pubblici di Steam — non si può falsificare.',
+      joinBtn:'Entra in classifica', joinNote:'I tuoi giochi al 100% restano comunque visibili solo a te, nella scheda «I tuoi giochi».', joining:'Iscrizione in corso…',
+      youIn:'Sei in classifica', leaveBtn:'Esci dalla classifica', leaveConfirm:'Vuoi uscire dalla classifica mondiale? La tua riga verrà cancellata.',
+      rank:'posizione', games100:'giochi 100%', worldEmpty:'La classifica è ancora vuota. Sii il primo!',
+      friendsTitle:'Classifica amici', friendsBody:'Solo tu vedi questa classifica. Confronta i tuoi giochi al 100% con quelli dei tuoi amici Steam.',
+      friendsPrivate:'Per vedere la classifica amici, imposta la tua <b>lista amici</b> di Steam su Pubblico, poi ricarica questa scheda.',
+      friendsEmpty:'Nessun amico trovato.', computing:'In calcolo…', pendingNote:'Calcolo in corso per {n} amici — i punteggi compaiono man mano. Riapri la scheda tra poco per aggiornare.',
+      loading:'Carico la classifica…' },
+    en:{ back:'Home', sub:'Leaderboard', tabMine:'Your games', tabWorld:'World', tabFriends:'Friends',
+      mTitle:'Your 100% games', mSubOne:'{n} game completed — every achievement unlocked.', mSubMany:'{n} games completed — every achievement unlocked.', mSubZero:'No 100% games yet.',
+      achOne:'{n} achievement', achMany:'{n} achievements', completed:'completed on',
+      mEmptyBig:'No 100% games… yet', mEmptySub:'Complete every achievement in a game and it shows up here as a card. Sync your history from the tray menu if you don’t see your games.',
+      joinTitle:'Join the world leaderboard', joinBody:'If you join, your <b>Steam name</b>, your <b>avatar</b> and your number of <b>games completed 100%</b> become visible to other Fanfara users. You can leave any time.',
+      joinLi1:'Needs a <b>public</b> Steam profile (game details).', joinLi2:'The score is computed server-side from your public Steam data — it can’t be faked.',
+      joinBtn:'Join the leaderboard', joinNote:'Your 100% games stay visible only to you, in the “Your games” tab.', joining:'Joining…',
+      youIn:'You’re on the leaderboard', leaveBtn:'Leave the leaderboard', leaveConfirm:'Leave the world leaderboard? Your row will be deleted.',
+      rank:'rank', games100:'100% games', worldEmpty:'The leaderboard is still empty. Be the first!',
+      friendsTitle:'Friends leaderboard', friendsBody:'Only you can see this leaderboard. Compare your 100% games with your Steam friends.',
+      friendsPrivate:'To see the friends leaderboard, set your Steam <b>friends list</b> to Public, then reload this tab.',
+      friendsEmpty:'No friends found.', computing:'Computing…', pendingNote:'Computing {n} friends — scores appear as they finish. Reopen the tab shortly to refresh.',
+      loading:'Loading the leaderboard…' }
+  };
+  var LOCMAP={it:'it-IT',en:'en-GB',fr:'fr-FR',de:'de-DE',es:'es-ES'};
+  var LANG='it', S=STR.it, LOCALE='it-IT';
+  var JOINED=false, READY=true, PERFECT=[], worldLoaded=false, friendsLoaded=false, joinBusy=false, curTab='mine';
+
+  function L(){ try{ var p=location.search.match(/[?&]lang=([a-z]{2})/); if(p)return p[1]; }catch(e){} return 'it'; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function themeNow(){ return document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light'; }
+  function fmtDate(ep){ if(!ep)return ''; try{ return new Date(ep*1000).toLocaleDateString(LOCALE,{day:'numeric',month:'short',year:'numeric'}); }catch(e){ return ''; } }
+  function plural(n,one,many){ return (n===1?one:many).replace('{n}',n); }
+
+  function setLang(l){
+    LANG=STR[l]?l:'en'; S=STR[LANG]||STR.en; LOCALE=LOCMAP[LANG]||'en-GB'; document.documentElement.lang=LANG;
+    document.getElementById('t-back').textContent=S.back;
+    document.getElementById('t-sub').textContent=S.sub;
+    document.getElementById('t-tab-mine').textContent=S.tabMine;
+    document.getElementById('t-tab-world').textContent=S.tabWorld;
+    document.getElementById('t-tab-friends').textContent=S.tabFriends;
+    document.getElementById('m-title').textContent=S.mTitle;
+    document.getElementById('m-empty-big').textContent=S.mEmptyBig;
+    document.getElementById('m-empty-sub').textContent=S.mEmptySub;
+    updateBack();
+  }
+  function updateBack(){ document.getElementById('back').setAttribute('href','home.html?home=1&theme='+themeNow()+'&lang='+LANG); }
+
+  // ---------- 100% game cards ----------
+  function initials(name){ var p=String(name||'?').trim().split(/\s+/); return ((p[0]||'')[0]||'?').toUpperCase()+((p[1]||'')[0]||'').toUpperCase(); }
+  window.capErr=function(img){
+    var s=+(img.dataset.step||0), id=img.dataset.appid;
+    if(s===0){ img.dataset.step='1'; img.src='https://cdn.cloudflare.steamstatic.com/steam/apps/'+id+'/header.jpg'; }
+    else { img.style.display='none'; img.parentNode.setAttribute('data-ini', img.dataset.ini||'?'); img.parentNode.classList.add('noimg'); }
+  };
+  function gameCard(g){
+    var ach = plural(g.ach||0, S.achOne, S.achMany);
+    var date = g.date? (' · '+S.completed+' '+fmtDate(g.date)) : '';
+    return '<div class="gcard"><div class="art">'
+      +'<img class="cap" src="https://cdn.cloudflare.steamstatic.com/steam/apps/'+g.appid+'/library_600x900.jpg" data-appid="'+g.appid+'" data-step="0" data-ini="'+esc(initials(g.name))+'" alt="" onerror="capErr(this)">'
+      +'<span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>100%</span>'
+      +'</div><div class="plate"><div class="nm">'+esc(g.name)+'</div><div class="meta">'+ach+date+'</div></div></div>';
+  }
+  function renderMine(){
+    document.getElementById('n-mine').textContent = PERFECT.length? ('· '+PERFECT.length) : '';
+    var sub = PERFECT.length===0 ? S.mSubZero : plural(PERFECT.length, S.mSubOne, S.mSubMany);
+    document.getElementById('m-sub').textContent = sub;
+    var grid=document.getElementById('games');
+    grid.innerHTML = PERFECT.map(gameCard).join('');
+    document.getElementById('m-empty').hidden = PERFECT.length>0;
+    grid.hidden = PERFECT.length===0;
+  }
+
+  // ---------- ranking rows ----------
+  function rankRow(r){
+    var cls='row'+(r.you?' you':'')+(r.rank&&r.rank<=3?' r'+r.rank:'')+(r.ready===false?' pending':'');
+    var av = r.avatar? '<img class="av" src="'+esc(r.avatar)+'" alt="" onerror="this.style.visibility=\'hidden\'">' : '<span class="av"></span>';
+    var tag = r.you? ' <span class="tag">'+(LANG==='it'?'tu':'you')+'</span>' : '';
+    var score = (r.ready===false) ? ('<span class="sc">'+S.computing+'</span>')
+      : ('<span class="sc">'+(r.perfect==null?0:r.perfect)+'<small>'+S.games100+'</small></span>');
+    var rk = (r.rank? r.rank : '·');
+    return '<div class="'+cls+'"><span class="rk">'+rk+'</span>'+av+'<span class="who">'+esc(r.name||'—')+tag+'</span>'+score+'</div>';
+  }
+
+  // ---------- WORLD tab ----------
+  function renderWorld(data){
+    var el=document.getElementById('p-world');
+    if(!JOINED){
+      el.innerHTML =
+        '<div class="consent"><div class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></div>'
+        +'<h2>'+S.joinTitle+'</h2><p>'+S.joinBody+'</p>'
+        +'<ul><li>'+S.joinLi1+'</li><li>'+S.joinLi2+'</li></ul>'
+        +'<button class="btn primary" id="joinBtn"'+(joinBusy||!READY?' disabled':'')+'>'+(joinBusy?S.joining:S.joinBtn)+'</button>'
+        +'<div class="note">'+S.joinNote+'</div></div>';
+      var jb=document.getElementById('joinBtn'); if(jb) jb.onclick=doJoin;
+      return;
+    }
+    // joined view
+    var html='<div class="joined-bar"><span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'+S.youIn+'</span><span class="spacer"></span><button class="btn" id="leaveBtn">'+S.leaveBtn+'</button></div>';
+    if(!data){ html+='<div class="loading"><span class="spin"></span>'+S.loading+'</div>'; }
+    else if(data.ok===false){ html+='<div class="info">'+S.loading+'</div>'; }
+    else {
+      var top=(data.top||[]);
+      if(top.length===0) html+='<div class="info">'+S.worldEmpty+'</div>';
+      else html+='<div class="board">'+top.map(rankRow).join('')+'</div>';
+    }
+    el.innerHTML=html;
+    var lb=document.getElementById('leaveBtn'); if(lb) lb.onclick=doLeave;
+  }
+
+  // ---------- FRIENDS tab ----------
+  function renderFriends(data){
+    var el=document.getElementById('p-friends');
+    var head='<div class="lead"><h1>'+S.friendsTitle+'</h1></div><div class="info" style="margin-bottom:16px">'+S.friendsBody+'</div>';
+    if(!data){ el.innerHTML=head+'<div class="loading"><span class="spin"></span>'+S.loading+'</div>'; return; }
+    if(data.ok===false){ el.innerHTML=head+'<div class="loading"><span class="spin"></span>'+S.loading+'</div>'; return; }
+    if(data.friendsPrivate){ el.innerHTML=head+'<div class="info">'+S.friendsPrivate+'</div>'; return; }
+    var fr=(data.friends||[]);
+    if(fr.length===0){ el.innerHTML=head+'<div class="empty"><div class="big">'+S.friendsEmpty+'</div></div>'; return; }
+    var html=head+'<div class="board">'+fr.map(rankRow).join('')+'</div>';
+    if(data.pending>0) html+='<div class="pending-note">'+S.pendingNote.replace('{n}',data.pending)+'</div>';
+    el.innerHTML=html;
+  }
+
+  // ---------- actions ----------
+  function post(obj){ try{ window.chrome.webview.postMessage(JSON.stringify(obj)); }catch(e){} }
+  function doJoin(){ joinBusy=true; renderWorld(null); post({action:'lb-join'}); }
+  function doLeave(){ if(!confirm(S.leaveConfirm)) return; JOINED=false; worldLoaded=false; post({action:'lb-leave'}); renderWorld(null); }
+
+  window.fanfaraJoinState=function(p){ joinBusy=false; JOINED=!!(p&&p.joined); worldLoaded=false; renderWorld(null); };
+  window.fanfaraWorld=function(p){ worldLoaded=true; if(curTab==='world') renderWorld(p); else window._world=p; };
+  window.fanfaraFriends=function(p){ friendsLoaded=true; renderFriends(p); if(p && p.pending===0) stopFriendsPoll(); };
+
+  window.fanfaraInit=function(p){
+    try{
+      if(p.theme==='dark') document.documentElement.setAttribute('data-theme','dark');
+      else if(p.theme==='light') document.documentElement.removeAttribute('data-theme');
+      setLang(p.lang||'it');
+      JOINED=!!p.joined; READY=(p.ready!==false);
+      PERFECT=(p.perfect||[]).map(function(g){ return {appid:g.appid, name:g.name||('App '+g.appid), ach:g.ach||0, date:g.date||0}; });
+      renderMine();
+      if(curTab==='world') renderWorld(worldLoaded?window._world:null);
+    }catch(e){}
+  };
+
+  // ---------- tabs ----------
+  var friendsTimer=null;
+  function stopFriendsPoll(){ if(friendsTimer){ clearInterval(friendsTimer); friendsTimer=null; } }
+  function startFriendsPoll(){ stopFriendsPoll(); friendsTimer=setInterval(function(){ if(curTab==='friends') post({action:'lb-friends'}); else stopFriendsPoll(); }, 25000); }
+  function showTab(t){
+    curTab=t;
+    document.querySelectorAll('.tab').forEach(function(b){ b.classList.toggle('on', b.dataset.tab===t); });
+    document.getElementById('p-mine').hidden = t!=='mine';
+    document.getElementById('p-world').hidden = t!=='world';
+    document.getElementById('p-friends').hidden = t!=='friends';
+    if(t!=='friends') stopFriendsPoll();
+    if(t==='world'){ renderWorld(window._world||null); post({action:'lb-world'}); }
+    if(t==='friends'){ if(!friendsLoaded) renderFriends(null); post({action:'lb-friends'}); startFriendsPoll(); }
+  }
+  document.querySelectorAll('.tab').forEach(function(b){ b.addEventListener('click',function(){ showTab(b.dataset.tab); }); });
+
+  document.getElementById('theme').addEventListener('click',function(){
+    var dark=themeNow()==='dark';
+    if(dark){ document.documentElement.removeAttribute('data-theme'); try{localStorage.setItem('fanfara-theme','light');}catch(e){} }
+    else { document.documentElement.setAttribute('data-theme','dark'); try{localStorage.setItem('fanfara-theme','dark');}catch(e){} }
+    try{ window.chrome.webview.postMessage(JSON.stringify({action:'theme', theme:themeNow()})); }catch(e){}
+    updateBack();
+  });
+
+  // initial paint from URL (C# then calls fanfaraInit with real data)
+  (function(){ setLang(L()); renderMine(); })();
+</script>
+</body></html>

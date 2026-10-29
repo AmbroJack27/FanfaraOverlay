@@ -23,6 +23,7 @@ public class SteamHistory
 
     private readonly Config _config;
     private readonly AchievementStore _store;
+    private readonly GamesStore _games;
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(15) };
 
     private static readonly string LogPath =
@@ -32,7 +33,7 @@ public class SteamHistory
         try { System.IO.File.AppendAllText(LogPath, $"{DateTime.Now:HH:mm:ss}  [sync] {m}{Environment.NewLine}"); } catch { }
     }
 
-    public SteamHistory(Config config, AchievementStore store) { _config = config; _store = store; }
+    public SteamHistory(Config config, AchievementStore store, GamesStore games) { _config = config; _store = store; _games = games; }
 
     private string Base => (_config.SyncProxyUrl ?? "").TrimEnd('/');
 
@@ -85,24 +86,31 @@ public class SteamHistory
                 try
                 {
                     var a = await GetJson<AchResp>($"{Base}/ach?steamid={id}&appid={g.appid}&l={lang}", ct);
-                    if (a != null && a.ok && a.achievements != null)
+                    if (a != null && a.ok)
                     {
-                        foreach (var r in a.achievements)
+                        long last = 0;
+                        if (a.achievements != null)
                         {
-                            if (string.IsNullOrEmpty(r.api)) continue;
-                            var rec = new AchievementRecord
+                            foreach (var r in a.achievements)
                             {
-                                Appid = g.appid,
-                                Game = g.name ?? "",
-                                Api = r.api!,
-                                Name = string.IsNullOrEmpty(r.name) ? r.api! : r.name!,
-                                Desc = r.desc ?? "",
-                                Unlock = r.unlock,
-                                Percent = r.percent,
-                                Icon = r.icon ?? ""
-                            };
-                            if (_store.Upsert(rec)) System.Threading.Interlocked.Increment(ref added);
+                                if (string.IsNullOrEmpty(r.api)) continue;
+                                if (r.unlock > last) last = r.unlock;
+                                var rec = new AchievementRecord
+                                {
+                                    Appid = g.appid,
+                                    Game = g.name ?? "",
+                                    Api = r.api!,
+                                    Name = string.IsNullOrEmpty(r.name) ? r.api! : r.name!,
+                                    Desc = r.desc ?? "",
+                                    Unlock = r.unlock,
+                                    Percent = r.percent,
+                                    Icon = r.icon ?? ""
+                                };
+                                if (_store.Upsert(rec)) System.Threading.Interlocked.Increment(ref added);
+                            }
                         }
+                        // Per-game completion for the "100% games" cards and the leaderboard score.
+                        _games.Set(g.appid, g.name ?? "", a.total, a.unlocked, last);
                     }
                 }
                 catch { /* skip this game, keep going */ }
@@ -118,6 +126,7 @@ public class SteamHistory
         await Task.WhenAll(tasks);
 
         _store.Save();
+        _games.Save();
         LastAdded = added;
         _config.HistoryImported = true;
         _config.LastSyncUtc = DateTime.UtcNow.ToString("o");
@@ -152,6 +161,8 @@ public class SteamHistory
         public bool ok { get; set; }
         public uint appid { get; set; }
         public string? game { get; set; }
+        public int total { get; set; }      // total achievements the game has
+        public int unlocked { get; set; }   // how many the user has unlocked
         public List<Ach>? achievements { get; set; }
     }
     private class Ach

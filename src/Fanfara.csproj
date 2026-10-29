@@ -50,6 +50,9 @@
     <None Update="web\collection.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="web\classifica.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="web\i18n.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

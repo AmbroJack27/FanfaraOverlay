@@ -75,7 +75,13 @@ if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(
   .box p{ margin:0; font-size:13.5px; color:var(--muted); flex:1; line-height:1.5 }
   .box .go{ display:inline-flex; align-items:center; gap:7px; font:700 13px var(--display); letter-spacing:.04em; color:var(--c) }
   .box .go svg{ width:16px; height:16px; transition:transform .25s } .box:hover .go svg{ transform:translateX(5px) }
-  .box.c1{ --c:var(--a1) } .box.c2{ --c:var(--gold) } .box.c3{ --c:var(--a2) } .box.c4{ --c:#2fd0c6 }
+  .box.c1{ --c:var(--a1) } .box.c2{ --c:var(--gold) } .box.c3{ --c:var(--a2) } .box.c4{ --c:#2fd0c6 } .box.c5{ --c:#ff9f45 }
+  /* full-width horizontal banner (used for Guida under the 2x2 of feature boxes) */
+  .box.wide{ grid-column:1 / -1; flex-direction:row; align-items:center; gap:20px; min-height:0; padding:20px 26px }
+  .box.wide .ic{ width:52px; height:52px; flex:0 0 auto }
+  .box.wide .txt{ flex:1; display:flex; flex-direction:column; gap:4px; min-width:0 }
+  .box.wide h3{ font-size:18px } .box.wide p{ flex:0 0 auto }
+  .box.wide .go{ white-space:nowrap }
 
   /* ---------- intro ---------- */
   #intro{ position:fixed; inset:0; z-index:50; display:grid; place-items:center; background:var(--bg); transition:opacity .55s ease, visibility .55s }
@@ -135,11 +141,17 @@ if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(
         <p id="b-coll-s">I tuoi obiettivi più rari come carte da collezione.</p>
         <span class="go" id="b-coll-g">Apri <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
-      <a class="box c4" id="b-guide" href="guide.html">
+      <a class="box c5" id="b-lead" href="classifica.html">
+        <span class="sheen"></span>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></div>
+        <h3 id="b-lead-t">Classifica</h3>
+        <p id="b-lead-s">Chi ha completato più giochi al 100%.</p>
+        <span class="go" id="b-lead-g">Apri <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="box c4 wide" id="b-guide" href="guide.html">
         <span class="sheen"></span>
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c-1.6-1.4-4-2-7-2v13c3 0 5.4.6 7 2 1.6-1.4 4-2 7-2V5c-3 0-5.4.6-7 2z"/><path d="M12 7v13"/></svg></div>
-        <h3 id="b-guide-t">Guida</h3>
-        <p id="b-guide-s">Come funziona Fanfara, spiegato semplice.</p>
+        <div class="txt"><h3 id="b-guide-t">Guida</h3><p id="b-guide-s">Come funziona Fanfara, spiegato semplice.</p></div>
         <span class="go" id="b-guide-g">Apri <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
     </div>
@@ -150,9 +162,11 @@ if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(
   var STR={
     it:{custT:'Personalizza Fanfara',custS:'Stili, suoni, posizione e durata delle notifiche.',
         histT:'Cronologia Achievement',histS:'Tutti i tuoi sblocchi, giorno per giorno.',collT:'Collezione Achievement',collS:'I tuoi obiettivi più rari come carte da collezione.',
+        leadT:'Classifica',leadS:'Chi ha completato più giochi al 100%.',
         guideT:'Guida',guideS:'Come funziona Fanfara, spiegato semplice.',go:'Apri'},
     en:{custT:'Customize Fanfara',custS:'Styles, sounds, position and duration of notifications.',
         histT:'Achievement History',histS:'All your unlocks, day by day.',collT:'Achievement Collection',collS:'Your rarest achievements as collectible cards.',
+        leadT:'Leaderboard',leadS:'Who has completed the most games 100%.',
         guideT:'Guide',guideS:'How Fanfara works, explained simply.',go:'Open'}
   };
   function L(){ try{ var p=location.search.match(/[?&]lang=([a-z]{2})/); if(p)return p[1]; }catch(e){} return 'it'; }
@@ -164,12 +178,13 @@ if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(
     document.getElementById('b-cust-t').textContent=S.custT; document.getElementById('b-cust-s').textContent=S.custS;
     document.getElementById('b-hist-t').textContent=S.histT; document.getElementById('b-hist-s').textContent=S.histS;
     document.getElementById('b-coll-t').textContent=S.collT; document.getElementById('b-coll-s').textContent=S.collS;
+    document.getElementById('b-lead-t').textContent=S.leadT; document.getElementById('b-lead-s').textContent=S.leadS;
     document.getElementById('b-guide-t').textContent=S.guideT; document.getElementById('b-guide-s').textContent=S.guideS;
-    ['b-cust-g','b-hist-g','b-coll-g','b-guide-g'].forEach(function(id){ document.getElementById(id).childNodes[0].nodeValue=S.go+' '; });
+    ['b-cust-g','b-hist-g','b-coll-g','b-lead-g','b-guide-g'].forEach(function(id){ document.getElementById(id).childNodes[0].nodeValue=S.go+' '; });
     var w=document.getElementById('word'); 'Fanfara'.split('').forEach(function(ch,i){ var s=document.createElement('span'); s.textContent=ch; s.style.animationDelay=(0.35+i*0.06)+'s'; w.appendChild(s); });
   })();
 
-  function wireLinks(){ ['b-cust','b-hist','b-coll','b-guide'].forEach(function(id){ var a=document.getElementById(id); a.setAttribute('href', withCtx(a.getAttribute('href'))); }); }
+  function wireLinks(){ ['b-cust','b-hist','b-coll','b-lead','b-guide'].forEach(function(id){ var a=document.getElementById(id); a.setAttribute('href', withCtx(a.getAttribute('href'))); }); }
   wireLinks();
 
   document.getElementById('theme').addEventListener('click',function(){
@@ -177,7 +192,7 @@ if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(
     if(dark){ document.documentElement.removeAttribute('data-theme'); try{localStorage.setItem('fanfara-theme','light');}catch(e){} }
     else { document.documentElement.setAttribute('data-theme','dark'); try{localStorage.setItem('fanfara-theme','dark');}catch(e){} }
     try{ window.chrome.webview.postMessage(JSON.stringify({action:'theme', theme:themeNow()})); }catch(e){}
-    ['b-cust','b-hist','b-coll','b-guide'].forEach(function(id){ var a=document.getElementById(id); a.setAttribute('href', withCtx(a.getAttribute('href').split('?')[0])); });
+    ['b-cust','b-hist','b-coll','b-lead','b-guide'].forEach(function(id){ var a=document.getElementById(id); a.setAttribute('href', withCtx(a.getAttribute('href').split('?')[0])); });
   });
 
   function reveal(){

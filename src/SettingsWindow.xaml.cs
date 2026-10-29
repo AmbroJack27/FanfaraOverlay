@@ -14,14 +14,18 @@ public partial class SettingsWindow : Window
     private readonly Config _config;
     private readonly OverlayWindow _overlay;
     private readonly AchievementStore _store;
+    private readonly GamesStore _games;
+    private readonly Leaderboard _lb;
     private string? _pendingPage;   // page to open first (home by default)
     private bool _coreReady;
 
-    public SettingsWindow(Config config, OverlayWindow overlay, AchievementStore store, string? initialPage = null)
+    public SettingsWindow(Config config, OverlayWindow overlay, AchievementStore store, GamesStore games, string? initialPage = null)
     {
         _config = config;
         _overlay = overlay;
         _store = store;
+        _games = games;
+        _lb = new Leaderboard(config);
         _pendingPage = initialPage;
         InitializeComponent();
         Loaded += OnLoaded;
@@ -120,7 +124,56 @@ public partial class SettingsWindow : Window
         var src = Web.CoreWebView2?.Source ?? "";
         if (src.Contains("settings.html")) PushConfig();
         else if (src.Contains("history.html") || src.Contains("collection.html")) InjectData();
+        else if (src.Contains("classifica.html")) { SubmitSelf(); InjectClassifica(); _ = PushWorld(); }
         // home.html themes itself from the URL params — nothing to inject.
+    }
+
+    /// <summary>Register the user's current 100% score so they (and their friends) see it in the leaderboard.</summary>
+    private void SubmitSelf()
+    {
+        try { if (_lb.Ready && _games != null) _ = _lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked); }
+        catch { }
+    }
+
+    /// <summary>Send the local "100% games" cards + opt-in state to the Classifica screen.</summary>
+    private void InjectClassifica()
+    {
+        try { Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraInit && window.fanfaraInit({BuildClassificaJson()})"); }
+        catch { }
+    }
+
+    private string BuildClassificaJson()
+    {
+        var perfect = (_games?.PerfectGames() ?? new System.Collections.Generic.List<GameRecord>())
+            .Select(g => new { appid = g.Appid, name = g.Name, ach = g.Total, date = g.LastUnlock });
+        return JsonSerializer.Serialize(new
+        {
+            theme = _config.Theme,
+            lang = _config.EffectiveLanguage,
+            joined = _config.LeaderboardJoined,
+            ready = _lb.Ready,
+            perfect
+        });
+    }
+
+    /// <summary>Fetch the world ranking from the proxy and hand the raw payload to the screen.</summary>
+    private async System.Threading.Tasks.Task PushWorld()
+    {
+        var raw = await _lb.WorldAsync() ?? "{\"ok\":false}";
+        try { Web.CoreWebView2?.ExecuteScriptAsync("window.fanfaraWorld && window.fanfaraWorld(" + raw + ")"); } catch { }
+    }
+
+    /// <summary>Fetch the friends ranking from the proxy and hand the raw payload to the screen.</summary>
+    private async System.Threading.Tasks.Task PushFriends()
+    {
+        var raw = await _lb.FriendsAsync() ?? "{\"ok\":false}";
+        try { Web.CoreWebView2?.ExecuteScriptAsync("window.fanfaraFriends && window.fanfaraFriends(" + raw + ")"); } catch { }
+    }
+
+    private static bool JsonTrue(string raw, string prop)
+    {
+        try { using var d = JsonDocument.Parse(raw); return d.RootElement.TryGetProperty(prop, out var v) && v.ValueKind == JsonValueKind.True; }
+        catch { return false; }
     }
 
     private void InjectData()
@@ -144,6 +197,7 @@ public partial class SettingsWindow : Window
         {
             var src = Web.CoreWebView2?.Source ?? "";
             if (src.Contains("history.html") || src.Contains("collection.html")) InjectData();
+            else if (src.Contains("classifica.html")) { InjectClassifica(); _ = PushWorld(); }
         }
         catch { }
     }
@@ -177,7 +231,31 @@ public partial class SettingsWindow : Window
             var msg = JsonSerializer.Deserialize<Msg>(args.TryGetWebMessageAsString());
             if (msg == null) return;
 
-            if (msg.action == "test")
+            if (msg.action == "lb-world")
+            {
+                _ = PushWorld();
+            }
+            else if (msg.action == "lb-friends")
+            {
+                _ = PushFriends();
+            }
+            else if (msg.action == "lb-join")
+            {
+                int p = _games?.PerfectCount ?? 0, t = _games?.TotalUnlocked ?? 0;
+                var raw = await _lb.JoinAsync(p, t) ?? "{\"ok\":false}";
+                bool ok = JsonTrue(raw, "member");
+                if (ok) { _config.LeaderboardJoined = true; _config.Save(); }
+                try { Web.CoreWebView2?.ExecuteScriptAsync("window.fanfaraJoinState && window.fanfaraJoinState({joined:" + (ok ? "true" : "false") + "})"); } catch { }
+                _ = PushWorld();
+            }
+            else if (msg.action == "lb-leave")
+            {
+                await _lb.LeaveAsync();
+                _config.LeaderboardJoined = false; _config.Save();
+                try { Web.CoreWebView2?.ExecuteScriptAsync("window.fanfaraJoinState && window.fanfaraJoinState({joined:false})"); } catch { }
+                _ = PushWorld();
+            }
+            else if (msg.action == "test")
             {
                 _overlay.ShowPreview(
                     msg.style ?? _config.Style,

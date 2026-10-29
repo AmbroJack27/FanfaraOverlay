@@ -43,6 +43,11 @@ public class Config
     // Advanced override: use the user's own Steam Web API key directly (bypass the proxy). Empty = use proxy.
     public string SteamApiKey { get; set; } = "";
 
+    // ---- Online leaderboard (100% completed games) ----
+    // Opt-in: when true, the user appears in the public world leaderboard (name + avatar + score).
+    // Off by default; the user turns it on from the Classifica screen, and can leave any time.
+    public bool LeaderboardJoined { get; set; } = false;
+
     // Game .exe paths we've applied the fix to (so we don't re-notify, and can undo on disable).
     public List<string> OptimizedGames { get; set; } = new();
     // Game install folders already pre-scanned, so we don't re-scan the whole library every boot.

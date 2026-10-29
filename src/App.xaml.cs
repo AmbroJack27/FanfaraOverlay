@@ -16,6 +16,7 @@ public partial class App : System.Windows.Application
     private readonly Config _config = Config.Load();
 
     private AchievementStore? _store;        // local history/collection, shared by live unlocks + backfill
+    private GamesStore? _games;              // per-game 100% completion (cards + leaderboard score)
     private int _backfillRunning;            // 0/1 guard so only one sync runs at a time
 
     public App()
@@ -56,6 +57,8 @@ public partial class App : System.Windows.Application
 
         // Local store of unlocked achievements (feeds the History + Collection windows).
         _store = new AchievementStore();
+        // Per-game 100% completion (feeds the Classifica "100% games" cards and the leaderboard score).
+        _games = new GamesStore();
 
         // Transparent, click-through, always-on-top overlay that renders the notifications.
         _overlay = new OverlayWindow(_config);
@@ -79,6 +82,9 @@ public partial class App : System.Windows.Application
                     Percent = percent
                 });
                 _store?.Save();
+                // Nudge the per-game count too (total stays from the last sync, which flips 100% on).
+                _games?.BumpUnlocked(appid, "", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                _games?.Save();
                 RefreshData();
             }
             catch { }
@@ -170,6 +176,7 @@ public partial class App : System.Windows.Application
         menu.Items.Add(Loc.S(lang, "openApp"), null, (_, _) => ShowSettings());
         menu.Items.Add(Loc.S(lang, "history"), null, (_, _) => ShowSettings("history.html"));
         menu.Items.Add(Loc.S(lang, "collection"), null, (_, _) => ShowSettings("collection.html"));
+        menu.Items.Add(Loc.S(lang, "leaderboard"), null, (_, _) => ShowSettings("classifica.html"));
         menu.Items.Add(Loc.S(lang, "syncNow"), null, (_, _) => _ = RunBackfillAsync(manual: true));
         menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
         menu.Items.Add(Loc.S(lang, "testNotif"), null, (_, _) =>
@@ -198,7 +205,7 @@ public partial class App : System.Windows.Application
         if (_settings == null)
         {
             // First creation of the app window — the logo intro plays here, once.
-            _settings = new SettingsWindow(_config, _overlay!, _store!, page);
+            _settings = new SettingsWindow(_config, _overlay!, _store!, _games!, page);
             _settings.Show();
         }
         else
@@ -250,12 +257,14 @@ public partial class App : System.Windows.Application
 
         try
         {
-            var hist = new SteamHistory(_config, _store);
+            var hist = new SteamHistory(_config, _store, _games!);
             var res = await hist.BackfillAsync();
             switch (res)
             {
                 case SteamHistory.Result.Ok:
                     RefreshData();
+                    // Register the refreshed 100% score so friends (and, if opted in, the world board) see it.
+                    if (_games != null) { var lb = new Leaderboard(_config); if (lb.Ready) _ = lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked); }
                     if (manual) System.Windows.MessageBox.Show(string.Format(Loc.S(lang, "syncDone"), _store.Count), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
                     else if (firstRun) Balloon(string.Format(Loc.S(lang, "syncDone"), _store.Count));
                     else if (hist.LastAdded > 0) Balloon(string.Format(Loc.S(lang, "syncNew"), hist.LastAdded));   // quiet refresh: only if there's something new

@@ -1,9 +1,15 @@
-# Cloudflare Worker config for the Fanfara Steam history proxy.
+# Cloudflare Worker config for the Fanfara Steam proxy + 100%-completion leaderboard.
 # The Steam Web API key is NOT stored here — it is set as a secret (see README.md).
 
 name = "fanfara-steam"
 main = "worker.js"
 compatibility_date = "2024-11-01"
 
+# D1 database for the leaderboard (registered scores).
+[[d1_databases]]
+binding = "DB"
+database_name = "fanfara-lb"
+database_id = "ae581806-111c-4434-83cc-310561114073"
+
+# No cron needed: scores are computed by each user's own app and registered here on demand.
 # No account_id needed: `wrangler login` handles authentication.
-# No KV/bindings needed: the Worker uses the built-in edge cache.
