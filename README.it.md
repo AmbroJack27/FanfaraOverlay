@@ -17,7 +17,8 @@ sblocco è epico.
 configurazione. Avvialo, gioca, e pensa a tutto lui. Inoltre tiene una **Cronologia** locale di
 ogni achievement che sblocchi e trasforma tutto il tuo catalogo Steam in una **Collezione** di
 carte collezionabili — creata in automatico, con icone, date e rarità reali, senza login e senza
-configurazione.
+configurazione. E ti mette in **Classifica** con i tuoi amici e con il mondo, in base a quanti
+giochi hai completato al 100%.
 
 ---
 
@@ -38,8 +39,8 @@ Nient'altro da installare: niente .NET, niente terminale. È tutto incluso.
 > Clicca **"Ulteriori informazioni"** → **"Esegui comunque"**.
 
 Fanfara si apre in **un'unica finestra** con una breve animazione del logo, poi una **Home** con
-quattro aree: **Personalizza** (stili e impostazioni), **Cronologia** (lo storico degli sblocchi),
-**Collezione** (la raccolta di carte) e **Guida** (la guida nell'app). Tutto avviene dentro questa
+cinque aree: **Personalizza** (stili e impostazioni), **Cronologia** (lo storico degli sblocchi),
+**Collezione** (la raccolta di carte), **Classifica** (la classifica) e **Guida** (la guida nell'app). Tutto avviene dentro questa
 unica finestra — non si aprono altre finestre. Scegli uno stile, la posizione sullo schermo e la
 durata, e provali subito con il pulsante **Prova**. Ogni stile ha già il suo suono — niente altro
 da configurare. Dopo averla chiusa, Fanfara resta attiva con un'icona vicino all'orologio (in basso
@@ -73,6 +74,10 @@ Per evitare i doppioni, puoi disattivare quella predefinita di Steam:
   inserire alcuna chiave API**. Si aggiorna periodicamente e cattura i nuovi sblocchi dal vivo, così
   Cronologia e Collezione restano sempre aggiornate da sole. Funziona tramite un piccolo proxy
   personale che mantiene privata la chiave API.
+- **🏆 Classifica** — una classifica per **numero di giochi completati al 100%**: i tuoi giochi
+  completati come carte, una classifica **Mondiale** pubblica (facoltativa) e una classifica **Amici**
+  che ti confronta con gli amici Steam che usano Fanfara. Ogni Fanfara calcola il proprio punteggio
+  in locale — niente login, niente da configurare.
 - **5 rarità** che cambiano icona, colore, intensità ed effetti — Comune, Non comune, Raro, Epico,
   Leggendario — e il **Leggendario ha sempre qualcosa in più** ✨.
 - **5 lingue** — Italiano, Inglese, Francese, Tedesco e Spagnolo. L'app segue in automatico la
@@ -132,8 +137,8 @@ l'auto-updater verifica) alla Release. Nessuna compilazione manuale.
   l'icona e il suono giusti; la rarità decide colori ed effetti.
 - **L'interfaccia a finestra unica** — una sola WebView2 che naviga tra `web/home.html` (intro col
   logo + Home), `web/settings.html` (stili e impostazioni), `web/history.html` (Cronologia),
-  `web/collection.html` (Collezione) e `web/guide.html` (la guida). Ogni pagina segue il tema
-  chiaro/scuro e la lingua scelta.
+  `web/collection.html` (Collezione), `web/classifica.html` (la classifica) e `web/guide.html`
+  (la guida). Ogni pagina segue il tema chiaro/scuro e la lingua scelta.
 - `SteamId.cs` — trova il tuo SteamID64 in locale (dalle chiavi di registro di Steam /
   `loginusers.vdf`), così l'importazione non richiede nulla da te.
 - `SteamHistory.cs` + `AchievementStore.cs` — il backfill e l'archivio locale. Recuperano i tuoi
@@ -142,6 +147,10 @@ l'auto-updater verifica) alla Release. Nessuna compilazione manuale.
 - `proxy/worker.js` — un piccolo **Cloudflare Worker** che fa da proxy all'API Web di Steam e
   **tiene la chiave API come segreto privato**, così l'app (e ogni utente) funziona a configurazione
   zero.
+- `Leaderboard.cs` + `GamesStore.cs` — la classifica online. Ogni app trova in locale i tuoi giochi
+  completati al 100% e registra il punteggio tramite il proxy in un database **D1** di Cloudflare; le
+  classifiche Mondiale e Amici si limitano a leggerlo. **Nessun calcolo per-gioco lato server**,
+  quindi nessun problema di limiti di Steam.
 - `Updater.cs` — controlla su GitHub se c'è una Release più recente, **scarica l'installer, lo
   verifica con il checksum SHA-256 pubblicato** e solo allora lo esegue (si interrompe se non
   corrisponde).
@@ -155,6 +164,8 @@ l'auto-updater verifica) alla Release. Nessuna compilazione manuale.
   essere sostituiti con campioni audio registrati in futuro.
 - L'importazione di Cronologia e Collezione legge dati Steam **pubblici**. Se il tuo profilo Steam
   (i dettagli dei giochi) è privato, non c'è nulla da importare finché non lo rendi pubblico.
+- La classifica **Amici** mostra gli amici che **usano anche loro Fanfara** (ogni app registra il
+  proprio punteggio): più amici la installano, più ne compaiono.
 
 > ℹ️ Progetto amatoriale, non affiliato né approvato dalle case produttrici. Tutti i marchi
 > appartengono ai rispettivi proprietari.

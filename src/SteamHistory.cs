@@ -72,22 +72,36 @@ public class SteamHistory
 
         var games = owned.games ?? new List<Game>();
         Log($"giochi posseduti: {games.Count}");
-        int done = 0, added = 0;
+        int added = 0, doneCount = 0, total = games.Count;
 
-        // Fetch games in parallel (bounded) — 140 games one-at-a-time took minutes.
-        using var sem = new SemaphoreSlim(6);
-        var tasks = new List<Task>();
-        foreach (var g in games)
+        // Process games with bounded concurrency, collecting any that Steam rate-limited (the proxy
+        // returns a non-OK response for those, never a false "0"). Then AUTOMATICALLY retry the failed
+        // ones in further rounds with a short cooldown, so a single sync converges on its own — the
+        // user never has to re-sync by hand.
+        var pending = new List<Game>(games);
+        const int MaxRounds = 6;
+        for (int round = 0; round < MaxRounds && pending.Count > 0; round++)
         {
             ct.ThrowIfCancellationRequested();
-            await sem.WaitAsync(ct);
-            tasks.Add(Task.Run(async () =>
+            if (round > 0)
             {
-                try
+                Log($"round {round}: riprovo {pending.Count} giochi rifiutati da Steam");
+                await Task.Delay(TimeSpan.FromSeconds(4), ct);   // let Steam's rate limit cool down
+            }
+            var failed = new System.Collections.Concurrent.ConcurrentBag<Game>();
+            using var sem = new SemaphoreSlim(4);                 // gentler than before: fewer rate-limits
+            var tasks = new List<Task>();
+            foreach (var g in pending)
+            {
+                ct.ThrowIfCancellationRequested();
+                await sem.WaitAsync(ct);
+                var game = g;
+                tasks.Add(Task.Run(async () =>
                 {
-                    var a = await GetJson<AchResp>($"{Base}/ach?steamid={id}&appid={g.appid}&l={lang}", ct);
-                    if (a != null && a.ok)
+                    try
                     {
+                        var a = await GetJson<AchResp>($"{Base}/ach?steamid={id}&appid={game.appid}&l={lang}", ct);
+                        if (a == null || !a.ok) { failed.Add(game); return; }   // rate-limited → retry next round
                         long last = 0;
                         if (a.achievements != null)
                         {
@@ -97,8 +111,8 @@ public class SteamHistory
                                 if (r.unlock > last) last = r.unlock;
                                 var rec = new AchievementRecord
                                 {
-                                    Appid = g.appid,
-                                    Game = g.name ?? "",
+                                    Appid = game.appid,
+                                    Game = game.name ?? "",
                                     Api = r.api!,
                                     Name = string.IsNullOrEmpty(r.name) ? r.api! : r.name!,
                                     Desc = r.desc ?? "",
@@ -110,23 +124,26 @@ public class SteamHistory
                             }
                         }
                         // Per-game completion for the "100% games" cards and the leaderboard score.
-                        _games.Set(g.appid, g.name ?? "", a.total, a.unlocked, last);
+                        _games.Set(game.appid, game.name ?? "", a.total, a.unlocked, last);
                     }
-                }
-                catch { /* skip this game, keep going */ }
-                finally
-                {
-                    int d = System.Threading.Interlocked.Increment(ref done);
-                    if (d % 25 == 0) { Log($"avanzamento {d}/{games.Count}, {added} nuovi"); _store.Save(); }
-                    progress?.Report(new Progress(d, games.Count, added));
-                    sem.Release();
-                }
-            }, ct));
+                    catch (OperationCanceledException) { throw; }
+                    catch { failed.Add(game); }   // transient error → retry next round
+                    finally
+                    {
+                        int d = System.Threading.Interlocked.Increment(ref doneCount);
+                        if (d % 25 == 0) { _store.Save(); _games.Save(); }
+                        progress?.Report(new Progress(System.Math.Min(d, total), total, added));
+                        sem.Release();
+                    }
+                }, ct));
+            }
+            await Task.WhenAll(tasks);
+            _store.Save();
+            _games.Save();
+            pending = new List<Game>(failed);
         }
-        await Task.WhenAll(tasks);
+        if (pending.Count > 0) Log($"fine con {pending.Count} giochi ancora non risolti (ripresi alla prossima sync)");
 
-        _store.Save();
-        _games.Save();
         LastAdded = added;
         _config.HistoryImported = true;
         _config.LastSyncUtc = DateTime.UtcNow.ToString("o");

@@ -146,6 +146,13 @@ async function ach(steamid, appid, lang, env) {
   const su = `${STEAM}/ISteamUserStats/GetSchemaForGame/v2/?key=${env.STEAM_KEY}&appid=${appid}&l=${lang}&format=json`;
 
   const [pr, gr, sr] = await Promise.all([fetch(pu), fetch(gu), fetch(su)]);
+
+  // If Steam RATE-LIMITED the player-achievements call (HTTP not OK), return a NON-cacheable failure
+  // (503, not a 200). The app then skips this game and retries later, instead of recording a false
+  // "0 unlocked" that would corrupt the 100%-completion count. (A genuine "no achievements" game
+  // returns HTTP 200 with success:false and is handled below as a real total:0.)
+  if (!pr.ok) return json({ ok: false, error: 'rate' }, 503);
+
   const pj = await pr.json().catch(() => ({}));
   const gj = await gr.json().catch(() => ({}));
   const sj = await sr.json().catch(() => ({}));

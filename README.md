@@ -16,7 +16,8 @@ epic the unlock.
 It's a **lightweight, native Windows overlay**: it won't slow down your PC and needs no hours of
 setup. Launch it, play, and it takes care of the rest. It also keeps a **local History** of every
 achievement you unlock and turns your whole Steam back-catalogue into a **Collection** of trading
-cards — built automatically, with real icons, dates and rarity, no login and no setup.
+cards — built automatically, with real icons, dates and rarity, no login and no setup. It even
+ranks you against your Steam friends and the world by how many games you've completed 100%.
 
 ---
 
@@ -35,9 +36,9 @@ Nothing else to install: no .NET, no terminal. Everything is bundled.
 > normal for free apps that aren't signed with a paid certificate.
 > Click **"More info"** → **"Run anyway"**.
 
-Fanfara opens in **one window** with a short logo intro, then a **Home** with four areas:
+Fanfara opens in **one window** with a short logo intro, then a **Home** with five areas:
 **Personalizza** (styles & settings), **Cronologia** (your unlock History), **Collezione** (your
-card Collection) and **Guida** (the in-app guide). Everything happens inside this single window —
+card Collection), **Classifica** (the leaderboard) and **Guida** (the in-app guide). Everything happens inside this single window —
 no extra windows pop up. Pick a style, choose the on-screen position and the duration, and preview
 it instantly with the **Prova** (Test) button. Each style already comes with its own sound —
 nothing else to configure. Close the window and Fanfara keeps running with an icon near the clock
@@ -70,6 +71,10 @@ To avoid duplicates, you can disable Steam's default one:
   achievements** (real icons, unlock dates and worldwide rarity) with **no login and no API key to
   enter**. It refreshes periodically and captures new unlocks live, so History and Collection stay
   current on their own. It works through a tiny personal proxy that keeps the API key private.
+- **🏆 Classifica (Leaderboard)** — a ranking by **number of games completed 100%**: your completed
+  games shown as cards, a public **World** board (opt-in) and a **Friends** board that compares you
+  with the Steam friends who use Fanfara. Each copy of Fanfara computes its own score locally — no
+  login, nothing to configure.
 - **5 rarity tiers** that change icon, color, intensity and effects — Common, Uncommon, Rare, Epic,
   Legendary — and **Legendary always has something extra** ✨.
 - **5 languages** — English, Italian, French, German and Spanish. The app follows your Windows
@@ -127,8 +132,8 @@ verifies) to the Release automatically. No manual compiling.
   icon and sound; rarity decides colors and effects.
 - **The single-window UI** — one WebView2 that navigates between `web/home.html` (logo intro +
   Home), `web/settings.html` (styles & settings), `web/history.html` (Cronologia),
-  `web/collection.html` (Collezione) and `web/guide.html` (the guide). Every page follows the
-  light/dark theme and the chosen language.
+  `web/collection.html` (Collezione), `web/classifica.html` (the leaderboard) and `web/guide.html`
+  (the guide). Every page follows the light/dark theme and the chosen language.
 - `SteamId.cs` — finds your SteamID64 locally (from Steam's registry keys / `loginusers.vdf`), so
   the import needs nothing from you.
 - `SteamHistory.cs` + `AchievementStore.cs` — the backfill and the local store. They fetch your
@@ -136,6 +141,10 @@ verifies) to the Release automatically. No manual compiling.
   `history.json`, de-duplicated and kept up to date.
 - `proxy/worker.js` — a tiny **Cloudflare Worker** that proxies the Steam Web API and **keeps the
   API key as a private secret**, so the app (and every user) works with zero configuration.
+- `Leaderboard.cs` + `GamesStore.cs` — the online leaderboard. Each app finds your 100%-completed
+  games locally and registers your score through the proxy into a Cloudflare **D1** database; the
+  World and Friends rankings just read from it. There is **no per-game server computation**, so no
+  Steam rate-limit problems.
 - `Updater.cs` — checks GitHub for a newer Release, **downloads the installer, verifies it against
   the published SHA-256 checksum**, and only then runs it (it aborts on a mismatch).
 - `StartupManager.cs` — optional start with Windows. `config.json` — saved preferences, next to the exe.
@@ -148,6 +157,8 @@ verifies) to the Release automatically. No manual compiling.
   for recorded audio later.
 - The History/Collection import reads **public** Steam data. If your Steam profile (game details) is
   private, there's nothing to import until you make it public.
+- The **Friends** leaderboard shows the friends who **also use Fanfara** (each app reports its own
+  score): as more of your friends install it, more of them appear.
 
 > ℹ️ Fan project, not affiliated with or endorsed by the game companies. All trademarks belong to
 > their respective owners.
