@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Fanfara</AssemblyName>
     <RootNamespace>Fanfara</RootNamespace>
-    <Version>0.3.1</Version>
+    <Version>0.4.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <!-- Single self-contained .exe for end users (see README / GitHub Actions) -->
@@ -57,6 +57,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="web\guide.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="web\styles.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <!-- Fantasy style: real crest images + sampled-orchestra stingers (one per rarity) -->

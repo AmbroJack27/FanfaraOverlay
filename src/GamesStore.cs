@@ -90,6 +90,12 @@ public class GamesStore
         }
     }
 
+    /// <summary>A snapshot of every known game (used by the Home's "almost 100%" tile).</summary>
+    public List<GameRecord> All()
+    {
+        lock (_gate) return new List<GameRecord>(_byApp.Values);
+    }
+
     /// <summary>Number of games completed 100% (the leaderboard score).</summary>
     public int PerfectCount
     {

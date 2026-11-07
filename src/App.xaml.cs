@@ -206,6 +206,9 @@ public partial class App : System.Windows.Application
         {
             // First creation of the app window — the logo intro plays here, once.
             _settings = new SettingsWindow(_config, _overlay!, _store!, _games!, page);
+            // The Home's "Sincronizzato" chip can start a sync; it runs quietly (no message boxes).
+            _settings.SyncRequested += () => _ = RunBackfillAsync(manual: false);
+            _settings.SetSyncState(Volatile.Read(ref _backfillRunning) == 1);
             _settings.Show();
         }
         else
@@ -250,6 +253,7 @@ public partial class App : System.Windows.Application
             return;
         }
         var lang = _config.EffectiveLanguage;
+        SetSyncUi(true);
 
         // Start feedback: a note for a manual sync, a welcome on the first import, nothing for a quiet refresh.
         if (manual) Balloon(Loc.S(lang, "syncStart"));
@@ -285,7 +289,14 @@ public partial class App : System.Windows.Application
             }
         }
         catch { if (manual) System.Windows.MessageBox.Show(Loc.S(lang, "syncError"), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information); }
-        finally { Interlocked.Exchange(ref _backfillRunning, 0); }
+        finally { Interlocked.Exchange(ref _backfillRunning, 0); SetSyncUi(false); }
+    }
+
+    /// <summary>Tell the app window a sync started/ended (the Home shows it on its sync chip).</summary>
+    private void SetSyncUi(bool running)
+    {
+        try { Dispatcher.Invoke(() => _settings?.SetSyncState(running)); }
+        catch { }
     }
 
     private void Balloon(string text)

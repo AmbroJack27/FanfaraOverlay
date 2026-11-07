@@ -18,6 +18,10 @@ public partial class SettingsWindow : Window
     private readonly Leaderboard _lb;
     private string? _pendingPage;   // page to open first (home by default)
     private bool _coreReady;
+    private bool _syncRunning;      // a Steam sync is in progress (shown on the Home)
+
+    /// <summary>The Home asked for a Steam sync (the app owns the sync, so it handles this).</summary>
+    public event Action? SyncRequested;
 
     public SettingsWindow(Config config, OverlayWindow overlay, AchievementStore store, GamesStore games, string? initialPage = null)
     {
@@ -28,7 +32,25 @@ public partial class SettingsWindow : Window
         _lb = new Leaderboard(config);
         _pendingPage = initialPage;
         InitializeComponent();
+        FitToScreen();
         Loaded += OnLoaded;
+    }
+
+    /// <summary>
+    /// Open big enough to show the whole Home on one screen: about 90% of the screen's free area
+    /// (taskbar excluded), never above 1720×1135 and never below the window's minimum size.
+    /// SystemParameters.WorkArea is in the same device-independent units as Width/Height, so this
+    /// also works with Windows display scaling (125%, 150%...). The window stays centred.
+    /// </summary>
+    private void FitToScreen()
+    {
+        try
+        {
+            var area = SystemParameters.WorkArea;
+            Width  = Math.Max(MinWidth,  Math.Min(1720, Math.Round(area.Width  * 0.90)));
+            Height = Math.Max(MinHeight, Math.Min(1135, Math.Round(area.Height * 0.92)));
+        }
+        catch { /* keep the XAML size */ }
     }
 
     // ---- dark title bar matching the app theme ----
@@ -125,7 +147,46 @@ public partial class SettingsWindow : Window
         if (src.Contains("settings.html")) PushConfig();
         else if (src.Contains("history.html") || src.Contains("collection.html")) InjectData();
         else if (src.Contains("classifica.html")) { SubmitSelf(); InjectClassifica(); _ = PushWorld(); }
-        // home.html themes itself from the URL params — nothing to inject.
+        else if (src.Contains("home.html")) { SubmitSelf(); InjectHome(); _ = PushHomeBoards(); }
+    }
+
+    private bool OnHome => (Web.CoreWebView2?.Source ?? "").Contains("home.html");
+
+    /// <summary>Send the Home its local data (sblocchi, giochi, settimana, stile...) — instant and offline.</summary>
+    private void InjectHome()
+    {
+        try
+        {
+            var json = HomeData.Build(_config, _store, _games, _lb.Ready, _syncRunning);
+            Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraHome && window.fanfaraHome({json})");
+        }
+        catch { }
+    }
+
+    /// <summary>Then fetch world + friends rankings and hand them to the Home's Classifica tile.</summary>
+    private async System.Threading.Tasks.Task PushHomeBoards()
+    {
+        if (!_lb.Ready) return;
+        var world = _lb.WorldAsync();
+        var friends = _lb.FriendsAsync();
+        var rw = await world ?? "{\"ok\":false}";
+        try { if (OnHome) Web.CoreWebView2?.ExecuteScriptAsync("window.fanfaraHomeBoard && window.fanfaraHomeBoard('world'," + rw + ")"); } catch { }
+        var rf = await friends ?? "{\"ok\":false}";
+        try { if (OnHome) Web.CoreWebView2?.ExecuteScriptAsync("window.fanfaraHomeBoard && window.fanfaraHomeBoard('friends'," + rf + ")"); } catch { }
+    }
+
+    /// <summary>Called by the app when a Steam sync starts/ends, so the Home can show it.</summary>
+    public void SetSyncState(bool running)
+    {
+        _syncRunning = running;
+        try
+        {
+            if (!OnHome) return;
+            var st = JsonSerializer.Serialize(new { running, lastSync = _config.LastSyncUtc });
+            Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraHomeSync && window.fanfaraHomeSync({st})");
+            if (!running) InjectHome();   // fresh numbers after the sync
+        }
+        catch { }
     }
 
     /// <summary>Register the user's current 100% score so they (and their friends) see it in the leaderboard.</summary>
@@ -198,6 +259,7 @@ public partial class SettingsWindow : Window
             var src = Web.CoreWebView2?.Source ?? "";
             if (src.Contains("history.html") || src.Contains("collection.html")) InjectData();
             else if (src.Contains("classifica.html")) { InjectClassifica(); _ = PushWorld(); }
+            else if (src.Contains("home.html")) InjectHome();
         }
         catch { }
     }
@@ -234,6 +296,20 @@ public partial class SettingsWindow : Window
             if (msg.action == "lb-world")
             {
                 _ = PushWorld();
+            }
+            else if (msg.action == "sync")
+            {
+                SyncRequested?.Invoke();
+            }
+            else if (msg.action == "open-profile")
+            {
+                var id = _config.ResolvedSteamId();
+                if (id != 0)
+                {
+                    try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        { FileName = $"https://steamcommunity.com/profiles/{id}", UseShellExecute = true }); }
+                    catch { }
+                }
             }
             else if (msg.action == "lb-friends")
             {

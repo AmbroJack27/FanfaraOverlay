@@ -36,12 +36,15 @@ Nothing else to install: no .NET, no terminal. Everything is bundled.
 > normal for free apps that aren't signed with a paid certificate.
 > Click **"More info"** → **"Run anyway"**.
 
-Fanfara opens in **one window** with a short logo intro, then a **Home** with five areas:
-**Personalizza** (styles & settings), **Cronologia** (your unlock History), **Collezione** (your
-card Collection), **Classifica** (the leaderboard) and **Guida** (the in-app guide). Everything happens inside this single window —
-no extra windows pop up. Pick a style, choose the on-screen position and the duration, and preview
-it instantly with the **Prova** (Test) button. Each style already comes with its own sound —
-nothing else to configure. Close the window and Fanfara keeps running with an icon near the clock
+Fanfara opens in **one window** with a short logo intro, then a **Home** that shows your achievement
+life at a glance: your current fanfare (live, with a **Test** button), your latest unlocks with
+their real icons, your rank in the **World** and **Friends** leaderboards, your rarest cards, the
+last 7 days and the games you're about to finish 100%. Every tile opens its section —
+**Personalizza** (styles & settings), **Cronologia** (History), **Collezione** (Collection),
+**Classifica** (leaderboard) and **Guida** (guide) — all inside this single window, no extra
+windows pop up. In Personalizza, styles are grouped in big category boxes: hover a style to watch
+it animate, press **With sound** to hear it, click to pick it and **Save**. Each style already comes
+with its own sound — nothing else to configure. Close the window and Fanfara keeps running with an icon near the clock
 (bottom-right): click there to reopen it or to quit.
 
 Then start Steam, play, and the fanfare appears on your first unlocked achievement. 🎮
@@ -54,8 +57,12 @@ To avoid duplicates, you can disable Steam's default one:
 
 ## ✨ What's included
 
-- **Notification styles organized in 8 tabs**:
-  **Base · Console · Fantasy · Capcom · Square-Enix · Microsoft · Ubisoft · CD Projekt**.
+- **🏠 A Home that's all about you** — one screen with your fanfare, latest unlocks, leaderboard
+  rank (World/Friends), rarest cards, the last 7 days and the games closest to 100%. It fits any
+  window size and opens sized to your screen.
+- **Notification styles organized in 7 categories** with **live animated previews**:
+  **Base (including Fantasy) · Console · Capcom · Square-Enix · Microsoft · Ubisoft · CD Projekt**,
+  plus a search box.
 - Every style has its **own box**, a **different icon for each rarity** and a **built-in sound** —
   all **3D and animated**. (No separate sound picker: the sound is part of the style.)
 - **10 original abstract Base styles**: Onda, Pulsar, Mosaico, Numero, Carica, Coriandoli, Nebula,
@@ -131,7 +138,7 @@ verifies) to the Release automatically. No manual compiling.
 - `web/notify.html` — the notification graphics: the styles that draw the unlock with the right box,
   icon and sound; rarity decides colors and effects.
 - **The single-window UI** — one WebView2 that navigates between `web/home.html` (logo intro +
-  Home), `web/settings.html` (styles & settings), `web/history.html` (Cronologia),
+  Home, fed by `HomeData.cs`), `web/settings.html` (styles & settings, list in `web/styles.js`), `web/history.html` (Cronologia),
   `web/collection.html` (Collezione), `web/classifica.html` (the leaderboard) and `web/guide.html`
   (the guide). Every page follows the light/dark theme and the chosen language.
 - `SteamId.cs` — finds your SteamID64 locally (from Steam's registry keys / `loginusers.vdf`), so

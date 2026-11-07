@@ -1005,7 +1005,20 @@
   @keyframes fan-burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}26%{opacity:.85;transform:translate(-50%,-50%) scale(1.15)}100%{opacity:.4;transform:translate(-50%,-50%) scale(1)}}
   @keyframes fan-legpulse{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(1)}50%{opacity:.92;transform:translate(-50%,-50%) scale(1.14)}}
   @keyframes fan-sweep{0%{left:-45%;opacity:0}22%{opacity:.8}100%{left:120%;opacity:0}}
+
+  /* ===== EMBED mode (?embed=1): live mini preview inside the settings cards =====
+     The notification is centred and scaled to fit its frame; at rest it is frozen. */
+  html.embed{color-scheme:normal}                 /* keeps the iframe transparent */
+  html.embed, html.embed body{height:100%; margin:0; overflow:hidden; background:transparent}
+  html.embed #zone{position:absolute !important; left:50% !important; top:50% !important; right:auto !important; bottom:auto !important;
+    zoom:1 !important; width:440px !important; justify-content:center !important;
+    transform:translate(-50%,-50%) scale(var(--fit,.5)) !important; transform-origin:50% 50%}
+  html.embed.freeze *, html.embed.freeze *::before, html.embed.freeze *::after{animation-play-state:paused !important}
 </style>
+<script>
+  // Mark embed mode before first paint (used by the settings page previews).
+  (function(){ try{ if(new URLSearchParams(location.search).get("embed")==="1") document.documentElement.classList.add("embed"); }catch(e){} })();
+</script>
 </head>
 <body>
 <div id="zone" class="pos-bottom-center"></div>
@@ -1019,6 +1032,8 @@
   const zone = document.getElementById("zone");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let style = "arcade", currentSound = "classic", current = null, timer = null, seqTok = 0;
+  const EMBED = document.documentElement.classList.contains("embed");
+  let embedSilent = false;   // embed mode: true while showing the still (no sound)
 
   // ---- Language (IT/EN/FR/DE/ES) — all notification text comes from i18n.js ----
   let LANG = "it";
@@ -1735,6 +1750,7 @@ function syn(c,t0,f,g){const o=c.createOscillator(),o2=c.createOscillator(),gg=c
                     epic:"fantasy_epi", legendary:"fantasy_leg" };
   const fanAudio = {};
   (function preloadFantasy(){
+    if(EMBED) return;   // previews load the stinger only when played
     try{
       for(const id in FAN_SND){
         const a = new Audio("snd/"+FAN_SND[id]+".ogg");
@@ -1743,7 +1759,8 @@ function syn(c,t0,f,g){const o=c.createOscillator(),o2=c.createOscillator(),gg=c
     }catch(e){}
   })();
   function fantasySfx(c, t0, t){
-    const a = fanAudio[t.id];
+    let a = fanAudio[t.id];
+    if(!a && FAN_SND[t.id]){ try{ a = fanAudio[t.id] = new Audio("snd/"+FAN_SND[t.id]+".ogg"); }catch(e){} }
     if(a){ try{ a.pause(); a.currentTime = 0; a.volume = Math.max(0, Math.min(1, notifVol)); const p = a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
   }
 
@@ -1758,6 +1775,7 @@ function syn(c,t0,f,g){const o=c.createOscillator(),o2=c.createOscillator(),gg=c
     c_on:{custom:onSfx},c_pu:{custom:puSfx},c_mo:{custom:moSfx},c_nu:{custom:nuSfx},c_ca:{custom:caSfx},c_co:{custom:coSfx},c_ne:{custom:neSfx},c_tt:{custom:ttSfx},c_pg:{custom:pgSfx},c_ob:{custom:obSfx},
   };
   function playTier(t){
+    if(embedSilent) return;
     const c = ctx(); if(c.state==="suspended") c.resume();
     if(_master) _master.gain.value = notifVol;   // apply current volume to synth styles
     const th = THEMES[currentSound];
@@ -1770,8 +1788,43 @@ function syn(c,t0,f,g){const o=c.createOscillator(),o2=c.createOscillator(),gg=c
   // overrides this at startup with the user's chosen (or OS) language.
   setLang(resolveLang(null, (navigator.language||"it")));
 
+  // ---- EMBED mode: the settings page shows this page in a small frame per style card ----
+  // URL: notify.html?embed=1&style=xx&lang=it&pct=0.6&name=...   Still frame at rest;
+  // parent sends postMessage({fanfara:"play", volume, silent}) to replay the animation.
+  if(EMBED){
+    const P = new URLSearchParams(location.search);
+    const L = P.get("lang") || "it";
+    setLang(resolveLang(L, L));
+    const base = { style:P.get("style")||"on", percent:parseFloat(P.get("pct")||"0.6"),
+                   name:P.get("name")||"", position:"center", durationMs:86400000 };
+    let vol = parseInt(P.get("vol")||"100",10), freezeT = null;
+    const fit = ()=>{
+      const el = zone.lastElementChild; if(!el) return;
+      const w = el.offsetWidth || 440, h = el.offsetHeight || 120;
+      const f = Math.min(innerWidth*0.86/w, innerHeight*0.78/h, 1.4);
+      zone.style.setProperty("--fit", f.toFixed(3));
+    };
+    const render = (sound)=>{
+      clearTimeout(freezeT);
+      document.documentElement.classList.remove("freeze");
+      fanQueue = []; fanBusy = false; clearCurrent();
+      embedSilent = !sound;
+      present(Object.assign({}, base, { volume: sound ? vol : 0 }));
+      fit();
+      freezeT = setTimeout(()=>document.documentElement.classList.add("freeze"), sound ? 2600 : 1500);
+    };
+    addEventListener("message", e=>{
+      const d = e.data || {}; if(d.fanfara !== "play") return;
+      if(typeof d.volume === "number") vol = d.volume;
+      render(!d.silent);
+    });
+    addEventListener("resize", fit);
+    if(document.fonts){ document.fonts.addEventListener("loadingdone", fit); }
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(()=>{ render(false); setTimeout(fit, 700); });
+  }
+
   // demo mode when opened directly in a browser (no C# host)
-  if(!window.chrome || !window.chrome.webview){
+  if(!EMBED && (!window.chrome || !window.chrome.webview)){
     const demo=[{name:"Primi passi",percent:62.4,style:"xbox"},
       {name:"Trofeo di platino",percent:0.6,style:"playstation"},
       {name:"Che spasso!",percent:7.1,style:"switch"},

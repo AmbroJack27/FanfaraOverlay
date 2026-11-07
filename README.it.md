@@ -38,12 +38,15 @@ Nient'altro da installare: niente .NET, niente terminale. È tutto incluso.
 > normale per le app gratuite non firmate con un certificato a pagamento.
 > Clicca **"Ulteriori informazioni"** → **"Esegui comunque"**.
 
-Fanfara si apre in **un'unica finestra** con una breve animazione del logo, poi una **Home** con
-cinque aree: **Personalizza** (stili e impostazioni), **Cronologia** (lo storico degli sblocchi),
-**Collezione** (la raccolta di carte), **Classifica** (la classifica) e **Guida** (la guida nell'app). Tutto avviene dentro questa
-unica finestra — non si aprono altre finestre. Scegli uno stile, la posizione sullo schermo e la
-durata, e provali subito con il pulsante **Prova**. Ogni stile ha già il suo suono — niente altro
-da configurare. Dopo averla chiusa, Fanfara resta attiva con un'icona vicino all'orologio (in basso
+Fanfara si apre in **un'unica finestra** con una breve animazione del logo, poi una **Home** che ti
+mostra tutto a colpo d'occhio: la tua fanfara (dal vivo, con il pulsante **Prova**), gli ultimi
+sblocchi con le icone vere, la tua posizione nelle classifiche **Mondo** e **Amici**, le carte più
+rare, gli ultimi 7 giorni e i giochi che stai per completare al 100%. Ogni riquadro apre la sua
+sezione — **Personalizza** (stili e impostazioni), **Cronologia**, **Collezione**, **Classifica** e
+**Guida** — tutto dentro questa unica finestra, senza aprirne altre. In Personalizza gli stili sono
+raccolti in grandi riquadri per categoria: passa il mouse su uno stile per vederlo animato, premi
+**Con suono** per sentirlo, cliccalo per sceglierlo e **Salva**. Ogni stile ha già il suo suono —
+niente altro da configurare. Dopo averla chiusa, Fanfara resta attiva con un'icona vicino all'orologio (in basso
 a destra): cliccala per riaprirla o uscire.
 
 Poi avvia Steam, gioca, e la fanfara comparirà al primo achievement sbloccato. 🎮
@@ -56,8 +59,12 @@ Per evitare i doppioni, puoi disattivare quella predefinita di Steam:
 
 ## ✨ Cosa include
 
-- **Stili di notifica organizzati in 8 schede**:
-  **Base · Console · Fantasy · Capcom · Square-Enix · Microsoft · Ubisoft · CD Projekt**.
+- **🏠 Una Home tutta tua** — un'unica schermata con la tua fanfara, gli ultimi sblocchi, la
+  posizione in classifica (Mondo/Amici), le carte più rare, gli ultimi 7 giorni e i giochi più
+  vicini al 100%. Si adatta a qualsiasi dimensione e si apre già grande quanto il tuo schermo.
+- **Stili di notifica organizzati in 7 categorie** con **anteprime animate dal vivo**:
+  **Base (con Fantasy) · Console · Capcom · Square-Enix · Microsoft · Ubisoft · CD Projekt**, più
+  una casella di ricerca.
 - Ogni stile ha un **box unico**, un'**icona diversa per ogni rarità** e un **suono integrato** —
   tutto **in 3D e animato**. (Niente selettore separato del suono: il suono fa parte dello stile.)
 - **10 stili Base originali e astratti**: Onda, Pulsar, Mosaico, Numero, Carica, Coriandoli, Nebula,
@@ -136,7 +143,8 @@ l'auto-updater verifica) alla Release. Nessuna compilazione manuale.
 - `web/notify.html` — la grafica delle notifiche: gli stili che disegnano lo sblocco con il box,
   l'icona e il suono giusti; la rarità decide colori ed effetti.
 - **L'interfaccia a finestra unica** — una sola WebView2 che naviga tra `web/home.html` (intro col
-  logo + Home), `web/settings.html` (stili e impostazioni), `web/history.html` (Cronologia),
+  logo + Home, alimentata da `HomeData.cs`), `web/settings.html` (stili e impostazioni, elenco in
+  `web/styles.js`), `web/history.html` (Cronologia),
   `web/collection.html` (Collezione), `web/classifica.html` (la classifica) e `web/guide.html`
   (la guida). Ogni pagina segue il tema chiaro/scuro e la lingua scelta.
 - `SteamId.cs` — trova il tuo SteamID64 in locale (dalle chiavi di registro di Steam /
