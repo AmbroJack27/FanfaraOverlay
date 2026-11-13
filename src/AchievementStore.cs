@@ -68,6 +68,7 @@ public class AchievementStore
                 if (r.Unlock == 0 && old.Unlock != 0) r.Unlock = old.Unlock;
                 if (string.IsNullOrEmpty(r.Icon) && !string.IsNullOrEmpty(old.Icon)) r.Icon = old.Icon;
                 if (r.Percent == null && old.Percent != null) r.Percent = old.Percent;
+                if (string.IsNullOrEmpty(r.Game) && !string.IsNullOrEmpty(old.Game)) r.Game = old.Game;
             }
             _byKey[k] = r;
             return isNew;

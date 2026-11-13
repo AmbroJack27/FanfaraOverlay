@@ -38,6 +38,8 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
   .top{display:flex; align-items:center; gap:12px; flex:0 0 auto}
   .brand{display:flex; align-items:center; gap:11px} .brand svg{width:28px; height:28px; color:var(--gold); filter:drop-shadow(0 0 10px color-mix(in srgb,var(--gold) 45%,transparent))}
   .brand b{font:800 19px var(--display)}
+  .ver{font:700 11px var(--display); color:var(--muted); letter-spacing:.03em; padding:3px 8px; border-radius:999px; background:var(--chip); border:1px solid var(--line)}
+  .ver:empty{display:none}
   .greet{margin-left:22px; font:800 21px var(--display); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0}
   .greet span{color:var(--muted); font-weight:600}
   .sp{flex:1}
@@ -238,7 +240,7 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
 
 <div class="app" id="app">
   <div class="top">
-    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><b>Fanfara</b></div>
+    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><b>Fanfara</b><span class="ver" id="ver"></span></div>
     <div class="greet" id="greet"></div>
     <div class="sp"></div>
     <span class="chip never" id="sync" role="button" tabindex="0"><span class="ok"></span><span id="synct"></span></span>
@@ -514,6 +516,7 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
     if(d.lang && FAN_I18N.home[d.lang] && d.lang!==LANG){ setLang(d.lang); labels(); frameSrc=''; }
     if(d.theme && !qp('theme')) document.documentElement.setAttribute('data-theme', d.theme==='light'?'light':'dark');
     D=d; lastSyncSeen=lastSyncSeen||d.lastSync||'';
+    if(d.version) $('ver').textContent=d.version;
     render();
   };
   window.fanfaraHomeBoard=function(kind, raw){
@@ -576,7 +579,7 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
 // Sample data, used only when the page is opened outside the app (no WebView2 host).
 window.FAN_HOME_DEMO=function(){
   var now=Math.floor(Date.now()/1000), h=3600, d=86400;
-  window.fanfaraHome({theme:null, lang:null, style:'fantasy', position:'top-center', duration:5000, volume:80, total:1090, perfect:27, gamesPlayed:81, legendary:5,
+  window.fanfaraHome({theme:null, lang:null, version:'v0.4.1', style:'fantasy', position:'top-center', duration:5000, volume:80, total:1090, perfect:27, gamesPlayed:81, legendary:5,
     recent:[{name:'Il Completista',game:'Hollow Knight',p:0.4,unlock:now-2*h,icon:'',appid:367520},{name:'Senza una graffiata',game:'Celeste',p:3.2,unlock:now-d-2*h,icon:'',appid:504230},{name:'Cacciatore di segreti',game:'Elden Ring',p:7.1,unlock:now-d-5*h,icon:'',appid:1245620}],
     times:[now-2*h,now-3*h,now-5*h,now-d-2*h,now-d-5*h,now-d-6*h,now-2*d,now-2*d-h,now-3*d,now-3*d-h,now-3*d-2*h,now-3*d-5*h,now-4*d,now-4*d-h,now-5*d,now-6*d,now-6*d-h,now-6*d-3*h],
     rarest:[{name:'Il Completista',game:'Hollow Knight',p:0.4,icon:''},{name:'Leggenda vivente',game:'Elden Ring',p:0.7,icon:''},{name:'Senza una graffiata',game:'Celeste',p:3.2,icon:''}],

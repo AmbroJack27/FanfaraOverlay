@@ -44,30 +44,56 @@
   .chip{ --tier:var(--muted); cursor:pointer; font:600 13.5px var(--display); background:var(--panel); border:1px solid var(--line); color:var(--muted); padding:9px 15px; border-radius:999px }
   .chip.on{ color:var(--tier); background:color-mix(in srgb,var(--tier) 15%, transparent); border-color:color-mix(in srgb,var(--tier) 55%, transparent) }
   .chip.all.on{ color:var(--fg); background:var(--panel-2); border-color:var(--line) }
-  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(234px,1fr)); gap:22px; padding-bottom:100px; perspective:1100px }
-  .ccard{ --tier:var(--common); --depth:6px; position:relative; border-radius:16px; overflow:hidden; cursor:pointer; background:var(--panel); border:2px solid color-mix(in srgb,var(--tier) 68%, var(--line)); box-shadow:0 14px 30px -20px rgba(0,0,0,.5), 0 0 16px -13px var(--tier); transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .25s; transform-origin:center }
-  .ccard:hover{ box-shadow:0 26px 48px -20px rgba(0,0,0,.6), 0 0 40px -6px var(--tier); z-index:2 }
-  .ccard.tier-uncommon{--depth:8px} .ccard.tier-rare{--depth:10px} .ccard.tier-epic{--depth:12px} .ccard.tier-legendary{--depth:16px; border-color:var(--legendary) }
-  .art{ position:relative; aspect-ratio:1/1; overflow:hidden;
-    background:radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--acc,#4C8DFF) 46%, #060910), #060910 78%) }
-  .art::after{ content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:radial-gradient(125% 115% at 50% 46%, transparent 52%, rgba(0,0,0,.55)) }
-  .layer{ position:absolute; inset:0; z-index:2 } .layer svg{ width:100%; height:100% } .layer.em{ transition:transform .28s cubic-bezier(.2,.8,.2,1); display:grid; place-items:center }
-  .layer.em img{ width:58%; height:58%; object-fit:contain; border-radius:12px; filter:drop-shadow(0 6px 14px rgba(0,0,0,.5)) }
-  .gem{ position:absolute; top:11px; right:11px; z-index:4; display:inline-flex; align-items:center; gap:6px; font:700 11.5px var(--display); letter-spacing:.08em; text-transform:uppercase; color:#fff; background:color-mix(in srgb,var(--tier) 72%, #0a0d16); border:1px solid color-mix(in srgb,#fff 35%, transparent); padding:5px 11px; border-radius:999px }
-  .gem i{ width:8px; height:8px; border-radius:50%; background:#fff; box-shadow:0 0 6px #fff }
-  .plate{ padding:15px 16px 16px; background:var(--panel); position:relative; z-index:3 }
-  .plate .nm{ font:700 17px/1.25 var(--display) } .plate .gm{ font-size:13.5px; color:var(--muted); margin-top:4px }
-  .plate .desc{ font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
-  .big .plate .desc{ -webkit-line-clamp:unset; display:block; font-size:14px; margin-top:10px; color:var(--fg) }
-  .plate .foot{ display:flex; align-items:center; justify-content:space-between; margin-top:13px; gap:8px }
-  .plate .pct{ font:800 18px var(--display); color:var(--tier); font-variant-numeric:tabular-nums } .plate .date{ font:600 13px var(--display); color:var(--faint) }
-  .glare{ position:absolute; inset:0; z-index:3; pointer-events:none; mix-blend-mode:screen; opacity:0; transition:opacity .25s ease; background:radial-gradient(circle at var(--mx,50%) var(--my,40%), rgba(255,255,255,.22), transparent 42%) }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(224px,1fr)); gap:24px; padding-bottom:100px; perspective:1100px }
+  /* ===== trading card: metallic frame in the rarity colour, no rarity wording ===== */
+  .ccard{ --depth:6px; position:relative; cursor:pointer; border-radius:16px; padding:9px; aspect-ratio:5/7.3; display:flex; flex-direction:column;
+    background:linear-gradient(150deg, color-mix(in srgb,var(--tier) 90%,#fff) 0%, var(--tier) 30%, color-mix(in srgb,var(--tier) 55%,#000) 70%, color-mix(in srgb,var(--tier) 85%,#fff) 100%);
+    box-shadow:0 18px 34px -22px rgba(0,0,0,.6), 0 0 24px -12px var(--tier); transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .25s; transform-origin:center }
+  .ccard.tier-common{ background:linear-gradient(150deg,#c9ced8,#8c94a5 35%,#5d6473 70%,#b9bfcb) }
+  .ccard.tier-legendary{ background:linear-gradient(150deg,#fff1b8,#F5C242 25%,#a87410 55%,#ffe58a 80%,#c48a14) }
+  .ccard:hover{ box-shadow:0 28px 48px -20px rgba(0,0,0,.65), 0 0 40px -6px var(--tier); z-index:2 }
+  .ccard.tier-uncommon{--depth:8px} .ccard.tier-rare{--depth:10px} .ccard.tier-epic{--depth:12px} .ccard.tier-legendary{--depth:16px}
+  .ccard .in{ flex:1; min-height:0; display:flex; flex-direction:column; border-radius:10px; overflow:hidden; background:var(--panel); position:relative }
+  .ccard .hd{ display:flex; align-items:center; gap:8px; padding:8px 10px 7px; background:linear-gradient(180deg, color-mix(in srgb,var(--tier) 22%,var(--panel)), var(--panel)) }
+  .ccard .nm{ flex:1; min-width:0; font:800 14.5px/1.15 var(--display); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .ccard .stars{ display:flex; gap:2px; flex:0 0 auto }
+  .ccard .stars i{ width:8px; height:8px; transform:rotate(45deg); border-radius:1px; background:color-mix(in srgb,var(--fg) 15%,transparent) }
+  .ccard .stars i.on{ background:var(--tier); box-shadow:0 0 5px var(--tier) }
+  .win{ position:relative; margin:0 8px; flex:0 0 auto; aspect-ratio:1.25; border-radius:6px; overflow:hidden; display:grid; place-items:center;
+    background:radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--acc,#4C8DFF) 46%, #060910), #060910 78%);
+    box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--tier) 70%,#000), inset 0 0 18px rgba(0,0,0,.6) }
+  .win .hdr{ position:absolute; inset:0; background-size:cover; background-position:center; filter:blur(3px) saturate(1.2) brightness(.55); transform:scale(1.08) }
+  .win .layer{ position:absolute; inset:0; z-index:2 } .win .layer svg{ width:100%; height:100% }
+  .layer.em{ transition:transform .28s cubic-bezier(.2,.8,.2,1); display:flex; align-items:center; justify-content:center }
+  .layer.em img{ height:74%; width:auto; max-width:88%; aspect-ratio:1; object-fit:cover; border-radius:10px; box-shadow:0 10px 24px -6px rgba(0,0,0,.8), 0 0 0 2px rgba(255,255,255,.18) }
+  .lo .layer.em img{ height:60%; filter:url(#sharpen) }   /* old 64 px Steam icons: smaller + a touch of sharpening */
+  .ccard .ty{ margin:7px 8px 0; padding:4px 8px; border-radius:5px; font:700 11px var(--display); letter-spacing:.03em; text-transform:uppercase; color:var(--tier);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:color-mix(in srgb,var(--tier) 16%,var(--panel-2)); border:1px solid color-mix(in srgb,var(--tier) 35%,transparent) }
+  .ccard .tx{ flex:1; min-height:0; margin:7px 8px 0; padding:8px 9px; border-radius:5px; background:var(--panel-2); font-size:12px; line-height:1.4; color:var(--muted); font-style:italic; overflow:hidden }
+  .ccard .bt{ display:flex; align-items:flex-end; justify-content:space-between; gap:8px; padding:7px 10px 8px }
+  .ccard .pct{ font:800 19px/1 var(--display); color:var(--tier); font-variant-numeric:tabular-nums }
+  .ccard .pct small{ display:block; font:600 9.5px var(--display); color:var(--faint); letter-spacing:.06em; text-transform:uppercase; margin-top:2px }
+  .ccard .date{ font:600 11.5px var(--display); color:var(--faint); text-align:right }
+  .ccard .hd,.ccard .ty,.ccard .tx,.ccard .bt{ position:relative; z-index:7 }     /* text stays above the foil */
+  /* rarity effects: a light sweep (rare), holographic foil (epic, stronger on legendary), sparkles (legendary) */
+  .ccard .foil{ position:absolute; inset:0; z-index:6; pointer-events:none; border-radius:inherit; opacity:0; mix-blend-mode:color-dodge; transition:opacity .3s;
+    background:repeating-linear-gradient(115deg, rgba(255,0,122,.55) 0%, rgba(255,214,0,.55) 7%, rgba(0,255,163,.55) 14%, rgba(0,170,255,.55) 21%, rgba(170,0,255,.55) 28%, rgba(255,0,122,.55) 35%),
+      radial-gradient(circle at var(--mx,50%) var(--my,40%), rgba(255,255,255,.5), transparent 55%);
+    background-size:300% 300%, 100% 100%; background-position:var(--mx,50%) var(--my,50%), 0 0 }
+  .ccard.tier-epic .foil{ opacity:.14 } .ccard.tier-legendary .foil{ opacity:.24 }
+  .ccard.tier-epic:hover .foil{ opacity:.24 } .ccard.tier-legendary:hover .foil{ opacity:.4 }
+  .ccard .sweep{ position:absolute; inset:0; z-index:6; pointer-events:none; border-radius:inherit; overflow:hidden }
+  .ccard .sweep::before{ content:""; position:absolute; top:-50%; bottom:-50%; width:40%; left:-60%; transform:rotate(18deg); background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent); animation:sweep 4.5s ease-in-out infinite }
+  @keyframes sweep{ 0%,55%{left:-60%} 100%{left:130%} }
+  .ccard .spark{ position:absolute; z-index:7; width:6px; height:6px; border-radius:50%; background:#fff; box-shadow:0 0 10px 2px var(--tier); opacity:0; animation:spark 3s ease-in-out infinite; pointer-events:none }
+  @keyframes spark{ 0%,100%{opacity:0; transform:scale(.3)} 50%{opacity:1; transform:scale(1)} }
+  .glare{ position:absolute; inset:0; z-index:8; pointer-events:none; border-radius:inherit; mix-blend-mode:screen; opacity:0; transition:opacity .25s ease; background:radial-gradient(circle at var(--mx,50%) var(--my,40%), rgba(255,255,255,.22), transparent 42%) }
   .modal{ position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:18px }
   .modal .backdrop{ position:absolute; inset:0; background:rgba(5,7,13,.72); backdrop-filter:blur(4px) }
-  .dialog{ position:relative; width:min(340px,100%); perspective:1000px }
+  .dialog{ position:relative; width:min(360px,100%); perspective:1000px }
+  .big.ccard{ aspect-ratio:auto; cursor:default } .big .nm{ font-size:18px; white-space:normal } .big .tx{ font-size:13.5px; flex:none } .big .pct{ font-size:24px }
+  .big .unlock{ display:flex; align-items:center; gap:8px; margin:8px 10px 10px; padding-top:9px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; position:relative; z-index:7 } .big .unlock svg{ width:16px; height:16px; color:var(--tier); flex:0 0 auto }
   .dialog .close{ position:absolute; top:-14px; right:-14px; z-index:5; width:34px; height:34px; border-radius:50%; cursor:pointer; display:grid; place-items:center; background:var(--panel); color:var(--fg); border:1px solid var(--line); box-shadow:0 6px 18px rgba(0,0,0,.4) } .dialog .close svg{ width:16px; height:16px }
-  .big .plate{ padding:18px 18px 19px } .big .plate .nm{ font-size:22px } .big .plate .gm{ font-size:14.5px } .big .plate .pct{ font-size:19px }
-  .big .unlock{ display:flex; align-items:center; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line); color:var(--muted); font-size:14px } .big .unlock svg{ width:16px; height:16px; color:var(--tier) }
   .empty{ display:none; text-align:center; color:var(--muted); padding:70px 20px } .empty.show{ display:block } .empty .big2{ font:700 16px var(--display); color:var(--fg); margin-bottom:8px }
   .pager{ position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; align-items:center; justify-content:center; gap:16px;
     padding:14px 0 calc(14px + env(safe-area-inset-bottom,0px)); background:color-mix(in srgb,var(--bg-2) 92%, transparent); backdrop-filter:blur(10px); border-top:1px solid var(--line) }
@@ -76,10 +102,11 @@
   .pager button[disabled]{ opacity:.4; cursor:default }
   .pager .info{ font:600 12.5px var(--display); color:var(--muted); min-width:130px; text-align:center; font-variant-numeric:tabular-nums }
   .foot-note{ color:var(--faint); font-size:11.5px; text-align:center; padding:4px 0 40px }
-  @media (max-width:480px){ .grid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px } .count{display:none} }
-  @media (prefers-reduced-motion:reduce){ .ccard,.layer.em{ transition:none } }
+  @media (max-width:480px){ .grid{ grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px } .count{display:none} .ccard .tx{display:none} }
+  @media (prefers-reduced-motion:reduce){ .ccard,.layer.em{ transition:none } .ccard .sweep::before,.ccard .spark{ animation:none } }
 </style></head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="sharpen"><feConvolveMatrix order="3" preserveAlpha="true" kernelMatrix="0 -0.45 0 -0.45 2.8 -0.45 0 -0.45 0"/></filter></svg>
 <div class="top"><div class="wrap">
   <a class="back" id="back" href="home.html?home=1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>Home</a>
   <div class="brand"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><div><b>Fanfara</b><span id="s-sub">Collezione</span></div></div>
@@ -111,15 +138,28 @@
     it:{sub:'Collezione',title:'La tua collezione',subt:'Ogni obiettivo sbloccato diventa una carta. Clicca per vederla in grande.',
         all:'Tutte',foot:'Più raro è l’obiettivo, più la sua carta ha risalto.',cards:'carte',leg:'leggendarie',
         emptyBig:'Collezione vuota',emptySub:'Sblocca obiettivi con Fanfara, o sincronizza lo storico dal menu nella barra delle applicazioni.',
-        players:'dei giocatori',unlocked:'Sbloccato il',prev:'Indietro',next:'Avanti',pg:'Pagina {c} di {t}'},
+        players:'dei giocatori',unl:'Sbloccato',unlocked:'Sbloccato il',prev:'Indietro',next:'Avanti',pg:'Pagina {c} di {t}'},
     en:{sub:'Collection',title:'Your collection',subt:'Every unlocked achievement becomes a card. Click to see it large.',
         all:'All',foot:'The rarer the achievement, the more its card stands out.',cards:'cards',leg:'legendary',
         emptyBig:'Collection empty',emptySub:'Unlock achievements with Fanfara, or sync your history from the tray menu.',
-        players:'of players',unlocked:'Unlocked on',prev:'Back',next:'Next',pg:'Page {c} of {t}'}
+        players:'of players',unl:'Unlocked',unlocked:'Unlocked on',prev:'Back',next:'Next',pg:'Page {c} of {t}'},
+    fr:{sub:'Collection',title:'Votre collection',subt:'Chaque succès débloqué devient une carte. Cliquez pour l’agrandir.',
+        all:'Toutes',foot:'Plus le succès est rare, plus sa carte se démarque.',cards:'cartes',leg:'légendaires',
+        emptyBig:'Collection vide',emptySub:'Débloquez des succès avec Fanfara, ou synchronisez l’historique depuis le menu de la barre des tâches.',
+        players:'des joueurs',unl:'Débloqué',unlocked:'Débloqué le',prev:'Retour',next:'Suivant',pg:'Page {c} sur {t}'},
+    de:{sub:'Sammlung',title:'Deine Sammlung',subt:'Jeder freigeschaltete Erfolg wird zur Karte. Klicke, um sie groß zu sehen.',
+        all:'Alle',foot:'Je seltener der Erfolg, desto auffälliger seine Karte.',cards:'Karten',leg:'legendär',
+        emptyBig:'Sammlung leer',emptySub:'Schalte Erfolge mit Fanfara frei oder synchronisiere den Verlauf über das Taskleisten-Menü.',
+        players:'der Spieler',unl:'Freigeschaltet',unlocked:'Freigeschaltet am',prev:'Zurück',next:'Weiter',pg:'Seite {c} von {t}'},
+    es:{sub:'Colección',title:'Tu colección',subt:'Cada logro desbloqueado se convierte en una carta. Haz clic para verla en grande.',
+        all:'Todas',foot:'Cuanto más raro es el logro, más destaca su carta.',cards:'cartas',leg:'legendarias',
+        emptyBig:'Colección vacía',emptySub:'Desbloquea logros con Fanfara o sincroniza el historial desde el menú de la barra de tareas.',
+        players:'de los jugadores',unl:'Desbloqueado',unlocked:'Desbloqueado el',prev:'Atrás',next:'Siguiente',pg:'Página {c} de {t}'}
   };
   var TIERLAB={ it:['Comune','Non comune','Raro','Epico','Leggendario'], en:['Common','Uncommon','Rare','Epic','Legendary'],
     fr:['Commun','Peu commun','Rare','Épique','Légendaire'], de:['Gewöhnlich','Ungewöhnlich','Selten','Episch','Legendär'], es:['Común','Poco común','Raro','Épico','Legendario'] };
-  var LABF={ it:['Tutte','Leggendari','Epici','Rari','Non comuni','Comuni'], en:['All','Legendary','Epic','Rare','Uncommon','Common'] };
+  var LABF={ it:['Tutte','Leggendari','Epici','Rari','Non comuni','Comuni'], en:['All','Legendary','Epic','Rare','Uncommon','Common'],
+    fr:['Toutes','Légendaires','Épiques','Rares','Peu communs','Communs'], de:['Alle','Legendär','Episch','Selten','Ungewöhnlich','Gewöhnlich'], es:['Todas','Legendarios','Épicos','Raros','Poco comunes','Comunes'] };
   var LANG='it', S=STR.it, TL=TIERLAB.it, LF=LABF.it, LOCALE='it-IT';
   var LOCMAP={it:'it-IT',en:'en-GB',fr:'fr-FR',de:'de-DE',es:'es-ES'};
 
@@ -163,6 +203,35 @@
     if(c.icon) return '<div class="layer em"><img src="'+esc(c.icon)+'" alt="" onerror="this.style.display=\'none\'"></div>';
     return '<div class="layer em">'+artEm(c,i)+'</div>';
   }
+  function gems(t){ var s=''; for(var k=0;k<5;k++) s+='<i'+(k<=t?' class="on"':'')+'></i>'; return s; }
+  var SPARKS=[[12,30,0],[80,22,.8],[22,72,1.6],[86,64,2.2],[50,12,1.1]];
+  function fx(c){
+    var t=c.ti, h='';
+    if(t===2) h+='<div class="sweep"></div>';
+    if(t>=3) h+='<div class="foil"></div>';
+    if(t===4) SPARKS.forEach(function(p){ h+='<span class="spark" style="left:'+p[0]+'%;top:'+p[1]+'%;animation-delay:'+p[2]+'s"></span>'; });
+    return h+'<div class="glare"></div>';
+  }
+  function hdrUrl(c){ return c.appid ? 'https://cdn.cloudflare.steamstatic.com/steam/apps/'+c.appid+'/header.jpg' : ''; }
+  // One card. `big` = the popup version (full description + full unlock date).
+  function face(c,i,big){
+    var hdr=hdrUrl(c);
+    return '<div class="in"><div class="hd"><div class="nm">'+esc(c.name)+'</div><div class="stars">'+gems(c.ti)+'</div></div>'
+      +'<div class="win" style="--acc:'+c.accent+'">'+(hdr?'<div class="hdr" style="background-image:url(\''+hdr+'\')"></div>':'')+emLayer(c,i)+'</div>'
+      +'<div class="ty">'+esc(c.game)+'</div>'
+      +(c.desc?'<div class="tx">'+esc(c.desc)+'</div>':'<div class="tx"></div>')
+      +'<div class="bt"><div class="pct">'+fmtPct(c.p)+'<small>'+esc(S.players)+'</small></div>'
+      +(big?'':'<div class="date">'+esc(S.unl)+'<br>'+fmtDate(c.unlock)+'</div>')+'</div>'
+      +(big && c.unlock?'<div class="unlock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'+esc(S.unlocked)+' '+fmtFull(c.unlock)+'</div>':'')
+      +'</div>'+fx(c);
+  }
+  // Old games only have 64 px icons on Steam: mark those cards so the icon is shown smaller and sharpened.
+  function markLowRes(root){
+    Array.prototype.forEach.call(root.querySelectorAll('.layer.em img'), function(im){
+      function chk(){ if(im.naturalWidth && im.naturalWidth<128){ var cd=im.closest('.ccard'); if(cd) cd.classList.add('lo'); } }
+      if(im.complete) chk(); else im.addEventListener('load',chk);
+    });
+  }
 
   var CARDS=[], active='all', page=0; var PER=25;
 
@@ -185,8 +254,8 @@
       setLang(payload.lang||'it');
       CARDS=(payload.items||[]).map(function(r){
         var col=colorFor(r.game); var ti=tierIdx(r.p==null?null:r.p);
-        return { name:r.name||'', game:r.game||'', desc:r.desc||'', p:(r.p==null?null:r.p), unlock:r.unlock||0, icon:r.icon||'',
-          g:glyphFor(r.api||r.name), accent:col.accent, ink:col.ink, tier:TIERID[ti], tlab:TL[ti] };
+        return { name:r.name||'', game:r.game||'', desc:r.desc||'', p:(r.p==null?null:r.p), unlock:r.unlock||0, icon:r.icon||'', appid:r.appid||0,
+          g:glyphFor(r.api||r.name), accent:col.accent, ink:col.ink, ti:ti, tier:TIERID[ti], tlab:TL[ti] };
       });
       CARDS.sort(function(a,b){ return (a.p==null?101:a.p)-(b.p==null?101:b.p); });
       count(); chips(); render();
@@ -200,13 +269,6 @@
       return '<button class="chip tier-'+id+(id==='all'?' all':'')+(id===active?' on':'')+'" data-f="'+id+'">'+lab+'</button>';
     }).join('');
   }
-  function face(c,i){
-    return '<div class="art" style="--acc:'+c.accent+'">'+emLayer(c,i)
-      +'<div class="glare"></div><span class="gem"><i></i>'+c.tlab+'</span></div>'
-      +'<div class="plate"><div class="nm">'+esc(c.name)+'</div><div class="gm">'+esc(c.game)+'</div>'
-      +(c.desc?'<div class="desc">'+esc(c.desc)+'</div>':'')
-      +'<div class="foot"><span class="pct">'+fmtPct(c.p)+'</span><span class="date">'+fmtDate(c.unlock)+'</span></div></div>';
-  }
   function render(){
     var filtered=[];
     CARDS.forEach(function(c,i){ if(active==='all'||c.tier===active) filtered.push({c:c,i:i}); });
@@ -215,7 +277,8 @@
     var slice=filtered.slice(page*PER, page*PER+PER);
 
     var grid=document.getElementById('grid');
-    grid.innerHTML=slice.map(function(o){ return '<div class="ccard tier-'+o.c.tier+'" data-i="'+o.i+'">'+face(o.c,o.i)+'</div>'; }).join('');
+    grid.innerHTML=slice.map(function(o){ return '<div class="ccard tier-'+o.c.tier+'" data-i="'+o.i+'">'+face(o.c,o.i,false)+'</div>'; }).join('');
+    markLowRes(grid);
     document.getElementById('empty').className = CARDS.length? 'empty':'empty show';
     Array.prototype.forEach.call(grid.querySelectorAll('.ccard'), function(card){ tiltCard(card,10); });
 
@@ -256,7 +319,8 @@
       card.style.transform='rotateX('+((0.5-py)*max).toFixed(2)+'deg) rotateY('+((px-0.5)*max).toFixed(2)+'deg) scale(1.04)';
       if(em){ var d=parseFloat(getComputedStyle(card).getPropertyValue('--depth'))||8; em.style.transition='transform .08s ease';
         em.style.transform='translate('+((px-0.5)*d).toFixed(1)+'px,'+((py-0.5)*d).toFixed(1)+'px)'; }
-      if(g){ g.style.setProperty('--mx',(px*100).toFixed(1)+'%'); g.style.setProperty('--my',(py*100).toFixed(1)+'%'); g.style.opacity='1'; }
+      card.style.setProperty('--mx',(px*100).toFixed(1)+'%'); card.style.setProperty('--my',(py*100).toFixed(1)+'%');
+      if(g) g.style.opacity='1';
     });
     function leave(){ if(activeCard===card) activeCard=null; resetCard(card); }
     card.addEventListener('pointerleave',leave);
@@ -268,14 +332,9 @@
   var modal=document.getElementById('modal');
   function openCard(i){
     var c=CARDS[i]; if(!c) return;
-    document.getElementById('dialogCard').innerHTML=
-      '<div class="ccard big tier-'+c.tier+'"><div class="art" style="--acc:'+c.accent+'">'+emLayer(c,'M'+i)
-      +'<div class="glare"></div><span class="gem"><i></i>'+c.tlab+'</span></div>'
-      +'<div class="plate"><div class="nm">'+esc(c.name)+'</div><div class="gm">'+esc(c.game)+'</div>'
-      +(c.desc?'<div class="desc">'+esc(c.desc)+'</div>':'')
-      +'<div class="foot"><span class="pct">'+fmtPct(c.p)+' '+S.players+'</span></div>'
-      +(c.unlock?'<div class="unlock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'+S.unlocked+' '+fmtFull(c.unlock)+'</div>':'')
-      +'</div></div>';
+    var dc=document.getElementById('dialogCard');
+    dc.innerHTML='<div class="ccard big tier-'+c.tier+'">'+face(c,'M'+i,true)+'</div>';
+    markLowRes(dc);
     modal.hidden=false;
     var big=document.getElementById('dialogCard').querySelector('.ccard'); if(big) tiltCard(big,12);
     document.getElementById('close').focus();

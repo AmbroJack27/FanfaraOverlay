@@ -100,31 +100,9 @@ public class SteamHistory
                 {
                     try
                     {
-                        var a = await GetJson<AchResp>($"{Base}/ach?steamid={id}&appid={game.appid}&l={lang}", ct);
-                        if (a == null || !a.ok) { failed.Add(game); return; }   // rate-limited → retry next round
-                        long last = 0;
-                        if (a.achievements != null)
-                        {
-                            foreach (var r in a.achievements)
-                            {
-                                if (string.IsNullOrEmpty(r.api)) continue;
-                                if (r.unlock > last) last = r.unlock;
-                                var rec = new AchievementRecord
-                                {
-                                    Appid = game.appid,
-                                    Game = game.name ?? "",
-                                    Api = r.api!,
-                                    Name = string.IsNullOrEmpty(r.name) ? r.api! : r.name!,
-                                    Desc = r.desc ?? "",
-                                    Unlock = r.unlock,
-                                    Percent = r.percent,
-                                    Icon = r.icon ?? ""
-                                };
-                                if (_store.Upsert(rec)) System.Threading.Interlocked.Increment(ref added);
-                            }
-                        }
-                        // Per-game completion for the "100% games" cards and the leaderboard score.
-                        _games.Set(game.appid, game.name ?? "", a.total, a.unlocked, last);
+                        int n = await ApplyGameAsync(id, game.appid, game.name ?? "", lang, fresh: false, ct);
+                        if (n < 0) { failed.Add(game); return; }                 // rate-limited → retry next round
+                        System.Threading.Interlocked.Add(ref added, n);
                     }
                     catch (OperationCanceledException) { throw; }
                     catch { failed.Add(game); }   // transient error → retry next round
@@ -150,6 +128,83 @@ public class SteamHistory
         _config.Save();
         Log($"fine — {games.Count} giochi, {added} obiettivi nuovi, totale in archivio {_store.Count}");
         return Result.Ok;
+    }
+
+    /// <summary>
+    /// Fetches ONE game's achievements through the proxy and merges them into the local stores
+    /// (real icons, unlock dates, rarity, total vs unlocked). Returns how many achievements were
+    /// new, or -1 if Steam refused/failed (rate limit, network) so the caller can retry.
+    /// <paramref name="fresh"/> adds a cache-buster so a just-closed game never gets a stale answer.
+    /// </summary>
+    private async Task<int> ApplyGameAsync(ulong id, uint appid, string name, string lang, bool fresh, CancellationToken ct)
+    {
+        string url = $"{Base}/ach?steamid={id}&appid={appid}&l={lang}";
+        if (fresh) url += "&t=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var a = await GetJson<AchResp>(url, ct);
+        if (a == null || !a.ok) return -1;
+        if (string.IsNullOrEmpty(name)) name = a.game ?? "";
+        int added = 0;
+        long last = 0;
+        if (a.achievements != null)
+        {
+            foreach (var r in a.achievements)
+            {
+                if (string.IsNullOrEmpty(r.api)) continue;
+                if (r.unlock > last) last = r.unlock;
+                var rec = new AchievementRecord
+                {
+                    Appid = appid,
+                    Game = name,
+                    Api = r.api!,
+                    Name = string.IsNullOrEmpty(r.name) ? r.api! : r.name!,
+                    Desc = r.desc ?? "",
+                    Unlock = r.unlock,
+                    Percent = r.percent,
+                    Icon = r.icon ?? ""
+                };
+                if (_store.Upsert(rec)) added++;
+            }
+        }
+        // Per-game completion for the "100% games" cards and the leaderboard score.
+        _games.Set(appid, name, a.total, a.unlocked, last);
+        return added;
+    }
+
+    /// <summary>
+    /// Quick refresh of a single game (used right after the player closes it): a handful of Steam
+    /// calls instead of the whole library. Retries a couple of times if Steam rate-limits.
+    /// Does NOT touch LastSyncUtc, so the periodic full sync keeps its own schedule.
+    /// </summary>
+    public async Task<Result> SyncGameAsync(uint appid, CancellationToken ct = default)
+    {
+        LastAdded = 0;
+        if (appid == 0) return Result.Error;
+        if (string.IsNullOrEmpty(Base) || Base.Contains("REPLACE-ME")) return Result.NoProxy;
+        ulong id = _config.ResolvedSteamId();
+        if (id == 0) return Result.NoSteamId;
+        string lang = SteamLang(_config.EffectiveLanguage);
+
+        string name = "";
+        foreach (var g in _games.All()) if (g.Appid == appid) { name = g.Name; break; }
+
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            if (attempt > 0) await Task.Delay(TimeSpan.FromSeconds(20), ct);
+            int n;
+            try { n = await ApplyGameAsync(id, appid, name, lang, fresh: true, ct); }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex) { Log($"gioco {appid}: errore {ex.GetType().Name}"); n = -1; }
+            if (n >= 0)
+            {
+                LastAdded = n;
+                _store.Save();
+                _games.Save();
+                Log($"gioco chiuso {appid} aggiornato — {n} obiettivi nuovi");
+                return Result.Ok;
+            }
+        }
+        Log($"gioco chiuso {appid}: Steam non ha risposto, ci pensa la prossima sync completa");
+        return Result.Error;
     }
 
     private static async Task<T?> GetJson<T>(string url, CancellationToken ct)

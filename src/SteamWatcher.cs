@@ -21,6 +21,11 @@ public class SteamWatcher
     public event Action<string, double, string, uint, string>? AchievementUnlocked;
     /// <summary>Raised once when a game's overlay fix was newly applied (user should restart that game).</summary>
     public event Action? GameOptimized;
+    /// <summary>Raised once when the game being watched closes (appid of the game that ended).</summary>
+    public event Action<uint>? GameClosed;
+
+    /// <summary>True while a Steam game is running (used to keep heavy syncs out of the way).</summary>
+    public bool GameRunning => _currentApp != 0;
 
     private CancellationTokenSource? _cts;
     private readonly int _pollMs;
@@ -80,14 +85,14 @@ public class SteamWatcher
                     else
                     {
                         Log($"operaio terminato (era {_currentApp}, code {code})");
-                        if (_currentApp != 0) { _lastClosedApp = _currentApp; _currentApp = 0; }
+                        if (_currentApp != 0) { _lastClosedApp = _currentApp; RaiseClosed(_currentApp); _currentApp = 0; }
                         _workerRetries = 0;
                     }
                 }
 
                 if (app == 0)
                 {
-                    if (_currentApp != 0) { Log($"RunningAppID 0 (era {_currentApp})"); StopWorker(); _currentApp = 0; }
+                    if (_currentApp != 0) { Log($"RunningAppID 0 (era {_currentApp})"); StopWorker(); RaiseClosed(_currentApp); _currentApp = 0; }
                     _lastClosedApp = 0;   // registry cleared: the game may be launched again now
                     _workerRetries = 0;
                 }
@@ -95,6 +100,7 @@ public class SteamWatcher
                 {
                     Log($"RunningAppID -> {app}");
                     StopWorker();
+                    if (_currentApp != 0) RaiseClosed(_currentApp);   // switched straight to another game
                     _workerRetries = 0;
                     StartWorker(app);
                     _currentApp = app;
@@ -104,6 +110,12 @@ public class SteamWatcher
 
             try { await Task.Delay(_pollMs, ct); } catch { }
         }
+    }
+
+    private void RaiseClosed(uint app)
+    {
+        Log($"gioco chiuso: {app}");
+        try { GameClosed?.Invoke(app); } catch { }
     }
 
     private void StartWorker(uint app)

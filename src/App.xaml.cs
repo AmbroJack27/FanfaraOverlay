@@ -90,6 +90,8 @@ public partial class App : System.Windows.Application
             catch { }
         };
         _steam.GameOptimized += () => Dispatcher.Invoke(ShowRestartGameTip);
+        // When a game closes, refresh just that game (real icons, rarity, 100% status) — a few calls.
+        _steam.GameClosed += appid => _ = SyncClosedGameAsync(appid);
         _steam.Start();
 
         SetupTray();
@@ -112,6 +114,56 @@ public partial class App : System.Windows.Application
             if (firstRun || SyncIsStale())
                 _ = RunBackfillAsync(manual: false, firstRun: firstRun);
         }
+
+        // Fanfara often stays open for days: re-check periodically and run the full sync again once
+        // it's been 12 hours (not only at startup). Skipped while a game is running.
+        StartSyncTimer();
+    }
+
+    private System.Windows.Threading.DispatcherTimer? _syncTimer;
+
+    private void StartSyncTimer()
+    {
+        _syncTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMinutes(30) };
+        _syncTimer.Tick += (_, _) =>
+        {
+            if (!_config.SyncHistory || !_config.HistoryImported) return;
+            if (_steam?.GameRunning == true) return;          // don't do a big sync mid-game
+            if (SyncIsStale()) _ = RunBackfillAsync(manual: false);
+        };
+        _syncTimer.Start();
+    }
+
+    /// <summary>
+    /// Right after a game closes: refresh only that game through the proxy (about 3 Steam calls).
+    /// Quiet — the unlocks were already announced live; this brings real icons, rarity and the
+    /// up-to-date total, so a game finished 100% shows up in Classifica straight away.
+    /// </summary>
+    private async Task SyncClosedGameAsync(uint appid)
+    {
+        if (_store == null || _games == null || appid == 0) return;
+        if (!_config.SyncHistory || !_config.HistoryImported) return;
+        try { await Task.Delay(TimeSpan.FromSeconds(15)); } catch { }   // let Steam settle after the game exits
+        if (Interlocked.Exchange(ref _backfillRunning, 1) == 1) return;  // a full sync is running: it covers this game
+        SetSyncUi(true);
+        try
+        {
+            int perfectBefore = _games.PerfectCount;
+            var hist = new SteamHistory(_config, _store, _games);
+            var res = await hist.SyncGameAsync(appid);
+            if (res == SteamHistory.Result.Ok)
+            {
+                RefreshData();
+                if (_games.PerfectCount != perfectBefore)
+                {
+                    var lb = new Leaderboard(_config);
+                    if (lb.Ready) _ = lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked);
+                }
+                if (hist.LastAdded > 0) Balloon(string.Format(Loc.S(_config.EffectiveLanguage, "syncNew"), hist.LastAdded));
+            }
+        }
+        catch { }
+        finally { Interlocked.Exchange(ref _backfillRunning, 0); SetSyncUi(false); }
     }
 
     private async Task CheckForUpdatesAsync(bool silent)
@@ -314,6 +366,7 @@ public partial class App : System.Windows.Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _syncTimer?.Stop();
         _steam?.Stop();
         if (_tray != null) { _tray.Visible = false; _tray.Dispose(); }
         base.OnExit(e);

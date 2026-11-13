@@ -12,6 +12,13 @@ namespace Fanfara;
 /// </summary>
 public static class HomeData
 {
+    /// <summary>App version as "vMajor.Minor.Build" (same label as the Personalizza footer).</summary>
+    public static string AppVersion()
+    {
+        var v = typeof(HomeData).Assembly.GetName().Version ?? new Version(0, 0, 0);
+        return $"v{v.Major}.{v.Minor}.{(v.Build < 0 ? 0 : v.Build)}";
+    }
+
     public static string Build(Config config, AchievementStore? store, GamesStore? games, bool leaderboardReady, bool syncing)
     {
         var all = store?.All() ?? new List<AchievementRecord>();          // most recent first
@@ -67,7 +74,8 @@ public static class HomeData
             lbReady = leaderboardReady,
             joined = config.LeaderboardJoined,
             lastSync = config.LastSyncUtc,
-            syncing
+            syncing,
+            version = AppVersion()
         });
     }
 }
