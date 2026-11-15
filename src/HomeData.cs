@@ -74,6 +74,7 @@ public static class HomeData
             lbReady = leaderboardReady,
             joined = config.LeaderboardJoined,
             lastSync = config.LastSyncUtc,
+            syncState = config.SyncState,   // "private" → the Home shows how to fix Steam's privacy
             syncing,
             version = AppVersion()
         });

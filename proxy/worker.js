@@ -26,6 +26,13 @@
 //      If the secret DISCORD_WEBHOOK is set, every message is ALSO posted to that (private) Discord
 //      channel, with the technical log attached as a .txt file.
 //
+// 4) SHOWCASE: «Post to the showcase» on a Collection card.
+//      POST /share  multipart: meta (JSON: steamid, appid, api, side, lang…) + image (PNG of the card)
+//      The achievement is checked on Steam (it must really be unlocked on that profile), then the card
+//      is posted to #bacheca-trofei through the secret DISCORD_SHOWCASE_WEBHOOK. Each card can be
+//      posted once, max 10 cards a day per person (D1 table `shares`, created automatically; only a
+//      one-way hash of the SteamID is stored).
+//
 // A player's score is their number of games completed 100%, with total unlocked achievements as the
 // tie-breaker. Names/avatars are public Steam data, fetched here when a score is registered.
 //
@@ -43,6 +50,13 @@ export default {
       if (request.method !== 'POST') return json({ ok: false, error: 'method' }, 405);
       if (!env.DB) return json({ ok: false, error: 'nodb' }, 503);
       try { return await feedback(request, env, ctx); }
+      catch (e) { return json({ ok: false, error: 'server' }, 500); }
+    }
+    if (url.pathname === '/share') {
+      if (request.method !== 'POST') return json({ ok: false, error: 'method' }, 405);
+      if (!env.DB) return json({ ok: false, error: 'nodb' }, 503);
+      if (!env.DISCORD_SHOWCASE_WEBHOOK) return json({ ok: false, error: 'noshowcase' }, 503);
+      try { return await share(request, env); }
       catch (e) { return json({ ok: false, error: 'server' }, 500); }
     }
     if (request.method !== 'GET') return json({ ok: false, error: 'method' }, 405);
@@ -112,7 +126,8 @@ async function withCache(request, ctx, producer) {
   const hit = await cache.match(request);
   if (hit) return hit;
   const res = await producer();
-  if (res.status === 200) ctx.waitUntil(cache.put(request, res.clone()));
+  // Only answers marked cacheable (max-age) are stored: a "profile is private" answer must never stick.
+  if (res.status === 200 && /max-age=\d+/.test(res.headers.get('cache-control') || '')) ctx.waitUntil(cache.put(request, res.clone()));
   return res;
 }
 
@@ -203,6 +218,84 @@ async function toDiscord(hook, f) {
   await fetch(hook, { method: 'POST', body: form });
 }
 
+// ---------------------------------------------------------------------------
+// showcase (#bacheca-trofei)
+// ---------------------------------------------------------------------------
+
+const SHARES_PER_DAY = 10;
+const TIER = [ // [max global %, label, colour] — same rarity tiers as the app
+  [1, '✨ Leggendario', 0xF5C242], [5, '💜 Epico', 0xB078FF], [10, '💎 Raro', 0x4C8DFF], [40, '🟢 Non comune', 0x4ac46a], [101, '⚪ Comune', 0x8A93A6]
+];
+
+async function share(request, env) {
+  const len = Number(request.headers.get('content-length') || 0);
+  if (len > 6 * 1024 * 1024) return json({ ok: false, error: 'big' }, 413);
+  let form;
+  try { form = await request.formData(); } catch (e) { return json({ ok: false, error: 'form' }, 400); }
+  let meta;
+  try { meta = JSON.parse(String(form.get('meta') || '{}')); } catch (e) { return json({ ok: false, error: 'meta' }, 400); }
+  const img = form.get('image');
+  const steamid = String(meta.steamid || ''), appid = String(meta.appid || ''), api = String(meta.api || '');
+  if (!isId(steamid) || !/^\d{1,8}$/.test(appid) || !api || api.length > 128) return json({ ok: false, error: 'meta' }, 400);
+  if (!img || typeof img === 'string' || img.size < 100 || img.size > 5 * 1024 * 1024) return json({ ok: false, error: 'image' }, 400);
+  const lang = ({ it: 'italian', en: 'english', fr: 'french', de: 'german', es: 'spanish' })[String(meta.lang || '')] || 'italian';
+
+  const who = await sha16('sid:' + steamid + ':fanfara-share');
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS shares (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, who TEXT, appid INTEGER, api TEXT)`).run();
+  const dup = await env.DB.prepare('SELECT id FROM shares WHERE who = ? AND appid = ? AND api = ?').bind(who, Number(appid), api).first();
+  if (dup) return json({ ok: false, error: 'already' }, 409);
+  const t = now();
+  const c = await env.DB.prepare('SELECT COUNT(*) AS n FROM shares WHERE who = ? AND ts > ?').bind(who, t - 86400).first();
+  if (c && c.n >= SHARES_PER_DAY) return json({ ok: false, error: 'limit' }, 429);
+
+  // 1) Steam must confirm the unlock on this profile (no fake trophies)
+  const pu = `${STEAM}/ISteamUserStats/GetPlayerAchievements/v1/?key=${env.STEAM_KEY}&steamid=${steamid}&appid=${appid}&l=${lang}&format=json`;
+  const pr = await fetch(pu);
+  if (pr.status === 429 || pr.status >= 500) return json({ ok: false, error: 'rate' }, 503);
+  const pj = await pr.json().catch(() => ({}));
+  const ps = pj && pj.playerstats;
+  const a = ps && Array.isArray(ps.achievements) ? ps.achievements.find(x => x.apiname === api) : null;
+  if (!a || a.achieved !== 1) return json({ ok: false, error: 'notyours' }, 403);
+
+  // 2) public extras: player name/avatar and worldwide rarity
+  const [who2, gj] = await Promise.all([
+    summaries([steamid], env),
+    fetch(`${STEAM}/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/?gameid=${appid}&format=json`).then(r => r.json()).catch(() => ({}))
+  ]);
+  const player = who2[steamid] || { name: 'Un giocatore', avatar: '' };
+  let pct = null;
+  const garr = gj && gj.achievementpercentages && gj.achievementpercentages.achievements;
+  if (Array.isArray(garr)) { const g = garr.find(x => x.name === api); if (g) pct = Number(g.percent); }
+  const tier = TIER.find(x => (pct == null ? 101 : pct) < x[0]) || TIER[TIER.length - 1];
+  const game = clip(ps.gameName || meta.game, 100) || 'Steam';
+  const achName = clip(a.name || meta.name || api, 120);
+  const pctTxt = pct == null ? '' : (pct < 10 ? pct.toFixed(1) : Math.round(pct)).toString().replace('.', ',') + '% dei giocatori';
+
+  // 3) post to Discord (#bacheca-trofei)
+  const payload = {
+    username: 'Fanfara',
+    allowed_mentions: { parse: [] },
+    embeds: [{
+      author: { name: clip(player.name, 80) || 'Un giocatore', icon_url: player.avatar || undefined },
+      title: '🏆 ' + achName,
+      description: '🎮 **' + game + '**' + (pctTxt ? '\n' + tier[1] + ' · ' + pctTxt : ''),
+      color: tier[2],
+      image: { url: 'attachment://carta.png' },
+      footer: { text: 'Condiviso con Fanfara' },
+      timestamp: new Date((a.unlocktime || t) * 1000).toISOString()
+    }]
+  };
+  const out = new FormData();
+  out.append('payload_json', JSON.stringify(payload));
+  out.append('files[0]', new Blob([await img.arrayBuffer()], { type: 'image/png' }), 'carta.png');
+  const dr = await fetch(env.DISCORD_SHOWCASE_WEBHOOK, { method: 'POST', body: out });
+  if (!dr.ok) return json({ ok: false, error: 'discord' }, 502);
+
+  await env.DB.prepare('INSERT INTO shares (ts, who, appid, api) VALUES (?,?,?,?)').bind(t, who, Number(appid), api).run();
+  return json({ ok: true });
+}
+
 async function friendIds(steamid, env) {
   const u = `${STEAM}/ISteamUser/GetFriendList/v1/?key=${env.STEAM_KEY}&steamid=${steamid}&relationship=friend&format=json`;
   const j = await fetch(u).then(r => r.json()).catch(() => ({}));
@@ -222,7 +315,7 @@ async function owned(steamid, env) {
   const j = await r.json().catch(() => ({}));
   const resp = j && j.response;
   if (!resp || !('games' in resp)) {
-    return json({ ok: true, private: true, games: [] }, 200, 1800);
+    return json({ ok: true, private: true, games: [] }, 200, 0);   // never cache: the player may fix it right away
   }
   const games = (resp.games || []).map(g => ({
     appid: g.appid,
@@ -247,7 +340,14 @@ async function ach(steamid, appid, lang, env) {
   // Steam answers HTTP 400 ("Requested app has no stats") for games WITHOUT achievements, and 403 when
   // it won't share them: both are final answers, not "busy" — report a real total:0 so the app stops
   // retrying those games on every sync. Only other errors (429 rate limit, 5xx) are retried.
+  // BUT 403 / "Profile is not public" means the player's achievements are hidden by their Steam privacy
+  // (profile or game details not Public): that is NOT "no achievements". Say so (never cached), so the
+  // app can tell the player how to fix it instead of importing a silent, empty collection.
   if (pr.status === 400 || pr.status === 403) {
+    const perr = String(((await pr.json().catch(() => ({}))).playerstats || {}).error || '');
+    if (pr.status === 403 || /not public|private/i.test(perr)) {
+      return json({ ok: true, appid: Number(appid), total: 0, unlocked: 0, achievements: [], private: true }, 200, 0);
+    }
     return json({ ok: true, appid: Number(appid), total: 0, unlocked: 0, achievements: [], nostats: true }, 200, 3600);
   }
   if (!pr.ok) return json({ ok: false, error: 'rate' }, 503);

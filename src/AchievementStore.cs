@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Fanfara;
 
@@ -39,6 +40,18 @@ public class AchievementStore
 
     private static string Key(uint appid, string api) => appid + "\u0000" + api;
 
+    // Steam moved achievement icons: newer ones exist ONLY on the new community-assets path, while the
+    // old CDN path (steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/...) answers 404 for them.
+    // The new path serves old and new icons alike, so every stored icon URL is rewritten to it.
+    private static readonly Regex OldIcon = new(@"^https?://[^/]+/steamcommunity/public/images/apps/(\d+)/([^/?#]+)$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    public static string FixIcon(string? url)
+    {
+        if (string.IsNullOrEmpty(url)) return "";
+        var m = OldIcon.Match(url.Trim());
+        return m.Success ? $"https://shared.fastly.steamstatic.com/community_assets/images/apps/{m.Groups[1].Value}/{m.Groups[2].Value}" : url;
+    }
+
     private void Load()
     {
         try
@@ -48,7 +61,7 @@ public class AchievementStore
             if (list == null) return;
             lock (_gate)
                 foreach (var r in list)
-                    if (!string.IsNullOrEmpty(r.Api)) _byKey[Key(r.Appid, r.Api)] = r;
+                    if (!string.IsNullOrEmpty(r.Api)) { r.Icon = FixIcon(r.Icon); _byKey[Key(r.Appid, r.Api)] = r; }
         }
         catch { /* start empty on any problem */ }
     }
@@ -57,6 +70,7 @@ public class AchievementStore
     public bool Upsert(AchievementRecord r)
     {
         if (r == null || string.IsNullOrEmpty(r.Api)) return false;
+        r.Icon = FixIcon(r.Icon);
         lock (_gate)
         {
             var k = Key(r.Appid, r.Api);

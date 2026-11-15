@@ -48,6 +48,17 @@ public class Config
     // Off by default; the user turns it on from the Classifica screen, and can leave any time.
     public bool LeaderboardJoined { get; set; } = false;
 
+    // ---- First-run guided setup (welcome.html) ----
+    // False until the user finishes (or skips) the guided setup. New installs AND existing users who
+    // update see it once; it can be reopened any time from the Guide or the tray menu.
+    public bool OnboardingDone { get; set; } = false;
+    // Which screen shows the notifications: "auto" = the screen where the game (foreground window) is,
+    // otherwise a Windows display device name such as "\\.\DISPLAY2".
+    public string OverlayMonitor { get; set; } = "auto";
+    // Outcome of the last full Steam sync: "" (never) | ok | private | nosteam | noproxy | error.
+    // The Home shows a fixed warning while it's "private", and the guided setup reads it.
+    public string SyncState { get; set; } = "";
+
     // Game .exe paths we've applied the fix to (so we don't re-notify, and can undo on disable).
     public List<string> OptimizedGames { get; set; } = new();
     // Game install folders already pre-scanned, so we don't re-scan the whole library every boot.
@@ -85,6 +96,9 @@ public class Config
             return true;
         }
     }
+
+    /// <summary>Thread-safe: how many games have been prepared for the overlay (fullscreen fix).</summary>
+    public int OptimizedCount() { lock (_gate) return OptimizedGames.Count; }
 
     /// <summary>Thread-safe: has this game folder already been scanned?</summary>
     public bool IsScanned(string dir)

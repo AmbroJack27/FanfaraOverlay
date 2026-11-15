@@ -59,6 +59,16 @@ Per evitare i doppioni, puoi disattivare quella predefinita di Steam:
 
 ## ✨ Cosa include
 
+- **🧭 Configurazione guidata** — al primo avvio (e una volta dopo l'aggiornamento) una guida passo
+  passo controlla che Steam sia aperto e che i tuoi obiettivi siano **visibili** (se la privacy di Steam
+  li nasconde, spiega esattamente quali voci mettere su Pubblico, con un pulsante per la pagina privacy
+  di Steam), ti fa **provare la notifica** e scegliere lo **schermo** dove vederla, spiega come impostare
+  la **modalità video** dei giochi, imposta avvio con Windows, volume e aggiornamenti, ed esegue la prima
+  importazione mostrando l'avanzamento. Puoi riaprirla quando vuoi dalla Guida o dal menu dell'icona.
+- **🖥️ Più schermi** — la notifica compare sullo schermo dove stai giocando (o su quello scelto nella
+  configurazione guidata), non sempre su quello principale.
+- **🔒 Avviso privacy chiaro** — se Steam nasconde i tuoi obiettivi, la Home mostra un avviso rosso fisso
+  con *Come risolvere*; le notifiche continuano a funzionare e Fanfara riprova l'importazione ogni 30 minuti.
 - **🏠 Una Home tutta tua** — un'unica schermata con la tua fanfara, gli ultimi sblocchi, la
   posizione in classifica (Mondo/Amici), le carte più rare, gli ultimi 7 giorni e i giochi più
   vicini al 100%. Si adatta a qualsiasi dimensione e si apre già grande quanto il tuo schermo.
@@ -80,7 +90,16 @@ Per evitare i doppioni, puoi disattivare quella predefinita di Steam:
   carta**: si solleva, gira in aria e atterra davanti a te (con un suono morbido); **girala** per
   scoprire la storia di quello sblocco: quanti giocatori su 1.000 ce l'hanno, data e ora, la sua
   posizione nella tua collezione, il progresso nel gioco, il nastro «completato al 100%» e **quali
-  amici di Fanfara ce l'hanno, e chi è arrivato prima**. Anch'essa impaginata.
+  amici di Fanfara ce l'hanno, e chi è arrivato prima**. Sotto la carta aperta ci sono due pulsanti:
+  **Copia immagine** (la incolli ovunque con Ctrl+V) e **Pubblica in bacheca**, che pubblica la carta
+  in #bacheca-trofei del server Discord di Fanfara dopo aver verificato su Steam che l'obiettivo sia
+  davvero tuo. In alto c'è il tuo **livello da collezionista** (le carte rare valgono più punti); gli
+  sblocchi nuovi dall'ultima visita arrivano in una **bustina** da aprire; una **vetrina** illuminata
+  mostra le tue 5 carte più rare. Sotto, **un album per gioco** (ricerca, ordine, vista Copertine o
+  Scaffale): ogni album è un **libro antico in pelle** che apri tu — fermaglio, fregi d'oro,
+  rilegatura cucita, carte fissate con gli angolini in ordine di sblocco, cornici vuote «?» per quelle
+  che mancano, un Ex Libris con carte, completamento, **ore di gioco**, carta più rara e prima carta,
+  e pagine da sfogliare (clic, angolino o frecce). Dalla vetrina, **Vedi nel suo album** porta alla carta.
 - **☁️ Importazione e sincronizzazione automatica da Steam** — la prima volta Fanfara **importa tutti
   i tuoi achievement passati** (icone reali, date di sblocco e rarità mondiale) **senza login e senza
   inserire alcuna chiave API**. Cattura i nuovi sblocchi dal vivo, **aggiorna un gioco appena lo
@@ -155,7 +174,8 @@ l'auto-updater verifica) alla Release. Nessuna compilazione manuale.
   logo + Home, alimentata da `HomeData.cs`), `web/settings.html` (stili e impostazioni, elenco in
   `web/styles.js`), `web/history.html` (Cronologia),
   `web/collection.html` (Collezione), `web/classifica.html` (la classifica) e `web/guide.html`
-  (la guida). Ogni pagina segue il tema chiaro/scuro e la lingua scelta.
+  (la guida), più `web/welcome.html` (la configurazione guidata: controllo di Steam e privacy, prova
+  della notifica e scelta dello schermo, consigli sulla modalità video, preferenze, prima importazione). Ogni pagina segue il tema chiaro/scuro e la lingua scelta.
 - `SteamId.cs` — trova il tuo SteamID64 in locale (dalle chiavi di registro di Steam /
   `loginusers.vdf`), così l'importazione non richiede nulla da te.
 - `SteamHistory.cs` + `AchievementStore.cs` — il backfill e l'archivio locale. Recuperano i tuoi
@@ -168,6 +188,10 @@ l'auto-updater verifica) alla Release. Nessuna compilazione manuale.
   completati al 100% e registra il punteggio tramite il proxy in un database **D1** di Cloudflare; le
   classifiche Mondiale e Amici si limitano a leggerlo. **Nessun calcolo per-gioco lato server**,
   quindi nessun problema di limiti di Steam.
+  `GamesStore` (`games.json`) tiene anche i minuti giocati di ogni gioco, letti da Steam durante la
+  sincronizzazione, per la prima pagina del suo album nella Collezione.
+- `CardShare.cs` — invia l'immagine di una carta al proxy (`POST /share`); il proxy verifica lo
+  sblocco su Steam e la inoltra al canale vetrina di Discord (segreto `DISCORD_SHOWCASE_WEBHOOK`).
 - `Feedback.cs` — invia il modulo di feedback dell'app al proxy (`POST /feedback`), che lo salva nel
   database D1 (dello SteamID resta solo un'impronta non reversibile, per un limite giornaliero anonimo).
 - `Updater.cs` — controlla su GitHub se c'è una Release più recente, **scarica l'installer, lo

@@ -145,8 +145,11 @@ public partial class App : System.Windows.Application
         _syncTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMinutes(30) };
         _syncTimer.Tick += (_, _) =>
         {
-            if (!_config.SyncHistory || !_config.HistoryImported) return;
+            if (!_config.SyncHistory) return;
             if (_steam?.GameRunning == true) return;          // don't do a big sync mid-game
+            // The first import hasn't succeeded yet (Steam not ready, profile private, network...):
+            // keep trying every 30 minutes, without waiting for the user to restart Fanfara.
+            if (!_config.HistoryImported) { _ = RunBackfillAsync(manual: false, retry: true); return; }
             if (SyncIsStale()) _ = RunBackfillAsync(manual: false);
         };
         _syncTimer.Start();
@@ -169,6 +172,7 @@ public partial class App : System.Windows.Application
             int perfectBefore = _games.PerfectCount;
             var hist = new SteamHistory(_config, _store, _games);
             var res = await hist.SyncGameAsync(appid);
+            if (res == SteamHistory.Result.ProfilePrivate && _config.SyncState != "private") { _config.SyncState = "private"; _config.Save(); }
             if (res == SteamHistory.Result.Ok)
             {
                 RefreshData();
@@ -249,6 +253,7 @@ public partial class App : System.Windows.Application
         menu.Items.Add(Loc.S(lang, "leaderboard"), null, (_, _) => ShowSettings("classifica.html"));
         menu.Items.Add(Loc.S(lang, "syncNow"), null, (_, _) => _ = RunBackfillAsync(manual: true));
         menu.Items.Add(Loc.S(lang, "feedback"), null, (_, _) => ShowSettings("feedback.html"));
+        menu.Items.Add(Loc.S(lang, "setup"), null, (_, _) => ShowSettings("welcome.html"));
         menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
         menu.Items.Add(Loc.S(lang, "testNotif"), null, (_, _) =>
             _overlay?.ShowPreview(_config.Style, _config.Sound, _config.Position, 0.6,
@@ -273,6 +278,9 @@ public partial class App : System.Windows.Application
     /// <summary>Show the single app window, optionally jumping straight to a screen (history/collection).</summary>
     private void ShowSettings(string? page = null)
     {
+        // Until the guided setup has been completed (or skipped), opening Fanfara opens it — also for
+        // people who already used an older version, so everyone sees it once.
+        if (page == null && !_config.OnboardingDone) page = "welcome.html";
         if (_settings == null)
         {
             // First creation of the app window — the logo intro plays here, once.
@@ -315,7 +323,9 @@ public partial class App : System.Windows.Application
     /// Three modes: manual (tray button → message box), firstRun (welcome + result balloon),
     /// periodic (silent; only announces newly found achievements).
     /// </summary>
-    private async Task RunBackfillAsync(bool manual, bool firstRun = false)
+    private bool _privateWarned;   // the "make your Steam profile public" tip is shown once per session (it retries quietly)
+
+    private async Task RunBackfillAsync(bool manual, bool firstRun = false, bool retry = false)
     {
         if (_store == null) return;
         if (Interlocked.Exchange(ref _backfillRunning, 1) == 1)
@@ -333,7 +343,21 @@ public partial class App : System.Windows.Application
         try
         {
             var hist = new SteamHistory(_config, _store, _games!);
-            var res = await hist.BackfillAsync();
+            // Progress goes to the guided setup's import step (if it's on screen).
+            var progress = new Progress<SteamHistory.Progress>(p =>
+            {
+                try { Dispatcher.BeginInvoke(new Action(() => _settings?.PushSyncProgress(p.DoneGames, p.TotalGames, p.NewAchievements))); } catch { }
+            });
+            var res = await hist.BackfillAsync(progress);
+            _config.SyncState = res switch
+            {
+                SteamHistory.Result.Ok => "ok",
+                SteamHistory.Result.ProfilePrivate => "private",
+                SteamHistory.Result.NoSteamId => "nosteam",
+                SteamHistory.Result.NoProxy => "noproxy",
+                _ => "error"
+            };
+            _config.Save();
             switch (res)
             {
                 case SteamHistory.Result.Ok:
@@ -341,12 +365,15 @@ public partial class App : System.Windows.Application
                     // Register the refreshed 100% score so friends (and, if opted in, the world board) see it.
                     if (_games != null) { var lb = new Leaderboard(_config); if (lb.Ready) _ = lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked); }
                     if (manual) System.Windows.MessageBox.Show(string.Format(Loc.S(lang, "syncDone"), _store.Count), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
-                    else if (firstRun) Balloon(string.Format(Loc.S(lang, "syncDone"), _store.Count));
+                    else if (firstRun || retry) Balloon(string.Format(Loc.S(lang, "syncDone"), _store.Count));
                     else if (hist.LastAdded > 0) Balloon(string.Format(Loc.S(lang, "syncNew"), hist.LastAdded));   // quiet refresh: only if there's something new
                     break;
                 case SteamHistory.Result.ProfilePrivate:
+                    // Not imported until Steam shows the achievements: the 30-minute timer keeps retrying.
+                    _config.HistoryImported = false; _config.Save();
                     if (manual) System.Windows.MessageBox.Show(Loc.S(lang, "syncPrivate"), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
-                    else if (firstRun) Balloon(Loc.S(lang, "syncPrivate"));
+                    else if (!_privateWarned) Balloon(Loc.S(lang, "syncPrivate"));
+                    _privateWarned = true;
                     break;
                 case SteamHistory.Result.NoSteamId:
                     if (manual) System.Windows.MessageBox.Show(Loc.S(lang, "syncNoId"), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -359,7 +386,11 @@ public partial class App : System.Windows.Application
                     break;
             }
         }
-        catch { if (manual) System.Windows.MessageBox.Show(Loc.S(lang, "syncError"), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information); }
+        catch
+        {
+            _config.SyncState = "error"; _config.Save();
+            if (manual) System.Windows.MessageBox.Show(Loc.S(lang, "syncError"), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
         finally { Interlocked.Exchange(ref _backfillRunning, 0); SetSyncUi(false); }
     }
 

@@ -13,6 +13,7 @@ public class GameRecord
     public int Total { get; set; }        // total achievements the game has
     public int Unlocked { get; set; }     // how many the user has unlocked
     public long LastUnlock { get; set; }  // unix seconds of the most recent unlock (completion date for 100%)
+    public int Playtime { get; set; }     // minutes played, from Steam (shown on the album's first page)
 
     public bool IsPerfect => Total > 0 && Unlocked >= Total;
 }
@@ -62,6 +63,14 @@ public class GamesStore
             g.Unlocked = unlocked;
             if (lastUnlock > g.LastUnlock) g.LastUnlock = lastUnlock;
         }
+    }
+
+    /// <summary>Store the minutes played (from Steam's owned-games list) for a game we already track.</summary>
+    public void SetPlaytime(uint appid, int minutes)
+    {
+        if (appid == 0 || minutes < 0) return;
+        lock (_gate)
+            if (_byApp.TryGetValue(appid, out var g)) g.Playtime = minutes;
     }
 
     /// <summary>A live unlock: bump the unlocked count for a game (total may be unknown until the next sync).</summary>

@@ -148,6 +148,91 @@ public partial class SettingsWindow : Window
         else if (src.Contains("history.html") || src.Contains("collection.html")) InjectData();
         else if (src.Contains("classifica.html")) { SubmitSelf(); InjectClassifica(); _ = PushWorld(); }
         else if (src.Contains("home.html")) { SubmitSelf(); InjectHome(); _ = PushHomeBoards(); }
+        else if (src.Contains("welcome.html")) InjectWelcome();
+    }
+
+    private bool OnWelcome => (Web.CoreWebView2?.Source ?? "").Contains("welcome.html");
+
+    // ================= guided setup (welcome.html) =================
+    /// <summary>Everything the guided setup needs to start: current choices, screens, sync state.</summary>
+    private void InjectWelcome()
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(new
+            {
+                theme = _config.Theme,
+                lang = _config.EffectiveLanguage,
+                langPref = _config.Language,
+                volume = _config.Volume,
+                startup = _config.StartWithWindows,
+                checkUpdates = _config.CheckUpdates,
+                gameFix = _config.GameOverlayFix,
+                prepared = _config.OptimizedCount(),
+                joined = _config.LeaderboardJoined,
+                lbReady = _lb.Ready,
+                monitor = _config.OverlayMonitor,
+                screens = OverlayWindow.Screens(),
+                syncing = _syncRunning,
+                syncState = _config.SyncState,
+                count = _store?.Count ?? 0,
+                done = _config.OnboardingDone
+            });
+            Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraWizard && window.fanfaraWizard({json})");
+        }
+        catch { }
+    }
+
+    /// <summary>Step "Steam": is Steam open, which account, and can Fanfara read its achievements?</summary>
+    private async System.Threading.Tasks.Task WizardCheckAsync()
+    {
+        bool steam = false;
+        try { steam = System.Diagnostics.Process.GetProcessesByName("steam").Length > 0; } catch { }
+        var r = await new SteamHistory(_config, _store, _games).CheckAsync();
+        string? name = null, avatar = null;
+        if (r.SteamId && _lb.Ready)
+        {
+            try
+            {
+                await _lb.SubmitAsync(_games?.PerfectCount ?? 0, _games?.TotalUnlocked ?? 0);   // makes sure the proxy knows the player
+                var raw = await _lb.FriendsAsync();
+                if (raw != null)
+                {
+                    using var d = JsonDocument.Parse(raw);
+                    if (d.RootElement.TryGetProperty("friends", out var fr) && fr.ValueKind == JsonValueKind.Array)
+                        foreach (var f in fr.EnumerateArray())
+                            if (f.TryGetProperty("you", out var y) && y.ValueKind == JsonValueKind.True)
+                            {
+                                if (f.TryGetProperty("name", out var n)) name = n.GetString();
+                                if (f.TryGetProperty("avatar", out var a)) avatar = a.GetString();
+                                break;
+                            }
+                }
+            }
+            catch { }
+        }
+        var json = JsonSerializer.Serialize(new
+        {
+            steam,
+            account = r.SteamId,
+            name,
+            avatar,
+            privacy = r.Privacy == SteamHistory.Privacy.Public ? "public" : r.Privacy == SteamHistory.Privacy.Private ? "private" : "unknown",
+            games = r.Games
+        });
+        try { if (OnWelcome) Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraWizardCheck && window.fanfaraWizardCheck({json})"); } catch { }
+    }
+
+    /// <summary>The app reports import progress: the guided setup's last step shows it live.</summary>
+    public void PushSyncProgress(int done, int total, int added)
+    {
+        try
+        {
+            if (!OnWelcome) return;
+            var st = JsonSerializer.Serialize(new { running = true, done, total, added });
+            Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraWizardSync && window.fanfaraWizardSync({st})");
+        }
+        catch { }
     }
 
     private bool OnHome => (Web.CoreWebView2?.Source ?? "").Contains("home.html");
@@ -181,6 +266,12 @@ public partial class SettingsWindow : Window
         _syncRunning = running;
         try
         {
+            if (OnWelcome)
+            {
+                var ws = JsonSerializer.Serialize(new { running, state = _config.SyncState, count = _store?.Count ?? 0 });
+                Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraWizardSync && window.fanfaraWizardSync({ws})");
+                return;
+            }
             if (!OnHome) return;
             var st = JsonSerializer.Serialize(new { running, lastSync = _config.LastSyncUtc });
             Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraHomeSync && window.fanfaraHomeSync({st})");
@@ -241,6 +332,66 @@ public partial class SettingsWindow : Window
         try { Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraFriendsAch && window.fanfaraFriendsAch({appid}, {raw})"); } catch { }
     }
 
+    /// <summary>
+    /// «Copy image» / «Post to the showcase» on an opened Collection card: the page hides its buttons and
+    /// tells us where the card is; we snapshot the WebView, crop that area and either put it on the
+    /// clipboard or send it to the Discord showcase through the proxy.
+    /// </summary>
+    private async System.Threading.Tasks.Task CaptureCardAsync(Msg m)
+    {
+        bool ok = false; string? error = null; string mode = m.mode == "share" ? "share" : "copy";
+        try
+        {
+            if (Web.CoreWebView2 == null) throw new InvalidOperationException();
+            using var ms = new MemoryStream();
+            await Web.CoreWebView2.CapturePreviewAsync(Microsoft.Web.WebView2.Core.CoreWebView2CapturePreviewImageFormat.Png, ms);
+            ms.Position = 0;
+            var full = System.Windows.Media.Imaging.BitmapFrame.Create(ms,
+                System.Windows.Media.Imaging.BitmapCreateOptions.PreservePixelFormat, System.Windows.Media.Imaging.BitmapCacheOption.OnLoad);
+
+            // page coordinates (CSS px) -> captured pixels
+            double s = full.PixelWidth / Math.Max(1.0, m.vw ?? full.PixelWidth);
+            int x = (int)Math.Clamp(Math.Round((m.x ?? 0) * s), 0, full.PixelWidth - 1);
+            int y = (int)Math.Clamp(Math.Round((m.y ?? 0) * s), 0, full.PixelHeight - 1);
+            int w = (int)Math.Clamp(Math.Round((m.w ?? full.PixelWidth) * s), 1, full.PixelWidth - x);
+            int h = (int)Math.Clamp(Math.Round((m.h ?? full.PixelHeight) * s), 1, full.PixelHeight - y);
+            System.Windows.Media.Imaging.BitmapSource img =
+                new System.Windows.Media.Imaging.CroppedBitmap(full, new System.Windows.Int32Rect(x, y, w, h));
+            if (img.PixelWidth > 1000)
+            {
+                double k = 1000.0 / img.PixelWidth;
+                img = new System.Windows.Media.Imaging.TransformedBitmap(img, new System.Windows.Media.ScaleTransform(k, k));
+            }
+            img.Freeze();
+
+            var enc = new System.Windows.Media.Imaging.PngBitmapEncoder();
+            enc.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(img));
+            byte[] png;
+            using (var outMs = new MemoryStream()) { enc.Save(outMs); png = outMs.ToArray(); }
+
+            if (mode == "copy")
+            {
+                // Bitmap + "PNG" format: Discord, WhatsApp, Paint and browsers all understand at least one.
+                var data = new System.Windows.DataObject();
+                data.SetImage(img);
+                data.SetData("PNG", new MemoryStream(png));
+                try { System.Windows.Clipboard.SetDataObject(data, true); }
+                catch { System.Windows.Clipboard.SetImage(img); }
+                ok = true;
+            }
+            else
+            {
+                var c = m.card;
+                var card = new CardShare.Card(c?.appid ?? 0, c?.api ?? "", c?.name ?? "", c?.game ?? "", c?.p, c?.unlock ?? 0, c?.side ?? "front");
+                var r = await CardShare.PostAsync(_config, png, card);
+                ok = r.Ok; error = r.Error;
+            }
+        }
+        catch { ok = false; error ??= "capture"; }
+        var res = JsonSerializer.Serialize(new { ok, mode, error });
+        try { Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraCardCaptured && window.fanfaraCardCaptured({res})"); } catch { }
+    }
+
     private async System.Threading.Tasks.Task PushFriends()
     {
         var raw = await _lb.FriendsAsync() ?? "{\"ok\":false}";
@@ -264,9 +415,9 @@ public partial class SettingsWindow : Window
     {
         var items = (_store?.All() ?? new System.Collections.Generic.List<AchievementRecord>())
             .Select(r => new { name = r.Name, game = r.Game, desc = r.Desc, p = r.Percent, unlock = r.Unlock, api = r.Api, appid = r.Appid, icon = r.Icon });
-        // Per-game progress (unlocked / total) for the back of the Collection cards ("58 / 60", "completed 100%").
+        // Per-game progress (unlocked / total), name and minutes played: card backs and the Collection albums.
         var games = (_games?.All() ?? new System.Collections.Generic.List<GameRecord>())
-            .Select(g => new { appid = g.Appid, u = g.Unlocked, t = g.Total });
+            .Select(g => new { appid = g.Appid, u = g.Unlocked, t = g.Total, n = g.Name, h = g.Playtime });
         return JsonSerializer.Serialize(new { theme = _config.Theme, lang = _config.EffectiveLanguage, volume = _config.Volume, items, games });
     }
 
@@ -320,6 +471,31 @@ public partial class SettingsWindow : Window
             {
                 SyncRequested?.Invoke();
             }
+            else if (msg.action == "wz-check")
+            {
+                await WizardCheckAsync();
+            }
+            else if (msg.action == "wz-monitor")
+            {
+                if (!string.IsNullOrEmpty(msg.monitor)) { _config.OverlayMonitor = msg.monitor; _config.Save(); }
+            }
+            else if (msg.action == "wz-done")
+            {
+                _config.OnboardingDone = true; _config.Save();
+                NavigateTo(string.IsNullOrEmpty(msg.page) ? "home.html" : msg.page);
+            }
+            else if (msg.action == "open-privacy")
+            {
+                // Steam's own privacy page, inside the Steam client if possible, else in the browser.
+                try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    { FileName = "steam://openurl/https://steamcommunity.com/my/edit/settings", UseShellExecute = true }); }
+                catch
+                {
+                    try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        { FileName = "https://steamcommunity.com/my/edit/settings", UseShellExecute = true }); }
+                    catch { }
+                }
+            }
             else if (msg.action == "open-profile")
             {
                 var id = _config.ResolvedSteamId();
@@ -333,6 +509,10 @@ public partial class SettingsWindow : Window
             else if (msg.action == "lb-friends")
             {
                 _ = PushFriends();
+            }
+            else if (msg.action == "card-capture")
+            {
+                await CaptureCardAsync(msg);
             }
             else if (msg.action == "feedback")
             {
@@ -473,5 +653,25 @@ public partial class SettingsWindow : Window
         public string? text { get; set; }
         public string? contact { get; set; }
         public bool? attachLog { get; set; }
+        public string? mode { get; set; }
+        public double? x { get; set; }
+        public double? y { get; set; }
+        public double? w { get; set; }
+        public double? h { get; set; }
+        public double? vw { get; set; }
+        public CardMeta? card { get; set; }
+        public string? monitor { get; set; }
+        public string? page { get; set; }
+    }
+
+    private class CardMeta
+    {
+        public uint appid { get; set; }
+        public string? api { get; set; }
+        public string? name { get; set; }
+        public string? game { get; set; }
+        public double? p { get; set; }
+        public long unlock { get; set; }
+        public string? side { get; set; }
     }
 }

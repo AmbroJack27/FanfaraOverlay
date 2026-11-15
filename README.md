@@ -58,6 +58,16 @@ To avoid duplicates, you can disable Steam's default one:
 
 ## ✨ What's included
 
+- **🧭 Guided setup** — on first launch (and once after updating) a step-by-step guide checks that
+  Steam is running and that your achievements are **visible** (if Steam's privacy hides them, it shows
+  exactly which settings to make Public, with a button to Steam's privacy page), lets you **test the
+  notification** and choose the **screen** to show it on, explains how to set games' **display mode**,
+  sets start with Windows, volume and updates, and runs the first import with live progress. You can
+  reopen it any time from the Guide or the tray menu.
+- **🖥️ Multiple screens** — notifications appear on the screen where you're playing (or on the one you
+  choose in the guided setup), not always on the main one.
+- **🔒 Clear privacy warning** — if Steam hides your achievements, the Home shows a fixed red notice
+  with *How to fix it*; notifications keep working and Fanfara retries the import every 30 minutes.
 - **🏠 A Home that's all about you** — one screen with your fanfare, latest unlocks, leaderboard
   rank (World/Friends), rarest cards, the last 7 days and the games closest to 100%. It fits any
   window size and opens sized to your screen.
@@ -79,7 +89,15 @@ To avoid duplicates, you can disable Steam's default one:
   spins and lands in front of you (with a soft sound); **flip it** to see the story of that unlock:
   how many players in 1,000 have it, date and time, its place in your collection, your progress in
   the game, the «completed 100%» ribbon and **which of your Fanfara friends have it — and who got it
-  first**. Paginated too.
+  first**. Two buttons under the opened card: **Copy image** (paste it anywhere with Ctrl+V) and
+  **Post to the showcase**, which posts the card to #bacheca-trofei on the Fanfara Discord server
+  after checking on Steam that the achievement is really yours. The page opens with your **collector
+  level** (rare cards are worth more points); new unlocks since your last visit arrive in a **pack**
+  you tear open; a lit **showcase** holds your 5 rarest cards. Below, **one album per game** (search,
+  sort, Covers or Shelf view): each album is an **old leather-bound book** you open yourself — clasp,
+  gold tooling, sewn binding, cards held by photo corners in unlock order, empty «?» frames for what's
+  missing, a bookplate with cards, completion, **hours played**, rarest and first card, and pages
+  you turn (click, corner or arrow keys). From the showcase, **See it in its album** jumps to the card.
 - **☁️ Automatic Steam import & sync** — the first time, Fanfara **imports all your past Steam
   achievements** (real icons, unlock dates and worldwide rarity) with **no login and no API key to
   enter**. It captures new unlocks live, **refreshes a game as soon as you close it** and runs a full
@@ -150,7 +168,8 @@ verifies) to the Release automatically. No manual compiling.
 - **The single-window UI** — one WebView2 that navigates between `web/home.html` (logo intro +
   Home, fed by `HomeData.cs`), `web/settings.html` (styles & settings, list in `web/styles.js`), `web/history.html` (Cronologia),
   `web/collection.html` (Collezione), `web/classifica.html` (the leaderboard) and `web/guide.html`
-  (the guide). Every page follows the light/dark theme and the chosen language.
+  (the guide), plus `web/welcome.html` (the guided setup: Steam/privacy check, notification test and
+  screen choice, display-mode tips, preferences, first import). Every page follows the light/dark theme and the chosen language.
 - `SteamId.cs` — finds your SteamID64 locally (from Steam's registry keys / `loginusers.vdf`), so
   the import needs nothing from you.
 - `SteamHistory.cs` + `AchievementStore.cs` — the backfill and the local store. They fetch your
@@ -162,6 +181,10 @@ verifies) to the Release automatically. No manual compiling.
   games locally and registers your score through the proxy into a Cloudflare **D1** database; the
   World and Friends rankings just read from it. There is **no per-game server computation**, so no
   Steam rate-limit problems.
+  `GamesStore` (`games.json`) also keeps each game's minutes played, read from Steam during the
+  sync, for the first page of its album in the Collection.
+- `CardShare.cs` — posts a card image to the proxy (`POST /share`); the proxy verifies the unlock on
+  Steam and forwards it to the Discord showcase channel (secret `DISCORD_SHOWCASE_WEBHOOK`).
 - `Feedback.cs` — sends the in-app feedback form to the proxy (`POST /feedback`), which stores it in
   the D1 database (only a one-way hash of the SteamID is kept, for an anonymous daily limit).
 - `Updater.cs` — checks GitHub for a newer Release, **downloads the installer, verifies it against

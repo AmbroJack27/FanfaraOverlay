@@ -36,6 +36,13 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
   .app{position:relative; z-index:1; height:100%; display:flex; flex-direction:column; padding:20px 30px 24px; gap:18px; opacity:0; transition:opacity .5s}
   .app.show{opacity:1}
   .top{display:flex; align-items:center; gap:12px; flex:0 0 auto}
+  /* fixed warning while Steam hides the player's achievements (privacy) */
+  .warnbar{flex:0 0 auto; display:flex; align-items:center; gap:14px; padding:12px 16px; border-radius:16px; background:color-mix(in srgb,#ff6b8b 10%,var(--tileB)); border:1px solid color-mix(in srgb,#ff6b8b 45%,var(--line)); box-shadow:var(--shadow)}
+  .warnbar[hidden]{display:none}
+  .warnbar .wi{flex:0 0 auto; width:34px; height:34px; border-radius:50%; display:grid; place-items:center; font:800 17px var(--display); color:#ff6b8b; background:color-mix(in srgb,#ff6b8b 18%,transparent)}
+  .warnbar .wt{flex:1; min-width:0} .warnbar b{display:block; font:800 14.5px var(--display)} .warnbar span{font-size:13px; color:var(--muted); line-height:1.45}
+  .warnbar button{cursor:pointer; flex:0 0 auto; padding:9px 14px; border-radius:11px; font:700 13px var(--display); border:1px solid var(--line); background:var(--chip); color:var(--fg)}
+  .warnbar button.gold{border:0; color:#1b1405; background:linear-gradient(145deg,#ffe58a,#F5C242)}
   .brand{display:flex; align-items:center; gap:11px} .brand svg{width:28px; height:28px; color:var(--gold); filter:drop-shadow(0 0 10px color-mix(in srgb,var(--gold) 45%,transparent))}
   .brand b{font:800 19px var(--display)}
   .ver{font:700 11px var(--display); color:var(--muted); letter-spacing:.03em; padding:3px 8px; border-radius:999px; background:var(--chip); border:1px solid var(--line)}
@@ -251,6 +258,8 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
       <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     </span>
   </div>
+
+  <div class="warnbar" id="warnbar" hidden><div class="wi">!</div><div class="wt"><b id="wbT"></b><span id="wbS"></span></div><button class="gold" id="wbFix"></button><button id="wbRe"></button></div>
 
   <div class="bento">
     <section class="tile a-style" style="--c:#4C8DFF" data-href="settings.html" tabindex="0">
@@ -506,9 +515,20 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
   }
   var rzT=null; addEventListener('resize',function(){ clearTimeout(rzT); rzT=setTimeout(fitRows,120); });
 
+  // Steam hides this player's achievements: say it clearly until it's fixed (the guided setup explains how).
+  function renderWarn(){
+    var w=$('warnbar'), on=!!(D && D.syncState==='private'), was=!w.hidden;
+    w.hidden=!on;
+    if(on){ $('wbT').textContent=H.privT; $('wbS').textContent=H.privS; $('wbFix').textContent=H.privFix; $('wbRe').textContent=H.privRe; }
+    if(on!==was && typeof fitRows==='function') setTimeout(fitRows,0);
+  }
+  $('wbFix').addEventListener('click',function(){ location.href=withCtx('welcome.html')+'&step=1'; });
+  $('wbRe').addEventListener('click',function(){ doSync(); });
+
   // ---------------- render all ----------------
   function render(){
     var anim=first;
+    renderWarn();
     renderTop(); renderStyle(); renderHistory(); renderCollection(); renderWeek(anim); renderAlmost(anim); renderMe(); renderLead(anim);
     first=false;
   }

@@ -74,6 +74,28 @@ public class SteamHistory
         Log($"giochi posseduti: {games.Count}");
         int added = 0, doneCount = 0, total = games.Count;
 
+        // Probe the most played games first. If Steam hides this player's achievements (profile or
+        // "Game details" not Public — GetOwnedGames may still answer), stop and say so, instead of
+        // importing an empty collection that looks like "nothing to sync".
+        var probe = new List<Game>(games);
+        probe.Sort((a, b) => b.playtime.CompareTo(a.playtime));
+        if (probe.Count > 5) probe.RemoveRange(5, probe.Count - 5);
+        int hidden = 0, answered = 0;
+        foreach (var g in probe)
+        {
+            int n;
+            try { n = await ApplyGameAsync(id, g.appid, g.name ?? "", lang, fresh: false, ct); }
+            catch (OperationCanceledException) { throw; }
+            catch { n = -1; }
+            if (n == Hidden) hidden++;
+            else if (n >= 0) { answered++; added += n; }
+        }
+        if (hidden > 0 && answered == 0)
+        {
+            Log($"Steam nasconde gli obiettivi ({hidden}/{probe.Count} giochi di prova): privacy del profilo -> ProfilePrivate");
+            return Result.ProfilePrivate;
+        }
+
         // Process games with bounded concurrency, collecting any that Steam rate-limited (the proxy
         // returns a non-OK response for those, never a false "0"). Then AUTOMATICALLY retry the failed
         // ones in further rounds with a short cooldown, so a single sync converges on its own — the
@@ -101,6 +123,7 @@ public class SteamHistory
                     try
                     {
                         int n = await ApplyGameAsync(id, game.appid, game.name ?? "", lang, fresh: false, ct);
+                        if (n == Hidden) return;                                   // hidden by privacy: nothing to retry
                         if (n < 0) { failed.Add(game); return; }                 // rate-limited → retry next round
                         System.Threading.Interlocked.Add(ref added, n);
                     }
@@ -122,6 +145,10 @@ public class SteamHistory
         }
         if (pending.Count > 0) Log($"fine con {pending.Count} giochi ancora non risolti (ripresi alla prossima sync)");
 
+        // Hours played, for the first page of each album in the Collection.
+        foreach (var g in games) _games.SetPlaytime(g.appid, g.playtime);
+        _games.Save();
+
         LastAdded = added;
         _config.HistoryImported = true;
         _config.LastSyncUtc = DateTime.UtcNow.ToString("o");
@@ -136,12 +163,16 @@ public class SteamHistory
     /// new, or -1 if Steam refused/failed (rate limit, network) so the caller can retry.
     /// <paramref name="fresh"/> adds a cache-buster so a just-closed game never gets a stale answer.
     /// </summary>
+    /// <summary>ApplyGameAsync result when Steam's privacy settings hide the player's achievements.</summary>
+    private const int Hidden = -2;
+
     private async Task<int> ApplyGameAsync(ulong id, uint appid, string name, string lang, bool fresh, CancellationToken ct)
     {
         string url = $"{Base}/ach?steamid={id}&appid={appid}&l={lang}";
         if (fresh) url += "&t=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var a = await GetJson<AchResp>(url, ct);
         if (a == null || !a.ok) return -1;
+        if (a.@private) return Hidden;   // Steam hides this player's achievements: leave the stores untouched
         if (string.IsNullOrEmpty(name)) name = a.game ?? "";
         int added = 0;
         long last = 0;
@@ -194,9 +225,11 @@ public class SteamHistory
             try { n = await ApplyGameAsync(id, appid, name, lang, fresh: true, ct); }
             catch (OperationCanceledException) { throw; }
             catch (Exception ex) { Log($"gioco {appid}: errore {ex.GetType().Name}"); n = -1; }
+            if (n == Hidden) { Log($"gioco chiuso {appid}: obiettivi nascosti dalla privacy di Steam"); return Result.ProfilePrivate; }
             if (n >= 0)
             {
                 LastAdded = n;
+                await RefreshPlaytimeAsync(id, appid, ct);   // the game was just closed: its hours changed
                 _store.Save();
                 _games.Save();
                 Log($"gioco chiuso {appid} aggiornato — {n} obiettivi nuovi");
@@ -205,6 +238,59 @@ public class SteamHistory
         }
         Log($"gioco chiuso {appid}: Steam non ha risposto, ci pensa la prossima sync completa");
         return Result.Error;
+    }
+
+    /// <summary>Best effort: re-read the minutes played for one game (one call to Steam's owned-games list).</summary>
+    private async Task RefreshPlaytimeAsync(ulong id, uint appid, CancellationToken ct)
+    {
+        try
+        {
+            var owned = await GetJson<OwnedResp>($"{Base}/owned?steamid={id}", ct);
+            if (owned?.games == null) return;
+            foreach (var g in owned.games) if (g.appid == appid) { _games.SetPlaytime(appid, g.playtime); break; }
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { /* hours just stay as they were */ }
+    }
+
+    public enum Privacy { Public, Private, Unknown }
+    public record CheckResult(bool SteamId, Privacy Privacy, int Games);
+
+    /// <summary>
+    /// For the guided setup: can Fanfara read this player's data? Reads the owned games, then asks for the
+    /// achievements of the most played ones WITHOUT touching the local stores. GetOwnedGames can answer even
+    /// when the achievements are hidden (e.g. "Game details: Friends only" and the proxy key's owner is a
+    /// friend), so the achievements are what really decides.
+    /// </summary>
+    public async Task<CheckResult> CheckAsync(CancellationToken ct = default)
+    {
+        ulong id = _config.ResolvedSteamId();
+        if (id == 0) return new CheckResult(false, Privacy.Unknown, 0);
+        if (string.IsNullOrEmpty(Base) || Base.Contains("REPLACE-ME")) return new CheckResult(true, Privacy.Unknown, 0);
+        try
+        {
+            var owned = await GetJson<OwnedResp>($"{Base}/owned?steamid={id}", ct);
+            if (owned == null || !owned.ok) return new CheckResult(true, Privacy.Unknown, 0);
+            if (owned.@private) return new CheckResult(true, Privacy.Private, 0);
+            var games = owned.games ?? new List<Game>();
+            var probe = new List<Game>(games);
+            probe.Sort((a, b) => b.playtime.CompareTo(a.playtime));
+            if (probe.Count > 4) probe.RemoveRange(4, probe.Count - 4);
+            string lang = SteamLang(_config.EffectiveLanguage);
+            int hidden = 0, answered = 0;
+            foreach (var g in probe)
+            {
+                var a = await GetJson<AchResp>($"{Base}/ach?steamid={id}&appid={g.appid}&l={lang}&t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}", ct);
+                if (a == null || !a.ok) continue;
+                if (a.@private) hidden++; else answered++;
+                if (answered > 0) break;
+            }
+            var p = answered > 0 ? Privacy.Public : hidden > 0 ? Privacy.Private : (games.Count == 0 ? Privacy.Public : Privacy.Unknown);
+            Log($"controllo guidato: {games.Count} giochi, obiettivi {(p == Privacy.Public ? "visibili" : p == Privacy.Private ? "nascosti" : "non verificati")}");
+            return new CheckResult(true, p, games.Count);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { return new CheckResult(true, Privacy.Unknown, 0); }
     }
 
     private static async Task<T?> GetJson<T>(string url, CancellationToken ct)
@@ -231,6 +317,7 @@ public class SteamHistory
     private class AchResp
     {
         public bool ok { get; set; }
+        public bool @private { get; set; }  // Steam hides this player's achievements (privacy settings)
         public uint appid { get; set; }
         public string? game { get; set; }
         public int total { get; set; }      // total achievements the game has
