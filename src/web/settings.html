@@ -6,6 +6,9 @@
 <title>Fanfara — Impostazioni</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
 <style>
+  /* app feel: no text selection or image dragging when holding the mouse (fields stay editable) */
+  body{-webkit-user-select:none; user-select:none} img,svg,a{-webkit-user-drag:none} input,textarea,[contenteditable]{-webkit-user-select:text; user-select:text}
+
   /* Pannello unico: tutto in una schermata. Tema chiaro/scuro su #app. */
   #app[data-mode="dark"]{
     --bg:#0b0f18; --panel:#141a28; --panel-2:#1b2235; --panel-3:#222c43;
@@ -510,5 +513,6 @@ $('#inuse').onmouseenter=()=>play($('#inuse'),true);
 // first paint before the host pushes config
 setUILang(window.resolveLang(S.language, (navigator.language||'it')));
 </script>
+<script>document.addEventListener('dragstart',function(e){ var t=e.target; if(!(t && t.closest && t.closest('input,textarea,[contenteditable]'))) e.preventDefault(); });</script>
 </body>
 </html>

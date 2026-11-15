@@ -80,9 +80,12 @@ To avoid duplicates, you can disable Steam's default one:
   Tratto, Piega, Orbita.
 - Game-inspired packs with **original emblems and sounds** (no official logos or audio): Capcom,
   Square-Enix, Microsoft/Xbox, Ubisoft, CD Projekt (The Witcher, Cyberpunk 2077…).
-- **🕒 Cronologia (History)** — a local, searchable log of every achievement you unlock: grouped by
-  day, with a **filter by year**, rarity chips and search, plus a stats summary. Paginated (25 per
-  page) so it stays fast even with thousands of entries.
+- **🕒 Cronologia (History)** — a local **timeline** of every achievement you unlock: one line per
+  unlock with its time and a dot in the rarity colour, while **epic and legendary** ones become big
+  cards with the game's artwork. On top: today's summary, stats and a **16-week calendar** (the more
+  you unlocked, the brighter the day). On the side: the **month calendar** (browse months, click a
+  day to see only that day), the month's rarity mix and its top games. Search, rarity chips and a
+  date filter (last 7 days, this month, a year); days load a week at a time so it stays fast.
 - **🃏 Collezione (Collection)** — your entire Steam achievement catalogue as **trading cards**: a
   metallic frame in the rarity colour, rarity gems, the real icon over the game artwork, and effects
   that grow with rarity (light sweep, holographic foil, sparkles). **Click a card** and it lifts off,

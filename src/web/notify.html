@@ -1554,9 +1554,20 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
   const DEFAULT = { style:"xbox", sound:"classic", position:"bottom-center", durationMs:4200 };
 
   // ---- notification queue: several unlocks at once are shown one after another ----
-  let fanQueue = [], fanBusy = false; const FAN_MAXQ = 6;
+  let fanQueue = [], fanBusy = false, currentIsPreview = false; const FAN_MAXQ = 6;
+  // cut every sound that is playing right now (synth voices and sampled stingers)
+  function stopSound(){
+    if(_master){ try{ _master.disconnect(); }catch(e){} _master = null; }
+    for(const id in fanAudio){ try{ fanAudio[id].pause(); fanAudio[id].currentTime = 0; }catch(e){} }
+  }
   function show(opts){
     if(!opts) return;
+    if(opts.preview){
+      // "Test" pressed again: the new test replaces the one playing (and any waiting) at once,
+      // so tests never pile up and keep playing one after another. Real unlocks are never cut.
+      fanQueue = fanQueue.filter(q => !q.preview);
+      if(current && currentIsPreview){ stopSound(); clearCurrent(); ++seqTok; fanBusy = false; }
+    }
     fanQueue.push(opts);
     if(fanQueue.length > FAN_MAXQ) fanQueue.shift();   // if they pile up, drop the oldest
     if(!fanBusy) pump();
@@ -1570,6 +1581,7 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
   function present(opts){
     const o = Object.assign({}, DEFAULT, opts||{});
     clearCurrent();
+    currentIsPreview = !!o.preview;
     style = o.style; currentSound = o.sound;
     notifVol = (o.volume==null ? 100 : Number(o.volume)) / 100;   // 0..1 master volume
     // Console & Capcom styles come as a package: use their signature sound.
@@ -1597,8 +1609,10 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
     if(!el) return;
     el.classList.remove("enter");
     el.classList.add("leave");
+    const tok = seqTok;
     setTimeout(()=>{
       if(el===current){ el.remove(); current=null; }
+      if(tok!==seqTok) return;   // a newer test already took over
       fanBusy = false;
       if(fanQueue.length) setTimeout(pump, 220);   // brief gap, then the next notification
     }, 580);

@@ -3,6 +3,9 @@
 <title>Classifica Fanfara</title>
 <script>(function(){try{var m=location.search.match(/[?&]theme=(dark|light)/);var t=m?m[1]:(localStorage.getItem('fanfara-theme')||'dark');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <style>
+  /* app feel: no text selection or image dragging when holding the mouse (fields stay editable) */
+  body{-webkit-user-select:none; user-select:none} img,svg,a{-webkit-user-drag:none} input,textarea,[contenteditable]{-webkit-user-select:text; user-select:text}
+
   :root{
     color-scheme: light;
     --bg:#eef1f7; --bg-2:#ffffff; --panel:#ffffff; --panel-2:#f3f6fb;
@@ -313,4 +316,5 @@
   // initial paint from URL (C# then calls fanfaraInit with real data)
   (function(){ setLang(L()); renderMine(); })();
 </script>
+<script>document.addEventListener('dragstart',function(e){ var t=e.target; if(!(t && t.closest && t.closest('input,textarea,[contenteditable]'))) e.preventDefault(); });</script>
 </body></html>

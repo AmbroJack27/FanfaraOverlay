@@ -3,6 +3,9 @@
 <title>Guida Fanfara</title>
 <script>(function(){try{var m=location.search.match(/[?&]theme=(dark|light)/);var t=m?m[1]:(localStorage.getItem('fanfara-theme')||'dark');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <style>
+  /* images and links can't be dragged around (text can still be selected and copied) */
+  img,svg,a{-webkit-user-drag:none}
+
   :root{
     color-scheme: light;
     --bg:#eef1f7; --bg-2:#ffffff; --panel:#ffffff; --panel-2:#f3f6fb;
@@ -121,4 +124,5 @@
 
   render();
 </script>
+<script>document.addEventListener('dragstart',function(e){ var t=e.target; if(!(t && t.closest && t.closest('input,textarea,[contenteditable]'))) e.preventDefault(); });</script>
 </body></html>

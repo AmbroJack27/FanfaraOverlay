@@ -50,9 +50,7 @@ public class WebWindow : Window
             var env = await CoreWebView2Environment.CreateAsync(null, null, opts);
             await _web.EnsureCoreWebView2Async(env);
 
-            _web.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-            _web.CoreWebView2.Settings.IsStatusBarEnabled = false;
-            _web.CoreWebView2.Settings.AreDevToolsEnabled = false;
+            WebLock.Apply(_web);   // no zoom, no F12, no browser shortcuts
 
             _web.CoreWebView2.NavigationCompleted += (_, _) => { _ready = true; Inject(); };
 

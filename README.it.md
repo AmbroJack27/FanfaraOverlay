@@ -82,9 +82,13 @@ Per evitare i doppioni, puoi disattivare quella predefinita di Steam:
   Tratto, Piega, Orbita.
 - Pacchetti ispirati ai giochi con **emblemi e suoni originali** (nessun logo o audio ufficiale):
   Capcom, Square-Enix, Microsoft/Xbox, Ubisoft, CD Projekt (The Witcher, Cyberpunk 2077…).
-- **🕒 Cronologia** — uno storico locale e consultabile di ogni achievement che sblocchi: raggruppato
-  per giorno, con **filtro per anno**, chip di rarità e ricerca, più un riepilogo con le statistiche.
-  Impaginato (25 per pagina) per restare veloce anche con migliaia di obiettivi.
+- **🕒 Cronologia** — una **linea del tempo** locale di ogni achievement che sblocchi: una riga per
+  sblocco con l'ora e un pallino del colore della rarità, mentre gli **epici e leggendari** diventano
+  riquadri grandi con l'immagine del gioco. In alto: il riepilogo di oggi, le statistiche e un
+  **calendario di 16 settimane** (più obiettivi, più il giorno è acceso). A lato: il **calendario del
+  mese** (sfogli i mesi, clicchi un giorno per vedere solo quello), la rarità del mese e i giochi del
+  mese. Ricerca, filtri di rarità e di data (ultimi 7 giorni, questo mese, un anno); i giorni si
+  caricano una settimana alla volta, così resta veloce.
 - **🃏 Collezione** — tutto il tuo catalogo di achievement Steam come **carte da collezione**: cornice
   metallica nel colore della rarità, gemme di rarità, l'icona reale sopra l'immagine del gioco ed
   effetti che crescono con la rarità (riflesso di luce, pellicola olografica, scintille). **Clicca una

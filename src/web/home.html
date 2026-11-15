@@ -5,6 +5,9 @@
 document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
 <style>
+  /* app feel: no text selection or image dragging when holding the mouse (fields stay editable) */
+  body{-webkit-user-select:none; user-select:none} img,svg,a{-webkit-user-drag:none} input,textarea,[contenteditable]{-webkit-user-select:text; user-select:text}
+
   /* ===== Home (Bento). Data arrives from the C# host: fanfaraHome / fanfaraHomeBoard / fanfaraHomeSync ===== */
   :root{
     --bg:#070a12; --tileA:rgba(25,32,52,.86); --tileB:rgba(14,19,32,.92); --soft:rgba(255,255,255,.04); --soft2:rgba(255,255,255,.07);
@@ -27,10 +30,12 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
   body{background:var(--bg); color:var(--fg); font-family:var(--body); -webkit-font-smoothing:antialiased; overflow:hidden; transition:background .35s, color .35s}
   svg{display:block}
   .aurora{position:fixed; inset:0; pointer-events:none; overflow:hidden; opacity:var(--aur); transition:opacity .35s}
-  .aurora i{position:absolute; border-radius:50%; filter:blur(90px); animation:drift 22s ease-in-out infinite}
-  .aurora .x1{width:620px;height:620px;left:-8%;top:-18%;background:radial-gradient(circle,#4C8DFF,transparent 62%)}
-  .aurora .x2{width:560px;height:560px;right:-8%;top:-6%;background:radial-gradient(circle,#B078FF,transparent 62%);animation-delay:-8s}
-  .aurora .x3{width:520px;height:520px;left:30%;bottom:-30%;background:radial-gradient(circle,#F5C242,transparent 64%);opacity:.6;animation-delay:-14s}
+  /* still glow (no blur filter, no drifting): a moving layer behind the page made Windows draw all the
+     text with softer smoothing. Same colours, the soft edge now comes from the gradient itself. */
+  .aurora i{position:absolute; border-radius:50%}
+  .aurora .x1{width:800px;height:800px;left:calc(-8% - 90px);top:calc(-18% - 90px);background:radial-gradient(circle,#4C8DFF,rgb(76 141 255 / .35) 30%,transparent 70%)}
+  .aurora .x2{width:740px;height:740px;right:calc(-8% - 90px);top:calc(-6% - 90px);background:radial-gradient(circle,#B078FF,rgb(176 120 255 / .35) 30%,transparent 70%)}
+  .aurora .x3{width:700px;height:700px;left:calc(30% - 90px);bottom:calc(-30% - 90px);background:radial-gradient(circle,#F5C242,rgb(245 194 66 / .35) 30%,transparent 72%);opacity:.6}
   @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,30px) scale(1.08)}66%{transform:translate(-30px,20px) scale(.95)}}
 
   .app{position:relative; z-index:1; height:100%; display:flex; flex-direction:column; padding:20px 30px 24px; gap:18px; opacity:0; transition:opacity .5s}
@@ -619,4 +624,5 @@ window.FAN_HOME_DEMO=function(){
     {rank:1,name:'Alarion',avatar:'',perfect:30},{rank:2,you:true,name:'AmbroJack',avatar:'',perfect:27},{rank:3,name:'Marco',avatar:'',perfect:11}]}); },1100);
 };
 </script>
+<script>document.addEventListener('dragstart',function(e){ var t=e.target; if(!(t && t.closest && t.closest('input,textarea,[contenteditable]'))) e.preventDefault(); });</script>
 </body></html>

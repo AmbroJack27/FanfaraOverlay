@@ -43,9 +43,7 @@ public partial class OverlayWindow : Window
         var env = await CoreWebView2Environment.CreateAsync(null, null, opts);
         await Web.EnsureCoreWebView2Async(env);
 
-        Web.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-        Web.CoreWebView2.Settings.IsStatusBarEnabled = false;
-        Web.CoreWebView2.Settings.AreDevToolsEnabled = false;
+        WebLock.Apply(Web);   // no zoom, no F12, no browser shortcuts
 
         Web.CoreWebView2.NavigationCompleted += (_, _) =>
         {
@@ -259,7 +257,8 @@ public partial class OverlayWindow : Window
         bool moved = PlaceOn(TargetMonitor());   // "auto" = the screen with Fanfara's own window, when testing from it
         ForceTopmost();
         PulseKeepTop(_config.DurationMs);   // keep on top only while this preview is visible
-        var payload = new { name, desc, percent, style, sound, position, durationMs = _config.DurationMs, volume };
+        // preview = true: pressing "Test" again replaces the running test instead of queueing another one
+        var payload = new { name, desc, percent, style, sound, position, durationMs = _config.DurationMs, volume, preview = true };
         RunShow($"window.fanfara.show({JsonSerializer.Serialize(payload)})", moved);
     }
 

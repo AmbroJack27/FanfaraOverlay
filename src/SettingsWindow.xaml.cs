@@ -112,8 +112,7 @@ public partial class SettingsWindow : Window
         };
         var env = await CoreWebView2Environment.CreateAsync(null, null, opts);
         await Web.EnsureCoreWebView2Async(env);
-        Web.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-        Web.CoreWebView2.Settings.IsStatusBarEnabled = false;
+        WebLock.Apply(Web);   // no zoom, no F12, no browser shortcuts
 
         Web.CoreWebView2.WebMessageReceived += OnWebMessage;
         Web.CoreWebView2.NavigationCompleted += (_, _) => OnNavigated();
