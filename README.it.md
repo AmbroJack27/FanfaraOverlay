@@ -64,7 +64,8 @@ Per evitare i doppioni, puoi disattivare quella predefinita di Steam:
   li nasconde, spiega esattamente quali voci mettere su Pubblico, con un pulsante per la pagina privacy
   di Steam), ti fa **provare la notifica** e scegliere lo **schermo** dove vederla, spiega come impostare
   la **modalità video** dei giochi, imposta avvio con Windows, volume e aggiornamenti, ed esegue la prima
-  importazione mostrando l'avanzamento. Puoi riaprirla quando vuoi dalla Guida o dal menu dell'icona.
+  importazione mostrando l'avanzamento. Puoi riaprirla quando vuoi dal pulsante **Configurazione guidata**
+  in alto nella Home, dalla Guida o dal menu dell'icona.
 - **🖥️ Più schermi** — la notifica compare sullo schermo dove stai giocando (o su quello scelto nella
   configurazione guidata), non sempre su quello principale.
 - **🔒 Avviso privacy chiaro** — se Steam nasconde i tuoi obiettivi, la Home mostra un avviso rosso fisso

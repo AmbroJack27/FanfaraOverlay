@@ -63,7 +63,7 @@ To avoid duplicates, you can disable Steam's default one:
   exactly which settings to make Public, with a button to Steam's privacy page), lets you **test the
   notification** and choose the **screen** to show it on, explains how to set games' **display mode**,
   sets start with Windows, volume and updates, and runs the first import with live progress. You can
-  reopen it any time from the Guide or the tray menu.
+  reopen it any time from the **Guided setup** button at the top of Home, the Guide or the tray menu.
 - **🖥️ Multiple screens** — notifications appear on the screen where you're playing (or on the one you
   choose in the guided setup), not always on the main one.
 - **🔒 Clear privacy warning** — if Steam hides your achievements, the Home shows a fixed red notice
