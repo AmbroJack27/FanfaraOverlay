@@ -68,3 +68,14 @@ jobs:
             Fanfara.zip
             installer_output/FanfaraSetup.exe
             installer_output/FanfaraSetup.exe.sha256
+
+
+      - name: Announce the release on Discord (in Italian)
+        if: startsWith(github.ref, 'refs/tags/')
+        continue-on-error: true
+        env:
+          DISCORD_RELEASE_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: python tools/announce_discord.py
