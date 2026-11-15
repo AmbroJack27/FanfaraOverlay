@@ -43,6 +43,10 @@ public class Leaderboard
     public Task<string?> FriendsAsync(CancellationToken ct = default)
         => Get($"{Base}/lb/friends?steamid={Id}&l={Lang}", ct);
 
+    /// <summary>For one game: which friends who use Fanfara unlocked which achievements, and when. Raw JSON or null.</summary>
+    public Task<string?> FriendsAchAsync(uint appid, CancellationToken ct = default)
+        => Get($"{Base}/lb/friends-ach?steamid={Id}&appid={appid}", ct);
+
     private static async Task<string?> Get(string url, CancellationToken ct)
     {
         try

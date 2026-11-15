@@ -74,17 +74,26 @@ Per evitare i doppioni, puoi disattivare quella predefinita di Steam:
 - **🕒 Cronologia** — uno storico locale e consultabile di ogni achievement che sblocchi: raggruppato
   per giorno, con **filtro per anno**, chip di rarità e ricerca, più un riepilogo con le statistiche.
   Impaginato (25 per pagina) per restare veloce anche con migliaia di obiettivi.
-- **🃏 Collezione** — tutto il tuo catalogo di achievement Steam come **carte collezionabili animate**
-  con icone, descrizioni e rarità reali, ciascuna con una leggera inclinazione 3D. Anch'essa impaginata.
+- **🃏 Collezione** — tutto il tuo catalogo di achievement Steam come **carte da collezione**: cornice
+  metallica nel colore della rarità, gemme di rarità, l'icona reale sopra l'immagine del gioco ed
+  effetti che crescono con la rarità (riflesso di luce, pellicola olografica, scintille). **Clicca una
+  carta**: si solleva, gira in aria e atterra davanti a te (con un suono morbido); **girala** per
+  scoprire la storia di quello sblocco: quanti giocatori su 1.000 ce l'hanno, data e ora, la sua
+  posizione nella tua collezione, il progresso nel gioco, il nastro «completato al 100%» e **quali
+  amici di Fanfara ce l'hanno, e chi è arrivato prima**. Anch'essa impaginata.
 - **☁️ Importazione e sincronizzazione automatica da Steam** — la prima volta Fanfara **importa tutti
   i tuoi achievement passati** (icone reali, date di sblocco e rarità mondiale) **senza login e senza
-  inserire alcuna chiave API**. Si aggiorna periodicamente e cattura i nuovi sblocchi dal vivo, così
-  Cronologia e Collezione restano sempre aggiornate da sole. Funziona tramite un piccolo proxy
-  personale che mantiene privata la chiave API.
+  inserire alcuna chiave API**. Cattura i nuovi sblocchi dal vivo, **aggiorna un gioco appena lo
+  chiudi** e fa un controllo completo ogni 12 ore anche se resta aperta. Funziona tramite un piccolo
+  proxy personale che mantiene privata la chiave API.
 - **🏆 Classifica** — una classifica per **numero di giochi completati al 100%**: i tuoi giochi
   completati come carte, una classifica **Mondiale** pubblica (facoltativa) e una classifica **Amici**
   che ti confronta con gli amici Steam che usano Fanfara. Ogni Fanfara calcola il proprio punteggio
   in locale — niente login, niente da configurare.
+- **💬 Invia feedback** — un pulsante nella Home, nella Guida e nel menu dell'icona vicino
+  all'orologio apre un breve modulo (problema / idea / altro). Arriva direttamente allo sviluppatore
+  con solo la versione di Fanfara, la lingua e la versione di Windows; per i problemi puoi allegare il
+  registro tecnico, ripulito dai dati personali.
 - **5 rarità** che cambiano icona, colore, intensità ed effetti — Comune, Non comune, Raro, Epico,
   Leggendario — e il **Leggendario ha sempre qualcosa in più** ✨.
 - **5 lingue** — Italiano, Inglese, Francese, Tedesco e Spagnolo. L'app segue in automatico la
@@ -159,15 +168,23 @@ l'auto-updater verifica) alla Release. Nessuna compilazione manuale.
   completati al 100% e registra il punteggio tramite il proxy in un database **D1** di Cloudflare; le
   classifiche Mondiale e Amici si limitano a leggerlo. **Nessun calcolo per-gioco lato server**,
   quindi nessun problema di limiti di Steam.
+- `Feedback.cs` — invia il modulo di feedback dell'app al proxy (`POST /feedback`), che lo salva nel
+  database D1 (dello SteamID resta solo un'impronta non reversibile, per un limite giornaliero anonimo).
 - `Updater.cs` — controlla su GitHub se c'è una Release più recente, **scarica l'installer, lo
   verifica con il checksum SHA-256 pubblicato** e solo allora lo esegue (si interrompe se non
   corrisponde).
 - `StartupManager.cs` — avvio con Windows (opzionale). `config.json` — le preferenze, accanto all'exe.
 
 ### Note oneste
-- L'overlay compare sui giochi in modalità **finestra senza bordi** (lo standard di oggi). Solo nel
-  vero *fullscreen esclusivo* potrebbe non apparire — lo stesso limite di ogni overlay simile.
-- I giochi che usano la **Frame Generation** o il **fullscreen esclusivo** possono nascondere qualsiasi overlay esterno. Attiva l'opzione avanzata **“Compatibilità con Frame Generation”** nelle Impostazioni (richiede permessi admin e un riavvio una tantum) per vedere le notifiche anche lì.
+- L'overlay compare sui giochi in modalità **Schermo intero / senza bordi** (lo standard di oggi). In
+  **«Schermo intero esclusivo»** Windows non lascia disegnare nulla sopra il gioco: la fanfara si
+  sente ma non si vede. Soluzione: nelle opzioni video del gioco scegli **«Schermo intero»** senza
+  esclusivo (a volte si chiama «Borderless» o «Finestra senza bordi»). Il gioco usa comunque la
+  frequenza impostata in Windows (es. 165 Hz). Fanfara si accorge quando un gioco era in esclusivo e te
+  lo ricorda quando lo chiudi.
+- Alcuni giochi con **Frame Generation** (DLSS 3, FSR 3) possono nascondere gli overlay esterni anche
+  in «Schermo intero». Attiva l'opzione avanzata **“Compatibilità con Frame Generation”** nelle
+  Impostazioni (richiede permessi admin e un riavvio una tantum) per vedere le notifiche anche lì.
 - I suoni sono **sintetizzati dal vivo** dentro ogni stile: ne definiscono il carattere e potranno
   essere sostituiti con campioni audio registrati in futuro.
 - L'importazione di Cronologia e Collezione legge dati Steam **pubblici**. Se il tuo profilo Steam

@@ -225,6 +225,22 @@ public partial class SettingsWindow : Window
     }
 
     /// <summary>Fetch the friends ranking from the proxy and hand the raw payload to the screen.</summary>
+    // Friends' unlocks per game for the back of the Collection cards. Cached for a while so flipping
+    // through several cards of the same game costs a single proxy call.
+    private readonly System.Collections.Generic.Dictionary<uint, (DateTime at, string json)> _friendsAch = new();
+    private async System.Threading.Tasks.Task PushFriendsAch(uint appid)
+    {
+        string? raw = null;
+        if (_friendsAch.TryGetValue(appid, out var hit) && DateTime.UtcNow - hit.at < TimeSpan.FromMinutes(30)) raw = hit.json;
+        else if (_lb.Ready)
+        {
+            raw = await _lb.FriendsAchAsync(appid);
+            if (raw != null && JsonTrue(raw, "ok")) _friendsAch[appid] = (DateTime.UtcNow, raw);
+        }
+        raw ??= "{\"ok\":false}";
+        try { Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraFriendsAch && window.fanfaraFriendsAch({appid}, {raw})"); } catch { }
+    }
+
     private async System.Threading.Tasks.Task PushFriends()
     {
         var raw = await _lb.FriendsAsync() ?? "{\"ok\":false}";
@@ -248,7 +264,10 @@ public partial class SettingsWindow : Window
     {
         var items = (_store?.All() ?? new System.Collections.Generic.List<AchievementRecord>())
             .Select(r => new { name = r.Name, game = r.Game, desc = r.Desc, p = r.Percent, unlock = r.Unlock, api = r.Api, appid = r.Appid, icon = r.Icon });
-        return JsonSerializer.Serialize(new { theme = _config.Theme, lang = _config.EffectiveLanguage, items });
+        // Per-game progress (unlocked / total) for the back of the Collection cards ("58 / 60", "completed 100%").
+        var games = (_games?.All() ?? new System.Collections.Generic.List<GameRecord>())
+            .Select(g => new { appid = g.Appid, u = g.Unlocked, t = g.Total });
+        return JsonSerializer.Serialize(new { theme = _config.Theme, lang = _config.EffectiveLanguage, volume = _config.Volume, items, games });
     }
 
     /// <summary>Re-send data if the History/Collection screen is currently showing (after a live unlock or sync).</summary>
@@ -314,6 +333,16 @@ public partial class SettingsWindow : Window
             else if (msg.action == "lb-friends")
             {
                 _ = PushFriends();
+            }
+            else if (msg.action == "feedback")
+            {
+                var r = await Feedback.SendAsync(_config, msg.kind ?? "other", msg.text ?? "", msg.contact ?? "", msg.attachLog == true);
+                var res = JsonSerializer.Serialize(new { ok = r.Ok, error = r.Error });
+                try { Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraFeedbackDone && window.fanfaraFeedbackDone({res})"); } catch { }
+            }
+            else if (msg.action == "friends-ach" && msg.appid is uint fa && fa != 0)
+            {
+                _ = PushFriendsAch(fa);
             }
             else if (msg.action == "lb-join")
             {
@@ -439,5 +468,10 @@ public partial class SettingsWindow : Window
         public bool? frameGenFix { get; set; }
         public string? theme { get; set; }
         public string? language { get; set; }
+        public uint? appid { get; set; }
+        public string? kind { get; set; }
+        public string? text { get; set; }
+        public string? contact { get; set; }
+        public bool? attachLog { get; set; }
     }
 }

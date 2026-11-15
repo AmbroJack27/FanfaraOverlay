@@ -1,3 +1,4 @@
+
 # 🎉 Fanfara
 
 <p align="center">
@@ -72,16 +73,25 @@ To avoid duplicates, you can disable Steam's default one:
 - **🕒 Cronologia (History)** — a local, searchable log of every achievement you unlock: grouped by
   day, with a **filter by year**, rarity chips and search, plus a stats summary. Paginated (25 per
   page) so it stays fast even with thousands of entries.
-- **🃏 Collezione (Collection)** — your entire Steam achievement catalogue as **animated trading
-  cards** with real icons, descriptions and rarity, each with a subtle 3D tilt. Paginated too.
+- **🃏 Collezione (Collection)** — your entire Steam achievement catalogue as **trading cards**: a
+  metallic frame in the rarity colour, rarity gems, the real icon over the game artwork, and effects
+  that grow with rarity (light sweep, holographic foil, sparkles). **Click a card** and it lifts off,
+  spins and lands in front of you (with a soft sound); **flip it** to see the story of that unlock:
+  how many players in 1,000 have it, date and time, its place in your collection, your progress in
+  the game, the «completed 100%» ribbon and **which of your Fanfara friends have it — and who got it
+  first**. Paginated too.
 - **☁️ Automatic Steam import & sync** — the first time, Fanfara **imports all your past Steam
   achievements** (real icons, unlock dates and worldwide rarity) with **no login and no API key to
-  enter**. It refreshes periodically and captures new unlocks live, so History and Collection stay
-  current on their own. It works through a tiny personal proxy that keeps the API key private.
+  enter**. It captures new unlocks live, **refreshes a game as soon as you close it** and runs a full
+  check every 12 hours even while it stays open. It works through a tiny personal proxy that keeps
+  the API key private.
 - **🏆 Classifica (Leaderboard)** — a ranking by **number of games completed 100%**: your completed
   games shown as cards, a public **World** board (opt-in) and a **Friends** board that compares you
   with the Steam friends who use Fanfara. Each copy of Fanfara computes its own score locally — no
   login, nothing to configure.
+- **💬 Send feedback** — a button on the Home, in the Guide and in the tray menu opens a short form
+  (problem / idea / other). It goes straight to the developer with only Fanfara's version, language
+  and Windows version; for problems you can attach the technical log, cleaned of personal data.
 - **5 rarity tiers** that change icon, color, intensity and effects — Common, Uncommon, Rare, Epic,
   Legendary — and **Legendary always has something extra** ✨.
 - **5 languages** — English, Italian, French, German and Spanish. The app follows your Windows
@@ -152,14 +162,21 @@ verifies) to the Release automatically. No manual compiling.
   games locally and registers your score through the proxy into a Cloudflare **D1** database; the
   World and Friends rankings just read from it. There is **no per-game server computation**, so no
   Steam rate-limit problems.
+- `Feedback.cs` — sends the in-app feedback form to the proxy (`POST /feedback`), which stores it in
+  the D1 database (only a one-way hash of the SteamID is kept, for an anonymous daily limit).
 - `Updater.cs` — checks GitHub for a newer Release, **downloads the installer, verifies it against
   the published SHA-256 checksum**, and only then runs it (it aborts on a mismatch).
 - `StartupManager.cs` — optional start with Windows. `config.json` — saved preferences, next to the exe.
 
 ### Honest notes
-- The overlay appears over games in **borderless window** mode (today's standard). True *exclusive
-  fullscreen* is the only case where it might not show — the same limit as every similar overlay.
-- Games that use **Frame Generation** or **true exclusive fullscreen** may hide any external overlay. Turn on the **advanced "Frame Generation compatibility"** option in Settings (needs admin rights and a one-time restart) to make notifications show there too.
+- The overlay appears over games in **Fullscreen / borderless** mode (today's standard). In
+  **«Exclusive fullscreen»** Windows lets nothing draw over the game: you hear the fanfare but don't
+  see it. Fix: in the game's video options pick **«Fullscreen»** without exclusive (sometimes called
+  «Borderless»). The game still runs at the refresh rate set in Windows (e.g. 165 Hz). Fanfara
+  notices when a game was in exclusive mode and reminds you when you close it.
+- Some games with **Frame Generation** (DLSS 3, FSR 3) may hide external overlays even in
+  «Fullscreen». Turn on the **advanced "Frame Generation compatibility"** option in Settings (needs
+  admin rights and a one-time restart) to make notifications show there too.
 - Sounds are **synthesized live** inside each style: they define the character and can be swapped
   for recorded audio later.
 - The History/Collection import reads **public** Steam data. If your Steam profile (game details) is

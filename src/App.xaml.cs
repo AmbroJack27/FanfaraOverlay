@@ -69,6 +69,8 @@ public partial class App : System.Windows.Application
         _steam.AchievementUnlocked += (name, percent, desc, appid, api) =>
         {
             _overlay?.Dispatcher.Invoke(() => _overlay.ShowAchievement(name, percent, desc, _config));
+            // A game in true exclusive fullscreen hides every overlay: remember it and explain when the game closes.
+            if (ExclusiveFullscreenNow()) _exclusiveMissed.AddOrUpdate(appid, 1, (_, n) => n + 1);
             // Record the live unlock so it appears in History/Collection even without a full sync.
             try
             {
@@ -91,7 +93,12 @@ public partial class App : System.Windows.Application
         };
         _steam.GameOptimized += () => Dispatcher.Invoke(ShowRestartGameTip);
         // When a game closes, refresh just that game (real icons, rarity, 100% status) — a few calls.
-        _steam.GameClosed += appid => _ = SyncClosedGameAsync(appid);
+        _steam.GameClosed += appid =>
+        {
+            if (_exclusiveMissed.TryRemove(appid, out var missed) && missed > 0)
+                Balloon(Loc.S(_config.EffectiveLanguage, "exclusiveTip"));
+            _ = SyncClosedGameAsync(appid);
+        };
         _steam.Start();
 
         SetupTray();
@@ -121,6 +128,17 @@ public partial class App : System.Windows.Application
     }
 
     private System.Windows.Threading.DispatcherTimer? _syncTimer;
+
+    // --- exclusive fullscreen detection (Windows tells us when a Direct3D app owns the whole screen) ---
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<uint, int> _exclusiveMissed = new();
+    [System.Runtime.InteropServices.DllImport("shell32.dll")]
+    private static extern int SHQueryUserNotificationState(out int state);
+    private const int QUNS_RUNNING_D3D_FULL_SCREEN = 3;
+    private static bool ExclusiveFullscreenNow()
+    {
+        try { return SHQueryUserNotificationState(out var st) == 0 && st == QUNS_RUNNING_D3D_FULL_SCREEN; }
+        catch { return false; }
+    }
 
     private void StartSyncTimer()
     {
@@ -230,6 +248,7 @@ public partial class App : System.Windows.Application
         menu.Items.Add(Loc.S(lang, "collection"), null, (_, _) => ShowSettings("collection.html"));
         menu.Items.Add(Loc.S(lang, "leaderboard"), null, (_, _) => ShowSettings("classifica.html"));
         menu.Items.Add(Loc.S(lang, "syncNow"), null, (_, _) => _ = RunBackfillAsync(manual: true));
+        menu.Items.Add(Loc.S(lang, "feedback"), null, (_, _) => ShowSettings("feedback.html"));
         menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
         menu.Items.Add(Loc.S(lang, "testNotif"), null, (_, _) =>
             _overlay?.ShowPreview(_config.Style, _config.Sound, _config.Position, 0.6,

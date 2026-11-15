@@ -16,6 +16,15 @@
 //      GET /lb/leave?steamid=                     -> leave the public world board (stay visible to friends)
 //      GET /lb/world?steamid=&limit=              -> the public world ranking (+ my rank)
 //      GET /lb/friends?steamid=                    -> my Steam friends who use Fanfara, ranked (private to me)
+//      GET /lb/friends-ach?steamid=&appid=         -> which of those friends unlocked what in ONE game, and when
+//
+// 3) FEEDBACK from the app's «Send feedback» form.
+//      POST /feedback  {kind, text, contact, version, lang, os, log, steamid}
+//      Stored in the D1 table `feedback` (created automatically). The SteamID is NOT stored: only a
+//      one-way hash of it, used to stop accidental floods (max 10 messages a day per person).
+//      Read them in Cloudflare → D1 → your database → Console:  SELECT * FROM feedback ORDER BY id DESC;
+//      If the secret DISCORD_WEBHOOK is set, every message is ALSO posted to that (private) Discord
+//      channel, with the technical log attached as a .txt file.
 //
 // A player's score is their number of games completed 100%, with total unlocked achievements as the
 // tie-breaker. Names/avatars are public Steam data, fetched here when a score is registered.
@@ -30,6 +39,12 @@ const WORLD_MAX = 200;
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname === '/feedback') {
+      if (request.method !== 'POST') return json({ ok: false, error: 'method' }, 405);
+      if (!env.DB) return json({ ok: false, error: 'nodb' }, 503);
+      try { return await feedback(request, env, ctx); }
+      catch (e) { return json({ ok: false, error: 'server' }, 500); }
+    }
     if (request.method !== 'GET') return json({ ok: false, error: 'method' }, 405);
 
     if (url.pathname === '/' || url.pathname === '/health') {
@@ -60,6 +75,11 @@ export default {
         if (url.pathname === '/lb/leave')   return await lbLeave(steamid, env);
         if (url.pathname === '/lb/world')   return await lbWorld(steamid, url, env);
         if (url.pathname === '/lb/friends') return await lbFriends(steamid, env);
+        if (url.pathname === '/lb/friends-ach') {
+          const appid = url.searchParams.get('appid') || '';
+          if (!/^\d{1,8}$/.test(appid)) return json({ ok: false, error: 'appid' }, 400);
+          return await lbFriendsAch(steamid, appid, env);
+        }
       }
 
       return json({ ok: false, error: 'not_found' }, 404);
@@ -110,6 +130,79 @@ async function summaries(ids, env) {
 }
 
 // Public friend list (needs the user's friends list to be public). Returns [] otherwise.
+// ---------------------------------------------------------------------------
+// feedback
+// ---------------------------------------------------------------------------
+
+const FEEDBACK_PER_DAY = 10;
+async function sha16(text) {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(d)].slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function clip(v, n) { return String(v == null ? '' : v).replace(/\u0000/g, '').trim().slice(0, n); }
+
+async function feedback(request, env, ctx) {
+  const len = Number(request.headers.get('content-length') || 0);
+  if (len > 64000) return json({ ok: false, error: 'big' }, 413);
+  let b;
+  try { b = await request.json(); } catch (e) { return json({ ok: false, error: 'json' }, 400); }
+  if (!b || typeof b !== 'object') return json({ ok: false, error: 'json' }, 400);
+
+  const kind = ['bug', 'idea', 'other'].includes(b.kind) ? b.kind : 'other';
+  const text = clip(b.text, 4000);
+  if (text.length < 3) return json({ ok: false, error: 'empty' }, 400);
+
+  // who = anonymous hash (SteamID if known, else the connecting IP) — only for the daily limit
+  const raw = isId(String(b.steamid || '')) ? 'sid:' + b.steamid : 'ip:' + (request.headers.get('cf-connecting-ip') || '');
+  const who = await sha16(raw + ':fanfara-feedback');
+
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS feedback (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, kind TEXT, text TEXT, contact TEXT,
+      version TEXT, lang TEXT, os TEXT, log TEXT, who TEXT)`).run();
+
+  const t = now();
+  const c = await env.DB.prepare('SELECT COUNT(*) AS n FROM feedback WHERE who = ? AND ts > ?').bind(who, t - 86400).first();
+  if (c && c.n >= FEEDBACK_PER_DAY) return json({ ok: false, error: 'limit' }, 429);
+
+  await env.DB.prepare('INSERT INTO feedback (ts, kind, text, contact, version, lang, os, log, who) VALUES (?,?,?,?,?,?,?,?,?)')
+    .bind(t, kind, text, clip(b.contact, 200), clip(b.version, 20), clip(b.lang, 5), clip(b.os, 120), clip(b.log, 30000), who).run();
+
+  // Forward to Discord in the background (the app gets its answer right away).
+  if (env.DISCORD_WEBHOOK) {
+    const job = toDiscord(env.DISCORD_WEBHOOK, {
+      kind, text, contact: clip(b.contact, 200), version: clip(b.version, 20), lang: clip(b.lang, 5),
+      os: clip(b.os, 120), log: clip(b.log, 30000), who
+    }).catch(() => {});
+    if (ctx && ctx.waitUntil) ctx.waitUntil(job); else await job;
+  }
+  return json({ ok: true });
+}
+
+// Posts one feedback as a Discord embed. allowed_mentions is empty so a message can never ping
+// @everyone/@here or anyone else, whatever the user typed.
+async function toDiscord(hook, f) {
+  const look = { bug: ['🐞 Problema', 0xff6b8b], idea: ['💡 Idea', 0xF5C242], other: ['💬 Altro', 0x4C8DFF] }[f.kind] || ['💬 Altro', 0x4C8DFF];
+  const fields = [];
+  if (f.contact) fields.push({ name: 'Contatto', value: f.contact.slice(0, 1000), inline: false });
+  fields.push({ name: 'Versione', value: f.version || '—', inline: true });
+  fields.push({ name: 'Lingua', value: f.lang || '—', inline: true });
+  fields.push({ name: 'Windows', value: f.os || '—', inline: true });
+  const payload = {
+    username: 'Fanfara Feedback',
+    allowed_mentions: { parse: [] },
+    embeds: [{
+      title: look[0], color: look[1],
+      description: f.text.length > 4000 ? f.text.slice(0, 3990) + '…' : f.text,
+      fields, footer: { text: 'utente ' + f.who + (f.log ? ' · registro allegato' : '') },
+      timestamp: new Date().toISOString()
+    }]
+  };
+  const form = new FormData();
+  form.append('payload_json', JSON.stringify(payload));
+  if (f.log) form.append('files[0]', new Blob([f.log], { type: 'text/plain' }), 'registro-fanfara.txt');
+  await fetch(hook, { method: 'POST', body: form });
+}
+
 async function friendIds(steamid, env) {
   const u = `${STEAM}/ISteamUser/GetFriendList/v1/?key=${env.STEAM_KEY}&steamid=${steamid}&relationship=friend&format=json`;
   const j = await fetch(u).then(r => r.json()).catch(() => ({}));
@@ -151,6 +244,12 @@ async function ach(steamid, appid, lang, env) {
   // (503, not a 200). The app then skips this game and retries later, instead of recording a false
   // "0 unlocked" that would corrupt the 100%-completion count. (A genuine "no achievements" game
   // returns HTTP 200 with success:false and is handled below as a real total:0.)
+  // Steam answers HTTP 400 ("Requested app has no stats") for games WITHOUT achievements, and 403 when
+  // it won't share them: both are final answers, not "busy" — report a real total:0 so the app stops
+  // retrying those games on every sync. Only other errors (429 rate limit, 5xx) are retried.
+  if (pr.status === 400 || pr.status === 403) {
+    return json({ ok: true, appid: Number(appid), total: 0, unlocked: 0, achievements: [], nostats: true }, 200, 3600);
+  }
   if (!pr.ok) return json({ ok: false, error: 'rate' }, 503);
 
   const pj = await pr.json().catch(() => ({}));
@@ -258,6 +357,44 @@ async function worldRank(steamid, env) {
 }
 
 // Friends who use Fanfara (i.e. have a registered score), ranked. Needs the user's friends list public.
+// For the back of a Collection card: which of my Steam friends WHO USE FANFARA unlocked achievements
+// in this game, and when. Only Fanfara users (rows in `scores`) are asked — a handful of Steam calls,
+// one per friend — and SteamIDs never leave the server: the app only gets names, avatars and times.
+const FRIENDS_ACH_MAX = 40;   // stays well inside a Worker's sub-request budget
+async function lbFriendsAch(steamid, appid, env) {
+  const ids = await friendIds(steamid, env);
+  if (!ids.length) return json({ ok: true, friendsPrivate: true, friends: [] });
+
+  const known = [];
+  for (let i = 0; i < ids.length; i += 100) {
+    const batch = ids.slice(i, i + 100);
+    const q = 'SELECT steamid,name,avatar FROM scores WHERE steamid IN (' + batch.map(() => '?').join(',') + ')';
+    const res = await env.DB.prepare(q).bind(...batch).all();
+    for (const r of (res.results || [])) known.push(r);
+  }
+  const list = known.slice(0, FRIENDS_ACH_MAX);
+
+  const friends = await Promise.all(list.map(async k => {
+    const u = `${STEAM}/ISteamUserStats/GetPlayerAchievements/v1/?key=${env.STEAM_KEY}&steamid=${k.steamid}&appid=${appid}&format=json`;
+    try {
+      const r = await fetch(u);
+      if (!r.ok) {
+        // 400/403 = doesn't own the game or private profile; anything else = Steam busy (unknown)
+        return { name: k.name, avatar: k.avatar, owns: (r.status === 400 || r.status === 403) ? false : null, ach: {} };
+      }
+      const j = await r.json().catch(() => ({}));
+      const ps = j && j.playerstats;
+      if (!ps || ps.success === false || !Array.isArray(ps.achievements)) return { name: k.name, avatar: k.avatar, owns: false, ach: {} };
+      const ach = {};
+      for (const a of ps.achievements) if (a.achieved === 1) ach[a.apiname] = a.unlocktime || 0;
+      return { name: k.name, avatar: k.avatar, owns: true, ach };
+    } catch (e) {
+      return { name: k.name, avatar: k.avatar, owns: null, ach: {} };
+    }
+  }));
+  return json({ ok: true, friendsPrivate: false, friends });
+}
+
 async function lbFriends(steamid, env) {
   const ids = await friendIds(steamid, env);
   const all = [steamid, ...ids];
