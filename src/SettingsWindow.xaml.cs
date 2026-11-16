@@ -166,6 +166,7 @@ public partial class SettingsWindow : Window
                 volume = _config.Volume,
                 startup = _config.StartWithWindows,
                 checkUpdates = _config.CheckUpdates,
+                shareCollection = _config.ShareCollection,
                 gameFix = _config.GameOverlayFix,
                 prepared = _config.OptimizedCount(),
                 joined = _config.LeaderboardJoined,
@@ -445,6 +446,7 @@ public partial class SettingsWindow : Window
             volume = _config.Volume,
             startup = _config.StartWithWindows,
             checkUpdates = _config.CheckUpdates,
+            shareCollection = _config.ShareCollection,
             gameOverlayFix = _config.GameOverlayFix,
             frameGenFix = _config.FrameGenFix,
             theme = _config.Theme,
@@ -508,6 +510,12 @@ public partial class SettingsWindow : Window
             else if (msg.action == "lb-friends")
             {
                 _ = PushFriends();
+            }
+            else if (msg.action == "coll-friend" && !string.IsNullOrEmpty(msg.friend))
+            {
+                // The Collection page in "friend" mode asks for a friend's collection.
+                var json = await new CollectionShare(_config, _store, _games).FriendAsync(msg.friend);
+                try { Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraFriendColl && window.fanfaraFriendColl({json})"); } catch { }
             }
             else if (msg.action == "card-capture")
             {
@@ -604,6 +612,13 @@ public partial class SettingsWindow : Window
                     StartupManager.Apply(s);
                 }
                 if (msg.checkUpdates is bool u) _config.CheckUpdates = u;
+                if (msg.shareCollection is bool sc && sc != _config.ShareCollection)
+                {
+                    _config.ShareCollection = sc;
+                    var share = new CollectionShare(_config, _store, _games);
+                    if (sc) { _config.CollShareHash = ""; _ = share.UploadAsync(force: true); }
+                    else _ = share.DeleteAsync();
+                }
                 if (msg.language != null) { _config.Language = msg.language; _overlay.ApplyLanguage(); }
                 if (msg.gameOverlayFix is bool g && g != _config.GameOverlayFix)
                 {
@@ -661,6 +676,8 @@ public partial class SettingsWindow : Window
         public CardMeta? card { get; set; }
         public string? monitor { get; set; }
         public string? page { get; set; }
+        public string? friend { get; set; }
+        public bool? shareCollection { get; set; }
     }
 
     private class CardMeta

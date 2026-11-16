@@ -33,6 +33,13 @@
 //      posted once, max 10 cards a day per person (D1 table `shares`, created automatically; only a
 //      one-way hash of the SteamID is stored).
 //
+// 5) FRIENDS' COLLECTIONS: see a Steam friend's Collection (and compare it with yours).
+//      POST /coll/put  {steamid, cards, data}   -> store my collection (data = base64 of the gzipped compact
+//                                                 collection, built and compressed by the app; stored as-is)
+//      POST /coll/del  {steamid}                -> stop sharing: delete my stored collection
+//      GET  /coll/get?steamid=&friend=          -> a friend's collection, ONLY if we are Steam friends
+//      D1 table `collections` (created automatically). /lb/friends also tells how many cards each friend has.
+//
 // A player's score is their number of games completed 100%, with total unlocked achievements as the
 // tie-breaker. Names/avatars are public Steam data, fetched here when a score is registered.
 //
@@ -59,6 +66,12 @@ export default {
       try { return await share(request, env); }
       catch (e) { return json({ ok: false, error: 'server' }, 500); }
     }
+    if (url.pathname === '/coll/put' || url.pathname === '/coll/del') {
+      if (request.method !== 'POST') return json({ ok: false, error: 'method' }, 405);
+      if (!env.DB) return json({ ok: false, error: 'nodb' }, 503);
+      try { return url.pathname === '/coll/put' ? await collPut(request, env) : await collDel(request, env); }
+      catch (e) { return json({ ok: false, error: 'server' }, 500); }
+    }
     if (request.method !== 'GET') return json({ ok: false, error: 'method' }, 405);
 
     if (url.pathname === '/' || url.pathname === '/health') {
@@ -79,6 +92,13 @@ export default {
         const appid = url.searchParams.get('appid') || '';
         if (!/^\d{1,8}$/.test(appid)) return json({ ok: false, error: 'appid' }, 400);
         return await withCache(request, ctx, () => ach(steamid, appid, lang, env));
+      }
+
+      if (url.pathname === '/coll/get') {
+        if (!env.DB) return json({ ok: false, error: 'nodb' }, 503);
+        const friend = url.searchParams.get('friend') || '';
+        if (!isId(friend)) return json({ ok: false, error: 'friend' }, 400);
+        return await collGet(steamid, friend, env);
       }
 
       // ---- leaderboard ----
@@ -348,7 +368,7 @@ async function ach(steamid, appid, lang, env) {
     if (pr.status === 403 || /not public|private/i.test(perr)) {
       return json({ ok: true, appid: Number(appid), total: 0, unlocked: 0, achievements: [], private: true }, 200, 0);
     }
-    return json({ ok: true, appid: Number(appid), total: 0, unlocked: 0, achievements: [], nostats: true }, 200, 3600);
+    return json({ ok: true, appid: Number(appid), total: 0, unlocked: 0, achievements: [], nostats: true, why: String(pr.status) }, 200, 3600);
   }
   if (!pr.ok) return json({ ok: false, error: 'rate' }, 503);
 
@@ -358,7 +378,14 @@ async function ach(steamid, appid, lang, env) {
 
   const ps = pj && pj.playerstats;
   if (!ps || ps.success === false || !Array.isArray(ps.achievements)) {
-    return json({ ok: true, appid: Number(appid), total: 0, unlocked: 0, achievements: [] }, 200, 3600);
+    // Steam can also say "Profile is not public" with HTTP 200 + success:false: that is hidden by
+    // privacy, NOT "no achievements" (never cached, so it updates as soon as the player fixes it).
+    const err = String((ps && ps.error) || '');
+    if (/not public|private/i.test(err)) {
+      return json({ ok: true, appid: Number(appid), total: 0, unlocked: 0, achievements: [], private: true }, 200, 0);
+    }
+    // Anything else: no achievements. Cached briefly only, and the reason is passed on for the app's log.
+    return json({ ok: true, appid: Number(appid), total: 0, unlocked: 0, achievements: [], nostats: true, why: err || 'empty' }, 200, 600);
   }
 
   const pct = {};
@@ -508,15 +535,81 @@ async function lbFriends(steamid, env) {
     for (const r of (res.results || [])) known[r.steamid] = r;
   }
 
+  // how many cards each of them shares (0 = not shared)
+  const cards = {};
+  try {
+    await ensureColl(env);
+    const ids2 = Object.keys(known);
+    for (let i = 0; i < ids2.length; i += 100) {
+      const batch = ids2.slice(i, i + 100);
+      const res = await env.DB.prepare('SELECT steamid,cards FROM collections WHERE steamid IN (' + batch.map(() => '?').join(',') + ')').bind(...batch).all();
+      for (const r of (res.results || [])) cards[r.steamid] = r.cards;
+    }
+  } catch (e) { /* no collections yet: buttons simply don't show */ }
+
   const friends = [];
   for (const id of all) {
     const k = known[id];
     if (!k) continue; // not a Fanfara user (or hasn't registered yet)
-    friends.push({ you: id === steamid, name: k.name, avatar: k.avatar, perfect: k.perfect, total: k.total, ready: true });
+    friends.push({ you: id === steamid, steamid: id, name: k.name, avatar: k.avatar, perfect: k.perfect, total: k.total, cards: cards[id] || 0, ready: true });
   }
   friends.sort((a, b) => (b.perfect - a.perfect) || (b.total - a.total));
   friends.forEach((f, i) => { f.rank = i + 1; });
 
   // friendsPrivate: we couldn't read the friend list (private), so we can only show the user.
   return json({ ok: true, friendsPrivate: ids.length === 0, friends, pending: 0 });
+}
+
+
+// ---------------------------------------------------------------------------
+// friends' collections
+// ---------------------------------------------------------------------------
+
+const COLL_MAX = 3000000;      // characters of base64 (~2.2 MB gzipped): far more than any real collection
+const COLL_MIN_GAP = 60;       // seconds between two uploads from the same player
+
+async function ensureColl(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS collections (
+      steamid TEXT PRIMARY KEY, ts INTEGER NOT NULL, cards INTEGER NOT NULL, data TEXT NOT NULL)`).run();
+}
+
+async function collPut(request, env) {
+  const len = parseInt(request.headers.get('content-length') || '0', 10);
+  if (len > COLL_MAX + 2000) return json({ ok: false, error: 'big' }, 413);
+  const b = await request.json().catch(() => null);
+  if (!b || !isId(String(b.steamid || ''))) return json({ ok: false, error: 'steamid' }, 400);
+  const data = String(b.data || '');
+  if (!data || data.length > COLL_MAX || !/^[A-Za-z0-9+/=]+$/.test(data)) return json({ ok: false, error: 'data' }, 400);
+  const cards = clampInt(b.cards, 0, 1000000);
+  await ensureColl(env);
+  const t = now();
+  const row = await env.DB.prepare('SELECT ts FROM collections WHERE steamid = ?').bind(String(b.steamid)).first();
+  if (row && t - row.ts < COLL_MIN_GAP) return json({ ok: true, throttled: true });
+  await env.DB.prepare('INSERT INTO collections (steamid, ts, cards, data) VALUES (?,?,?,?) ' +
+      'ON CONFLICT(steamid) DO UPDATE SET ts = excluded.ts, cards = excluded.cards, data = excluded.data')
+    .bind(String(b.steamid), t, cards, data).run();
+  return json({ ok: true });
+}
+
+async function collDel(request, env) {
+  const b = await request.json().catch(() => null);
+  if (!b || !isId(String(b.steamid || ''))) return json({ ok: false, error: 'steamid' }, 400);
+  await ensureColl(env);
+  await env.DB.prepare('DELETE FROM collections WHERE steamid = ?').bind(String(b.steamid)).run();
+  return json({ ok: true });
+}
+
+// Only a Steam friend (or the player themself) can read a collection.
+async function collGet(steamid, friend, env) {
+  if (friend !== steamid) {
+    const ids = await friendIds(steamid, env);
+    if (!ids.length) return json({ ok: false, error: 'friendsPrivate' });
+    if (!ids.includes(friend)) return json({ ok: false, error: 'notfriend' });
+  }
+  await ensureColl(env);
+  const row = await env.DB.prepare('SELECT ts, cards, data FROM collections WHERE steamid = ?').bind(friend).first();
+  if (!row) return json({ ok: false, error: 'none' });
+  const sum = await summaries([friend], env).catch(() => ({}));
+  const who = sum[friend] || {};
+  return json({ ok: true, ts: row.ts, cards: row.cards, name: who.name || '', avatar: who.avatar || '', data: row.data });
 }

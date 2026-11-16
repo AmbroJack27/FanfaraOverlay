@@ -110,6 +110,12 @@ To avoid duplicates, you can disable Steam's default one:
   games shown as cards, a public **World** board (opt-in) and a **Friends** board that compares you
   with the Steam friends who use Fanfara. Each copy of Fanfara computes its own score locally — no
   login, nothing to configure.
+- **📚 Friends' collections** — in the Friends board, the **Collection** button opens a friend's
+  collection (showcase, albums, cards) in read-only mode and **compares it with yours**: cards in
+  common, cards you're missing, cards only you have, a "You have it / Missing" badge on every card,
+  your progress under each album and a filter for the games you both own. After each sync Fanfara
+  shares a light copy of your collection that only your Steam friends can read; it's **on by
+  default** and can be turned off in Personalizza (the online copy is then deleted).
 - **💬 Send feedback** — a button on the Home, in the Guide and in the tray menu opens a short form
   (problem / idea / other). It goes straight to the developer with only Fanfara's version, language
   and Windows version; for problems you can attach the technical log, cleaned of personal data.
@@ -186,6 +192,10 @@ verifies) to the Release automatically. No manual compiling.
   Steam rate-limit problems.
   `GamesStore` (`games.json`) also keeps each game's minutes played, read from Steam during the
   sync, for the first page of its album in the Collection.
+- `CollectionShare.cs` — friends' collections. After a sync it sends a compact, gzipped copy of your
+  collection (~100–150 KB for ~1,700 cards) to the proxy (`POST /coll/put`, D1 table `collections`),
+  only if sharing is on and something changed; `GET /coll/get` returns a collection only to a Steam
+  friend of its owner. The Collection page shows it with `collection.html?friend=<SteamID64>`.
 - `CardShare.cs` — posts a card image to the proxy (`POST /share`); the proxy verifies the unlock on
   Steam and forwards it to the Discord showcase channel (secret `DISCORD_SHOWCASE_WEBHOOK`).
 - `Feedback.cs` — sends the in-app feedback form to the proxy (`POST /feedback`), which stores it in

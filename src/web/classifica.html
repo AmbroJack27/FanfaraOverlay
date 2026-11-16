@@ -107,6 +107,15 @@
   .pending-note{ color:var(--faint); font-size:13px; margin-top:12px; max-width:840px }
   @media (max-width:480px){ .games{ grid-template-columns:repeat(auto-fill,minmax(132px,1fr)); gap:12px } }
   @media (prefers-reduced-motion:reduce){ .gcard{ transition:none } .spin{ animation:none } }
+
+  .row .coll{flex:0 0 auto; display:inline-flex; align-items:center; gap:9px; height:44px; padding:0 14px; border-radius:12px; text-decoration:none; color:var(--fg); background:var(--panel-2); border:1px solid var(--line); font:700 13px var(--display); transition:border-color .15s, transform .15s}
+  .row .coll svg{width:18px; height:18px; color:var(--epic,#B078FF)}
+  .row .coll small{display:block; font:600 10.5px var(--body); color:var(--muted)}
+  .row .coll:hover{border-color:#B078FF; transform:translateY(-1px)}
+  .row.hasc{cursor:pointer} .row.hasc:hover{border-color:color-mix(in srgb,#B078FF 45%,var(--line))}
+  .fhint{display:flex; align-items:center; gap:8px; margin:-4px 0 14px; font:600 12.5px var(--body); color:var(--muted)}
+  .fhint i{width:8px; height:8px; border-radius:50%; background:#B078FF}
+  @media (max-width:640px){ .row .coll span{display:none} .row .coll{padding:0 11px} }
 </style></head>
 <body>
 <div class="top"><div class="wrap">
@@ -153,7 +162,8 @@
       friendsTitle:'Classifica amici', friendsBody:'Solo tu vedi questa classifica. Confronta i tuoi giochi al 100% con quelli dei tuoi amici Steam.',
       friendsPrivate:'Per vedere la classifica amici, imposta la tua <b>lista amici</b> di Steam su Pubblico, poi ricarica questa scheda.',
       friendsEmpty:'Nessun amico trovato.', computing:'In calcolo…', pendingNote:'Calcolo in corso per {n} amici — i punteggi compaiono man mano. Riapri la scheda tra poco per aggiornare.',
-      loading:'Carico la classifica…' },
+      loading:'Carico la classifica…',
+      coll:'Collezione', collCards:'{n} carte', collHint:'Clicca un amico per sfogliare la sua collezione e confrontarla con la tua' },
     en:{ back:'Home', sub:'Leaderboard', tabMine:'Your games', tabWorld:'World', tabFriends:'Friends',
       mTitle:'Your 100% games', mSubOne:'{n} game completed — every achievement unlocked.', mSubMany:'{n} games completed — every achievement unlocked.', mSubZero:'No 100% games yet.',
       achOne:'{n} achievement', achMany:'{n} achievements', completed:'completed on',
@@ -166,7 +176,8 @@
       friendsTitle:'Friends leaderboard', friendsBody:'Only you can see this leaderboard. Compare your 100% games with your Steam friends.',
       friendsPrivate:'To see the friends leaderboard, set your Steam <b>friends list</b> to Public, then reload this tab.',
       friendsEmpty:'No friends found.', computing:'Computing…', pendingNote:'Computing {n} friends — scores appear as they finish. Reopen the tab shortly to refresh.',
-      loading:'Loading the leaderboard…' }
+      loading:'Loading the leaderboard…',
+      coll:'Collection', collCards:'{n} cards', collHint:'Click a friend to browse their collection and compare it with yours' }
   };
   var LOCMAP={it:'it-IT',en:'en-GB',fr:'fr-FR',de:'de-DE',es:'es-ES'};
   var LANG='it', S=STR.it, LOCALE='it-IT';
@@ -225,8 +236,13 @@
     var score = (r.ready===false) ? ('<span class="sc">'+S.computing+'</span>')
       : ('<span class="sc">'+(r.perfect==null?0:r.perfect)+'<small>'+S.games100+'</small></span>');
     var rk = (r.rank? r.rank : '·');
-    return '<div class="'+cls+'"><span class="rk">'+rk+'</span>'+av+'<span class="who">'+esc(r.name||'—')+tag+'</span>'+score+'</div>';
+    // a friend who shares their collection: open it (and compare it with yours) in the Collection page
+    var href = (!r.you && r.cards>0 && r.steamid) ? collHref(r) : '';
+    var coll = href ? '<a class="coll" href="'+href+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M9 7h6"/></svg><span>'+esc(S.coll)+'<small>'+esc(S.collCards.replace('{n}',Number(r.cards).toLocaleString(LOCALE)))+'</small></span></a>' : '';
+    return '<div class="'+cls+(href?' hasc':'')+'"'+(href?' data-href="'+href+'"':'')+'><span class="rk">'+rk+'</span>'+av+'<span class="who">'+esc(r.name||'—')+tag+'</span>'+coll+score+'</div>';
   }
+
+  function collHref(r){ return 'collection.html?friend='+encodeURIComponent(r.steamid)+'&name='+encodeURIComponent(r.name||'')+'&theme='+themeNow()+'&lang='+LANG; }
 
   // ---------- WORLD tab ----------
   function renderWorld(data){
@@ -263,7 +279,8 @@
     if(data.friendsPrivate){ el.innerHTML=head+'<div class="info">'+S.friendsPrivate+'</div>'; return; }
     var fr=(data.friends||[]);
     if(fr.length===0){ el.innerHTML=head+'<div class="empty"><div class="big">'+S.friendsEmpty+'</div></div>'; return; }
-    var html=head+'<div class="board">'+fr.map(rankRow).join('')+'</div>';
+    var anyColl=fr.some(function(r){ return !r.you && r.cards>0 && r.steamid; });
+    var html=head+(anyColl?'<div class="fhint"><i></i>'+esc(S.collHint)+'</div>':'')+'<div class="board">'+fr.map(rankRow).join('')+'</div>';
     if(data.pending>0) html+='<div class="pending-note">'+S.pendingNote.replace('{n}',data.pending)+'</div>';
     el.innerHTML=html;
   }
@@ -304,6 +321,7 @@
     if(t==='friends'){ if(!friendsLoaded) renderFriends(null); post({action:'lb-friends'}); startFriendsPoll(); }
   }
   document.querySelectorAll('.tab').forEach(function(b){ b.addEventListener('click',function(){ showTab(b.dataset.tab); }); });
+  document.getElementById('p-friends').addEventListener('click',function(e){ var r=e.target.closest('.row.hasc'); if(r && !e.target.closest('a')) location.href=r.dataset.href; });
 
   document.getElementById('theme').addEventListener('click',function(){
     var dark=themeNow()==='dark';
@@ -314,7 +332,7 @@
   });
 
   // initial paint from URL (C# then calls fanfaraInit with real data)
-  (function(){ setLang(L()); renderMine(); })();
+  (function(){ setLang(L()); renderMine(); if(/[?&]tab=friends/.test(location.search)) showTab('friends'); })();
 </script>
 <script>document.addEventListener('dragstart',function(e){ var t=e.target; if(!(t && t.closest && t.closest('input,textarea,[contenteditable]'))) e.preventDefault(); });</script>
 </body></html>

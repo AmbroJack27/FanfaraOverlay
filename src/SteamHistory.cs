@@ -100,6 +100,7 @@ public class SteamHistory
         // returns a non-OK response for those, never a false "0"). Then AUTOMATICALLY retry the failed
         // ones in further rounds with a short cooldown, so a single sync converges on its own — the
         // user never has to re-sync by hand.
+        _withAch = 0; _noAchWhy.Clear();   // count each game once (the probe above already saw some)
         var pending = new List<Game>(games);
         const int MaxRounds = 6;
         for (int round = 0; round < MaxRounds && pending.Count > 0; round++)
@@ -149,6 +150,18 @@ public class SteamHistory
         foreach (var g in games) _games.SetPlaytime(g.appid, g.playtime);
         _games.Save();
 
+        // Diagnostics: which games have achievements, and why the others have none.
+        string why = string.Join(", ", _noAchWhy.Select(kv => $"{kv.Key}×{kv.Value}"));
+        Log($"giochi con obiettivi: {_withAch}/{games.Count}" + (why.Length > 0 ? $" · senza obiettivi: {why}" : ""));
+        // Steam answered for every game but NONE has achievements, although the player has played:
+        // that is what hidden achievements look like (privacy), not a real empty library. Say so.
+        long played = 0; foreach (var g in games) played += g.playtime;
+        if (games.Count >= 5 && _withAch == 0 && pending.Count == 0 && played > 0 && _store.Count == 0)
+        {
+            Log("nessun gioco con obiettivi visibili: quasi certamente la privacy di Steam -> ProfilePrivate");
+            return Result.ProfilePrivate;
+        }
+
         LastAdded = added;
         _config.HistoryImported = true;
         _config.LastSyncUtc = DateTime.UtcNow.ToString("o");
@@ -166,6 +179,10 @@ public class SteamHistory
     /// <summary>ApplyGameAsync result when Steam's privacy settings hide the player's achievements.</summary>
     private const int Hidden = -2;
 
+    // Per-sync diagnostics: how many games really have achievements, and why the others have none.
+    private int _withAch;
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, int> _noAchWhy = new();
+
     private async Task<int> ApplyGameAsync(ulong id, uint appid, string name, string lang, bool fresh, CancellationToken ct)
     {
         string url = $"{Base}/ach?steamid={id}&appid={appid}&l={lang}";
@@ -173,6 +190,8 @@ public class SteamHistory
         var a = await GetJson<AchResp>(url, ct);
         if (a == null || !a.ok) return -1;
         if (a.@private) return Hidden;   // Steam hides this player's achievements: leave the stores untouched
+        if (a.total > 0) System.Threading.Interlocked.Increment(ref _withAch);
+        else _noAchWhy.AddOrUpdate(a.nostats ? (a.why ?? "?") : "0", 1, (_, n) => n + 1);
         if (string.IsNullOrEmpty(name)) name = a.game ?? "";
         int added = 0;
         long last = 0;
@@ -282,7 +301,7 @@ public class SteamHistory
             {
                 var a = await GetJson<AchResp>($"{Base}/ach?steamid={id}&appid={g.appid}&l={lang}&t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}", ct);
                 if (a == null || !a.ok) continue;
-                if (a.@private) hidden++; else answered++;
+                if (a.@private) hidden++; else if (a.total > 0) answered++;   // a game with 0 achievements proves nothing
                 if (answered > 0) break;
             }
             var p = answered > 0 ? Privacy.Public : hidden > 0 ? Privacy.Private : (games.Count == 0 ? Privacy.Public : Privacy.Unknown);
@@ -322,6 +341,8 @@ public class SteamHistory
         public string? game { get; set; }
         public int total { get; set; }      // total achievements the game has
         public int unlocked { get; set; }   // how many the user has unlocked
+        public bool nostats { get; set; }   // Steam says this game has no achievements (or answered without them)
+        public string? why { get; set; }    // the reason Steam gave, for the log
         public List<Ach>? achievements { get; set; }
     }
     private class Ach

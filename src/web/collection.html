@@ -550,6 +550,33 @@ body.albopen{ overflow:hidden }
 
 .foot-note{ padding-top:26px }
 
+
+/* ===== friend's collection ===== */
+.fbar{display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin:18px 0 16px; padding:14px 18px; border-radius:18px;
+  background:linear-gradient(120deg,color-mix(in srgb,var(--rare) 16%,var(--panel)),var(--panel) 60%); border:1px solid color-mix(in srgb,var(--rare) 35%,var(--line))}
+.fbar .fav{width:52px; height:52px; border-radius:14px; display:grid; place-items:center; font:800 20px var(--display); color:#fff; background:linear-gradient(145deg,#4C8DFF,#8b43e0); box-shadow:0 8px 20px -10px #4C8DFF; flex:0 0 auto}
+.fbar .fwho small{display:block; font:700 10.5px var(--display); letter-spacing:.16em; color:var(--muted)}
+.fbar .fwho b{display:block; font:800 22px/1.15 var(--display)}
+.fbar .fwho em{display:block; font:500 11.5px var(--body); font-style:normal; color:var(--faint); margin-top:2px}
+.fbar .sp{flex:1}
+.fbar .cs{display:inline-flex; flex-direction:column; align-items:center; min-width:96px; padding:8px 12px; border-radius:12px; background:var(--panel-2); border:1px solid var(--line); font:600 11.5px var(--body); color:var(--muted)}
+.fbar .cs b{font:800 20px/1.1 var(--display); color:var(--fg); font-variant-numeric:tabular-nums}
+.fbar .cs.yes b{color:#4ac46a} .fbar .cs.no b{color:#ff8a5c} .fbar .cs.own b{color:#4C8DFF}
+.fbar .onlyc{display:inline-flex; align-items:center; gap:8px; font:600 12.5px var(--body); cursor:pointer; padding:8px 12px; border-radius:10px; background:var(--panel-2); border:1px solid var(--line)}
+.fstate{display:flex; flex-direction:column; align-items:center; gap:14px; padding:60px 20px; text-align:center; color:var(--muted); font-size:14px}
+.fstate p{max-width:520px; margin:0}
+.fstate .spin{width:28px; height:28px; border-radius:50%; border:3px solid color-mix(in srgb,var(--fg) 15%,transparent); border-top-color:var(--gold); animation:fspin .8s linear infinite}
+@keyframes fspin{to{transform:rotate(360deg)}}
+.mc .cmp{position:absolute; z-index:6; bottom:-10px; left:50%; transform:translateX(-50%); display:inline-flex; align-items:center; gap:4px; height:22px; padding:0 8px 0 6px; border-radius:99px; font:800 10.5px var(--display); letter-spacing:.02em; box-shadow:0 4px 10px -4px rgba(0,0,0,.6); pointer-events:none; white-space:nowrap}
+.mc .cmp svg{width:12px; height:12px}
+.mc .cmp.yes{background:#2f9e4f; color:#fff} .mc .cmp.no{background:#3a3f4d; color:#e8ebf3; border:1px dashed #8b93a7}
+.pk .mc .cmp{bottom:-7px; height:18px; padding:0 5px} .pk .mc .cmp span{display:none} .pk .mc .cmp.no{display:none}
+.acv .pg.me{margin-top:4px; color:#9ec2ff} .acv .pg.me i b{background:linear-gradient(90deg,#9ec2ff,#4C8DFF)}
+.acv .pg.me.none{color:rgba(255,255,255,.55); justify-content:center}
+.rv .youhave{margin:8px 8px 0; padding:9px 12px; border-radius:8px; font:700 12.5px var(--display)}
+.rv .youhave.yes{background:color-mix(in srgb,#2f9e4f 22%,transparent); color:#7be09a; border:1px solid color-mix(in srgb,#2f9e4f 55%,transparent)}
+.rv .youhave.no{background:color-mix(in srgb,#8b93a7 14%,transparent); color:var(--muted); border:1px dashed color-mix(in srgb,#8b93a7 50%,transparent)}
+:root:not([data-theme="dark"]) .rv .youhave.yes{color:#1f7a3a}
 </style></head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="sharpen"><feConvolveMatrix order="3" preserveAlpha="true" kernelMatrix="0 -0.45 0 -0.45 2.8 -0.45 0 -0.45 0"/></filter></svg>
@@ -567,6 +594,7 @@ body.albopen{ overflow:hidden }
 
 
 <div class="wrap">
+  <section id="fbar"></section>
   <section id="hd"></section>
   <section id="pack"></section>
   <section id="show"></section>
@@ -765,6 +793,58 @@ body.albopen{ overflow:hidden }
   };
   Object.keys(NSTR).forEach(function(l){ var d=STR[l]; if(!d) return; Object.keys(NSTR[l]).forEach(function(k){ d[k]=NSTR[l][k]; }); });
 
+  // ---- a FRIEND's collection (opened from Classifica → Friends): collection.html?friend=<SteamID64>&name=<name> ----
+  // Same page, read-only, with a comparison against your own cards (which still arrive through fanfaraInit).
+  var FRIEND=(location.search.match(/[?&]friend=(\d{17})(?:&|$)/)||[])[1]||'';
+  var FNAME=''; try{ FNAME=decodeURIComponent((location.search.match(/[?&]name=([^&]*)/)||[])[1]||''); }catch(e){}
+  var MINE=null, MYG={}, FSTATE='wait', FTS=0, ONLYC=false;
+  var FSTR={
+    it:{fBack:'Classifica',fOf:'COLLEZIONE DI',fBoth:'in comune',fMiss:'ti mancano',fOwn:'solo tue',fOnly:'Solo giochi che hai anche tu',fYes:'Ce l’hai',fNo:'Ti manca',
+        title:'La sua collezione',showT:'La vetrina di {n}',showS:'Le sue 5 carte più rare',libT:'I suoi album',rank:'La n° {n} più rara della sua collezione',plSig:'Collezione di {f}',
+        fYou:'Tu',fNoGame:'Non ce l’hai',fHave:'Ce l’hai anche tu · dal {d}',fHaveNot:'Tu non ce l’hai ancora',fUpd:'aggiornata il {d}',
+        fWait:'Carico la collezione di {f}…',fErrNone:'{f} non condivide la sua collezione, oppure non l’ha ancora sincronizzata con la nuova versione di Fanfara.',
+        fErrNotFriend:'Puoi vedere solo le collezioni dei tuoi amici di Steam.',fErrPriv:'Per vedere le collezioni degli amici, la tua lista amici di Steam deve essere pubblica.',
+        fErrNet:'Non riesco a caricare la collezione. Controlla la connessione e riprova.',fRetry:'Riprova'},
+    en:{fBack:'Leaderboard',fOf:'COLLECTION OF',fBoth:'in common',fMiss:'you’re missing',fOwn:'only yours',fOnly:'Only games you have too',fYes:'You have it',fNo:'Missing',
+        title:'Their collection',showT:'{n}’s showcase',showS:'Their 5 rarest cards',libT:'Their albums',rank:'No. {n} rarest in their collection',plSig:'Collection of {f}',
+        fYou:'You',fNoGame:'You don’t have it',fHave:'You have it too · since {d}',fHaveNot:'You don’t have it yet',fUpd:'updated {d}',
+        fWait:'Loading {f}’s collection…',fErrNone:'{f} doesn’t share their collection, or hasn’t synced it with the new Fanfara version yet.',
+        fErrNotFriend:'You can only see the collections of your Steam friends.',fErrPriv:'To see your friends’ collections, your Steam friends list must be public.',
+        fErrNet:'Couldn’t load the collection. Check your connection and try again.',fRetry:'Try again'},
+    fr:{fBack:'Classement',fOf:'COLLECTION DE',fBoth:'en commun',fMiss:'te manquent',fOwn:'rien qu’à toi',fOnly:'Seulement les jeux que tu as aussi',fYes:'Tu l’as',fNo:'Te manque',
+        title:'Sa collection',showT:'La vitrine de {n}',showS:'Ses 5 cartes les plus rares',libT:'Ses albums',rank:'N° {n} des plus rares de sa collection',plSig:'Collection de {f}',
+        fYou:'Toi',fNoGame:'Tu ne l’as pas',fHave:'Tu l’as aussi · depuis le {d}',fHaveNot:'Tu ne l’as pas encore',fUpd:'mise à jour le {d}',
+        fWait:'Chargement de la collection de {f}…',fErrNone:'{f} ne partage pas sa collection, ou ne l’a pas encore synchronisée avec la nouvelle version de Fanfara.',
+        fErrNotFriend:'Tu peux voir seulement les collections de tes amis Steam.',fErrPriv:'Pour voir les collections de tes amis, ta liste d’amis Steam doit être publique.',
+        fErrNet:'Impossible de charger la collection. Vérifie ta connexion et réessaie.',fRetry:'Réessayer'},
+    de:{fBack:'Rangliste',fOf:'SAMMLUNG VON',fBoth:'gemeinsam',fMiss:'fehlen dir',fOwn:'nur deine',fOnly:'Nur Spiele, die du auch hast',fYes:'Hast du',fNo:'Fehlt dir',
+        title:'Seine Sammlung',showT:'Vitrine von {n}',showS:'Die 5 seltensten Karten',libT:'Alben',rank:'Nr. {n} der seltensten in dieser Sammlung',plSig:'Sammlung von {f}',
+        fYou:'Du',fNoGame:'Hast du nicht',fHave:'Hast du auch · seit {d}',fHaveNot:'Hast du noch nicht',fUpd:'aktualisiert am {d}',
+        fWait:'Sammlung von {f} wird geladen…',fErrNone:'{f} teilt die Sammlung nicht oder hat sie noch nicht mit der neuen Fanfara-Version synchronisiert.',
+        fErrNotFriend:'Du kannst nur die Sammlungen deiner Steam-Freunde sehen.',fErrPriv:'Damit du die Sammlungen deiner Freunde siehst, muss deine Steam-Freundesliste öffentlich sein.',
+        fErrNet:'Die Sammlung konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.',fRetry:'Erneut versuchen'},
+    es:{fBack:'Clasificación',fOf:'COLECCIÓN DE',fBoth:'en común',fMiss:'te faltan',fOwn:'solo tuyas',fOnly:'Solo juegos que también tienes',fYes:'La tienes',fNo:'Te falta',
+        title:'Su colección',showT:'La vitrina de {n}',showS:'Sus 5 cartas más raras',libT:'Sus álbumes',rank:'N.º {n} más raro de su colección',plSig:'Colección de {f}',
+        fYou:'Tú',fNoGame:'No lo tienes',fHave:'Tú también la tienes · desde el {d}',fHaveNot:'Todavía no la tienes',fUpd:'actualizada el {d}',
+        fWait:'Cargando la colección de {f}…',fErrNone:'{f} no comparte su colección, o aún no la ha sincronizado con la nueva versión de Fanfara.',
+        fErrNotFriend:'Solo puedes ver las colecciones de tus amigos de Steam.',fErrPriv:'Para ver las colecciones de tus amigos, tu lista de amigos de Steam debe ser pública.',
+        fErrNet:'No se pudo cargar la colección. Revisa tu conexión e inténtalo de nuevo.',fRetry:'Reintentar'}
+  };
+  function friendStrings(){ var f=FSTR[LANG]||FSTR.en, o={}; Object.keys(f).forEach(function(k){ o[k]=f[k].replace('{f}',FNAME||'?').replace('{n}', k==='showT'?(FNAME||'?'):'{n}'); }); return o; }
+  function requestFriend(){ FSTATE='wait'; renderAll(); try{ window.chrome.webview.postMessage(JSON.stringify({action:'coll-friend', friend:FRIEND})); }catch(e){} }
+  // The app answers with the friend's collection: { ok, name, avatar, ts, items, games } or { ok:false, error }.
+  window.fanfaraFriendColl=function(p){
+    try{
+      if(!p || !p.ok){ FSTATE=(p && p.error) || 'net'; renderAll(); return; }
+      if(p.name) FNAME=p.name;
+      FTS=p.ts||0; FSTATE='ok'; S=Object.assign({},STR[LANG]||STR.en,friendStrings());
+      loadCards(p);
+      if(busy()){ PENDING=true; count(); return; }
+      renderAll();
+    }catch(e){}
+  };
+  function cmpOf(c){ return MINE ? (MINE[c.key]!==undefined) : null; }
+
   var REDUCE=false; try{ REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
   var activeCard=null;
   function resetCard(card){
@@ -827,7 +907,9 @@ body.albopen{ overflow:hidden }
     if(c.p!=null) h+='<div class="row">'+ico('gem')+'<div>'+esc(S.rank.replace('{n}',fmtN(rank)))+'<em>'+esc(S.rankOf.replace('{n}',fmtN(CARDS.length)))+'</em></div></div>';
     if(g && g.t>0) h+='<div class="row">'+ico('pad')+'<div style="flex:1;min-width:0">'+esc(S.prog.replace('{g}',c.game).replace('{u}',fmtN(Math.min(g.u,g.t))).replace('{t}',fmtN(g.t)))
       +'<div class="prog"><i style="width:'+Math.min(100,Math.round(g.u/g.t*100))+'%"></i></div></div></div>';
-    h+='<div class="frw" data-app="'+(c.appid||0)+'">'+friendsRow(c)+'</div>';
+    if(FRIEND){ var mu=MINE?MINE[c.key]:undefined;
+      if(MINE) h+='<div class="youhave '+(mu!==undefined?'yes':'no')+'">'+(mu!==undefined?esc(S.fHave.replace('{d}',mu?fmtDay(mu):'—')):esc(S.fHaveNot))+'</div>'; }
+    else h+='<div class="frw" data-app="'+(c.appid||0)+'">'+friendsRow(c)+'</div>';
     h+='</div></div>'+fx(c);
     return h;
   }
@@ -861,6 +943,7 @@ body.albopen{ overflow:hidden }
       el.innerHTML=friendsRow(cur.c); }); }
   };
   function askFriends(c){
+    if(FRIEND) return;   // a friend's card: no "friends who have it" row
     if(!HOST || !c.appid || !c.api || FRIENDS[c.appid]!==undefined) return;
     try{ window.chrome.webview.postMessage(JSON.stringify({action:'friends-ach', appid:c.appid})); }catch(e){}
   }
@@ -1012,6 +1095,7 @@ body.albopen{ overflow:hidden }
   };
 
   function setLang(l){ LANG=STR[l]?l:'en'; S=STR[LANG]||STR.en; TL=TIERLAB[LANG]||TIERLAB.en; LF=LABF[LANG]||LABF.en; LOCALE=LOCMAP[LANG]||'en-GB';
+    if(FRIEND) S=Object.assign({},S,friendStrings());
     document.documentElement.lang=LANG;
     byId('s-sub').textContent=S.sub; byId('foot').textContent=S.foot;
     byId('empty-big').textContent=S.emptyBig; byId('empty-sub').textContent=S.emptySub;
@@ -1020,6 +1104,10 @@ body.albopen{ overflow:hidden }
   function updateBack(){
     var t=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';
     byId('back').setAttribute('href','home.html?home=1&theme='+t+'&lang='+LANG);
+    if(FRIEND){   // back to the friends leaderboard
+      byId('back').setAttribute('href','classifica.html?tab=friends&theme='+t+'&lang='+LANG);
+      byId('back').innerHTML='‹ '+esc(S.fBack||'');
+    }
   }
 
   window.fanfaraInit=function(payload){
@@ -1027,6 +1115,19 @@ body.albopen{ overflow:hidden }
       if(payload.theme==='dark') document.documentElement.setAttribute('data-theme','dark');
       else if(payload.theme==='light') document.documentElement.removeAttribute('data-theme');
       setLang(payload.lang||'it');
+      if(typeof payload.volume==='number') VOL=Math.max(0,Math.min(100,payload.volume))/100;
+      if(FRIEND){   // friend mode: this is MY data, used only for the comparison
+        MINE={}; (payload.items||[]).forEach(function(r){ MINE[(r.appid||0)+'|'+(r.api||r.name||'')]=r.unlock||0; });
+        MYG={}; (payload.games||[]).forEach(function(g){ if(g && g.appid) MYG[g.appid]={u:g.u||0,t:g.t||0}; });
+        if(FSTATE==='ok'){ if(busy()){ PENDING=true; return; } }
+        renderAll(); return;
+      }
+      loadCards(payload);
+      if(busy()){ PENDING=true; count(); return; }   // a card, an album or the pack is open: refresh when it closes
+      renderAll();
+    }catch(e){}
+  };
+  function loadCards(payload){
       CARDS=(payload.items||[]).map(function(r){
         var col=colorFor(r.game); var ti=tierIdx(r.p==null?null:r.p);
         return { name:r.name||'', game:r.game||'', desc:r.desc||'', p:(r.p==null?null:r.p), unlock:r.unlock||0, icon:r.icon||'', appid:r.appid||0, key:(r.appid||0)+'|'+(r.api||r.name||''), api:r.api||'',
@@ -1038,12 +1139,8 @@ body.albopen{ overflow:hidden }
       GAMES={}; (payload.games||[]).forEach(function(g){ if(g && g.appid) GAMES[g.appid]={u:g.u||0, t:g.t||0, h:g.h||0, n:g.n||''}; });
       var lastBy={}; CARDS.forEach(function(c){ if(c.appid && c.unlock>(lastBy[c.appid]||0)) lastBy[c.appid]=c.unlock; });
       CARDS.forEach(function(c){ var g=GAMES[c.appid]; c.done=!!(g && g.t>0 && g.u>=g.t && c.unlock && c.unlock===lastBy[c.appid]); });
-      if(typeof payload.volume==='number') VOL=Math.max(0,Math.min(100,payload.volume))/100;
       buildSets();
-      if(busy()){ PENDING=true; count(); return; }   // a card, an album or the pack is open: refresh when it closes
-      renderAll();
-    }catch(e){}
-  };
+  }
   function busy(){ return !!(cur || A.set || PACKBUSY); }
   function flush(){ if(PENDING && !busy()){ PENDING=false; renderAll(); } }
 
@@ -1066,18 +1163,43 @@ body.albopen{ overflow:hidden }
     byId('count').innerHTML=fmtN(CARDS.length)+' '+S.cards+' · <b>'+fmtN(leg)+' '+S.leg+'</b>';
   }
   function renderAll(){
+    if(FRIEND && renderFriendBar()) return;
     count();
     var has=CARDS.length>0;
     byId('empty').className=has?'empty':'empty show';
     ['hd','pack','show','lib','foot'].forEach(function(id){ byId(id).style.display=has?'':'none'; });
     if(!has) return;
-    renderHeader(); renderPack(); renderShow(); renderLib();
+    renderHeader(); if(FRIEND) byId('pack').innerHTML=''; else renderPack(); renderShow(); renderLib();
   }
+
+  // Friend mode: the bar on top (who, comparison numbers, filter). Returns true while there is nothing else to show.
+  function renderFriendBar(){
+    var bar=byId('fbar'), ini=esc(((FNAME||'?').trim()[0]||'?').toUpperCase());
+    if(FSTATE!=='ok'){
+      ['hd','pack','show','lib','foot'].forEach(function(id){ byId(id).style.display='none'; }); byId('empty').className='empty'; byId('count').style.display='none';
+      var msg = FSTATE==='wait' ? S.fWait : FSTATE==='none' ? S.fErrNone : FSTATE==='notfriend' ? S.fErrNotFriend : FSTATE==='friendsPrivate' ? S.fErrPriv : S.fErrNet;
+      bar.innerHTML='<div class="fbar"><span class="fav">'+ini+'</span><div class="fwho"><small>'+esc(S.fOf)+'</small><b>'+esc(FNAME||'—')+'</b></div></div>'
+        +'<div class="fstate">'+(FSTATE==='wait'?'<span class="spin"></span>':'')+'<p>'+esc(msg)+'</p>'+(FSTATE!=='wait'?'<button class="btn-gold" id="fRetry">'+esc(S.fRetry)+'</button>':'')+'</div>';
+      var rb=byId('fRetry'); if(rb) rb.onclick=requestFriend;
+      return true;
+    }
+    byId('count').style.display='';
+    var both=0, fk={}; CARDS.forEach(function(c){ fk[c.key]=1; if(MINE && MINE[c.key]!==undefined) both++; });
+    var own=0; if(MINE) Object.keys(MINE).forEach(function(k){ if(!fk[k]) own++; });
+    bar.innerHTML='<div class="fbar"><span class="fav">'+ini+'</span><div class="fwho"><small>'+esc(S.fOf)+'</small><b>'+esc(FNAME||'—')+'</b>'
+      +(FTS?'<em>'+esc(S.fUpd.replace('{d}',fmtDay(FTS)))+'</em>':'')+'</div><div class="sp"></div>'
+      +(MINE?'<span class="cs yes"><b>'+fmtN(both)+'</b>'+esc(S.fBoth)+'</span><span class="cs no"><b>'+fmtN(CARDS.length-both)+'</b>'+esc(S.fMiss)+'</span><span class="cs own"><b>'+fmtN(own)+'</b>'+esc(S.fOwn)+'</span>'
+        +'<label class="onlyc"><input type="checkbox" id="onlyC"'+(ONLYC?' checked':'')+'> '+esc(S.fOnly)+'</label>':'')+'</div>';
+    var oc=byId('onlyC'); if(oc) oc.onchange=function(){ ONLYC=this.checked; renderList(); };
+    return false;
+  }
+  function fmtDay(ep){ try{ return new Date(ep*1000).toLocaleDateString(LOCALE,{day:'numeric',month:'short',year:'numeric'}); }catch(e){ return ''; } }
 
   // A small card is the real card (224 px wide) scaled down to the size it needs.
   function mini(c,key,w,cls){
     var st=w?' style="width:'+w+'px;--k:'+(w/224).toFixed(4)+'"':'';
-    return '<div class="mc'+(cls||'')+'" data-i="'+c.idx+'"'+st+'><div class="ccard sm tier-'+c.tier+'">'+face(c,key)+'</div></div>';
+    var y=FRIEND?cmpOf(c):null, badge = y===null ? '' : '<span class="cmp '+(y?'yes':'no')+'">'+(y?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg><span>'+esc(S.fYes)+'</span>':'<span>'+esc(S.fNo)+'</span>')+'</span>';
+    return '<div class="mc'+(cls||'')+'" data-i="'+c.idx+'"'+st+'><div class="ccard sm tier-'+c.tier+'">'+face(c,key)+'</div>'+badge+'</div>';
   }
 
   // ---- collector header ----
@@ -1158,12 +1280,13 @@ body.albopen{ overflow:hidden }
     renderList();
   }
   function renderList(){
-    var qq=QUERY.trim().toLowerCase(), list=sortedSets().filter(function(s){ return !qq || s.name.toLowerCase().indexOf(qq)>=0; }), box=byId('libList');
+    var qq=QUERY.trim().toLowerCase(), list=sortedSets().filter(function(s){ return (!qq || s.name.toLowerCase().indexOf(qq)>=0) && !(FRIEND && ONLYC && !MYG[s.appid]); }), box=byId('libList');
     if(!list.length){ box.innerHTML='<div class="lib-empty">'+esc(S.libEmpty)+'</div>'; return; }
     if(VIEW!=='shelf'){
       box.innerHTML='<div class="covers">'+list.map(function(s){
         return '<div class="acv" data-a="'+s.appid+'" style="'+lvars(s)+'"><div class="br gold-t">FANFARA</div><div class="im">'+gart(s.appid,true)+'</div>'
           +'<div class="nm gold-t">'+esc(s.name)+'</div><div class="pg"><i><b style="width:'+Math.round(s.u/s.t*100)+'%"></b></i>'+fmtN(s.u)+'/'+fmtN(s.t)+'</div>'
+          +(FRIEND && MINE ? (MYG[s.appid] ? '<div class="pg me">'+esc(S.fYou)+' <i><b style="width:'+Math.round(MYG[s.appid].u/Math.max(1,MYG[s.appid].t)*100)+'%"></b></i>'+fmtN(MYG[s.appid].u)+'/'+fmtN(MYG[s.appid].t)+'</div>' : '<div class="pg me none">'+esc(S.fNoGame)+'</div>') : '')
           +(s.done?'<div class="ws">'+TROPHY+'</div>':'')+'</div>'; }).join('')+'</div>';
       return;
     }
@@ -1297,6 +1420,7 @@ body.albopen{ overflow:hidden }
   function toast(msg, err){ toastEl.textContent=msg; toastEl.classList.toggle('err',!!err); toastEl.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ toastEl.classList.remove('on'); }, err?6000:3800); }
   function canShare(c){ return !!(c && c.appid && c.api && c.api.indexOf('live:')!==0); }
   function setupActs(c){
+    copyBtn.style.display=shareBtn.style.display=FRIEND?'none':'';
     copyBtn.querySelector('span').textContent=S.copy; shareBtn.querySelector('span').textContent=S.share;
     shareBtn.disabled=!canShare(c); shareBtn.title=canShare(c)?'':S.noShare;
     document.getElementById('askYes').textContent=S.shareYes; document.getElementById('askNo').textContent=S.cancel; document.getElementById('askT').textContent=S.shareQ;
@@ -1352,6 +1476,8 @@ body.albopen{ overflow:hidden }
   window.addEventListener('resize',function(){ if(!cur) return; var a=cur.fly.animate([{transform:centre()}],{duration:1, fill:'forwards'});
     a.onfinish=function(){ try{ a.commitStyles(); }catch(e){} a.cancel(); }; });
 
+
+  if(FRIEND){ document.body.classList.add('friendmode'); setTimeout(requestFriend, 0); }
 
   function toggleTheme(){
     var root=document.documentElement, dark=root.getAttribute('data-theme')==='dark';

@@ -225,6 +225,8 @@
         <label class="switch"><input type="checkbox" id="startup"><span class="slider"></span></label></div>
       <div class="toggle"><div><b id="updatesT">Controlla aggiornamenti all'avvio</b><small id="updatesS">Avvisa quando esce una nuova versione su GitHub.</small></div>
         <label class="switch"><input type="checkbox" id="updates"><span class="slider"></span></label></div>
+      <div class="toggle"><div><b id="shareT">Condividi la mia collezione con gli amici</b><small id="shareS">Gli amici di Steam che usano Fanfara possono sfogliare la tua Collezione e confrontarla con la loro.</small></div>
+        <label class="switch"><input type="checkbox" id="share"><span class="slider"></span></label></div>
       <div class="toggle"><div><b id="gamefixT">Mostra le notifiche nei giochi a schermo intero</b><small id="gamefixS">Prepara i giochi perché le notifiche compaiano anche in gioco (consigliato).</small></div>
         <label class="switch"><input type="checkbox" id="gamefix"><span class="slider"></span></label></div>
       <div class="toggle"><div><b id="framegenT">Compatibilità con Frame Generation (avanzato)</b><small id="framegenS">Fa comparire le notifiche anche nei giochi con Frame Generation o fullscreen esclusivo. Richiede permessi admin e un riavvio del PC.</small></div>
@@ -267,7 +269,7 @@ let LANG='it';
 let U=FAN_I18N.ui.it;        // current UI strings
 let POSLAB=FAN_I18N.pos.it;  // current position labels
 
-const S={style:'on', sound:'classic', position:'bottom-center', duration:4200, volume:100, startup:false, updates:true, gamefix:true, framegen:false, theme:'dark', view:'cats', q:'', language:'auto', osLang:''};
+const S={style:'on', sound:'classic', position:'bottom-center', duration:4200, volume:100, startup:false, updates:true, share:true, gamefix:true, framegen:false, theme:'dark', view:'cats', q:'', language:'auto', osLang:''};
 let savedStyle=null;   // style last saved (from the host config or the Save button)
 const $=s=>document.querySelector(s);
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -290,6 +292,7 @@ function applyI18n(){
   $('#startupS').textContent=U.startupS;
   $('#updatesT').textContent=U.updatesT;
   $('#updatesS').textContent=U.updatesS;
+  if(U.shareT){ $('#shareT').textContent=U.shareT; $('#shareS').textContent=U.shareS; }
   $('#gamefixT').textContent=U.gamefixT;
   $('#gamefixS').textContent=U.gamefixS;
   $('#framegenT').textContent=U.framegenT;
@@ -466,6 +469,7 @@ window.initSettings = cfg => {
   if(typeof cfg.volume==='number') S.volume=cfg.volume;
   if(typeof cfg.startup==='boolean') S.startup=cfg.startup;
   if(typeof cfg.checkUpdates==='boolean') S.updates=cfg.checkUpdates;
+  if(typeof cfg.shareCollection==='boolean') S.share=cfg.shareCollection;
   if(typeof cfg.gameOverlayFix==='boolean') S.gamefix=cfg.gameOverlayFix;
   if(typeof cfg.frameGenFix==='boolean') S.framegen=cfg.frameGenFix;
   if(cfg.theme) S.theme=cfg.theme;
@@ -477,6 +481,7 @@ window.initSettings = cfg => {
   $('#vol').value=S.volume; $('#volv').textContent=S.volume+'%';
   $('#startup').checked=S.startup;
   $('#updates').checked=S.updates;
+  $('#share').checked=S.share;
   $('#gamefix').checked=S.gamefix;
   $('#framegen').checked=S.framegen;
   setUILang(window.resolveLang(S.language, S.osLang));
@@ -487,6 +492,7 @@ $('#dur').oninput=()=>{ S.duration=Math.round(parseFloat($('#dur').value||'4.2')
 $('#vol').oninput=()=>{ S.volume=parseInt($('#vol').value||'100',10); $('#volv').textContent=S.volume+'%'; };
 $('#startup').onchange=()=>{ S.startup=$('#startup').checked; };
 $('#updates').onchange=()=>{ S.updates=$('#updates').checked; };
+$('#share').onchange=()=>{ S.share=$('#share').checked; };
 $('#gamefix').onchange=()=>{ S.gamefix=$('#gamefix').checked; };
 $('#framegen').onchange=()=>{ S.framegen=$('#framegen').checked;
   send({action:'framegen', frameGenFix:S.framegen}); };
@@ -497,7 +503,7 @@ $('#lang').onchange=()=>{ S.language=$('#lang').value;
   setUILang(window.resolveLang(S.language, S.osLang));
   send({action:'language', language:S.language}); };
 
-function vals(){ return {style:S.style, position:S.position, duration:S.duration, volume:S.volume, startup:S.startup, checkUpdates:S.updates, gameOverlayFix:S.gamefix, language:S.language}; }
+function vals(){ return {style:S.style, position:S.position, duration:S.duration, volume:S.volume, startup:S.startup, checkUpdates:S.updates, shareCollection:S.share, gameOverlayFix:S.gamefix, language:S.language}; }
 $('#btnTest').onclick=()=> send(Object.assign({action:'test'}, vals()));
 $('#btnSave').onclick=()=>{ send(Object.assign({action:'save'}, vals()));
   savedStyle=S.style;

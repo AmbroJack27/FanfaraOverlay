@@ -114,6 +114,12 @@ Per evitare i doppioni, puoi disattivare quella predefinita di Steam:
   completati come carte, una classifica **Mondiale** pubblica (facoltativa) e una classifica **Amici**
   che ti confronta con gli amici Steam che usano Fanfara. Ogni Fanfara calcola il proprio punteggio
   in locale — niente login, niente da configurare.
+- **📚 Collezioni degli amici** — nella classifica Amici, il pulsante **Collezione** apre la collezione
+  di un amico (vetrina, album, carte) in sola lettura e la **confronta con la tua**: carte in comune,
+  carte che ti mancano, carte solo tue, il bollino «Ce l'hai / Ti manca» su ogni carta, il tuo
+  progresso sotto ogni album e un filtro per i giochi che avete entrambi. Dopo ogni sincronizzazione
+  Fanfara condivide una copia leggera della tua collezione che possono leggere solo i tuoi amici di
+  Steam; è **accesa di base** e si spegne in Personalizza (la copia online viene cancellata).
 - **💬 Invia feedback** — un pulsante nella Home, nella Guida e nel menu dell'icona vicino
   all'orologio apre un breve modulo (problema / idea / altro). Arriva direttamente allo sviluppatore
   con solo la versione di Fanfara, la lingua e la versione di Windows; per i problemi puoi allegare il
@@ -195,6 +201,11 @@ l'auto-updater verifica) alla Release. Nessuna compilazione manuale.
   quindi nessun problema di limiti di Steam.
   `GamesStore` (`games.json`) tiene anche i minuti giocati di ogni gioco, letti da Steam durante la
   sincronizzazione, per la prima pagina del suo album nella Collezione.
+- `CollectionShare.cs` — collezioni degli amici. Dopo una sincronizzazione invia al proxy una copia
+  compatta e compressa della tua collezione (~100–150 KB per ~1.700 carte; `POST /coll/put`, tabella
+  D1 `collections`), solo se la condivisione è accesa e qualcosa è cambiato; `GET /coll/get` restituisce
+  una collezione solo a un amico di Steam del proprietario. La pagina Collezione la mostra con
+  `collection.html?friend=<SteamID64>`.
 - `CardShare.cs` — invia l'immagine di una carta al proxy (`POST /share`); il proxy verifica lo
   sblocco su Steam e la inoltra al canale vetrina di Discord (segreto `DISCORD_SHOWCASE_WEBHOOK`).
 - `Feedback.cs` — invia il modulo di feedback dell'app al proxy (`POST /feedback`), che lo salva nel

@@ -120,6 +120,8 @@ public partial class App : System.Windows.Application
             bool firstRun = !_config.HistoryImported || (_store?.Count ?? 0) == 0;
             if (firstRun || SyncIsStale())
                 _ = RunBackfillAsync(manual: false, firstRun: firstRun);
+            else if (_store != null && _games != null)
+                _ = new CollectionShare(_config, _store, _games).UploadAsync();   // e.g. first start after updating: friends can see it right away
         }
 
         // Fanfara often stays open for days: re-check periodically and run the full sync again once
@@ -182,6 +184,7 @@ public partial class App : System.Windows.Application
                     if (lb.Ready) _ = lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked);
                 }
                 if (hist.LastAdded > 0) Balloon(string.Format(Loc.S(_config.EffectiveLanguage, "syncNew"), hist.LastAdded));
+                if (hist.LastAdded > 0) _ = new CollectionShare(_config, _store, _games).UploadAsync();   // friends see the new cards
             }
         }
         catch { }
@@ -364,6 +367,8 @@ public partial class App : System.Windows.Application
                     RefreshData();
                     // Register the refreshed 100% score so friends (and, if opted in, the world board) see it.
                     if (_games != null) { var lb = new Leaderboard(_config); if (lb.Ready) _ = lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked); }
+                    // Share the (changed) collection with Steam friends who use Fanfara, if the player allows it.
+                    if (_games != null) _ = new CollectionShare(_config, _store, _games).UploadAsync();
                     if (manual) System.Windows.MessageBox.Show(string.Format(Loc.S(lang, "syncDone"), _store.Count), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
                     else if (firstRun || retry) Balloon(string.Format(Loc.S(lang, "syncDone"), _store.Count));
                     else if (hist.LastAdded > 0) Balloon(string.Format(Loc.S(lang, "syncNew"), hist.LastAdded));   // quiet refresh: only if there's something new

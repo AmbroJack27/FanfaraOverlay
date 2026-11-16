@@ -47,6 +47,11 @@ public class Config
     // Opt-in: when true, the user appears in the public world leaderboard (name + avatar + score).
     // Off by default; the user turns it on from the Classifica screen, and can leave any time.
     public bool LeaderboardJoined { get; set; } = false;
+    // Friends' collections: Steam friends who use Fanfara can see (and compare with) my Collection.
+    // On by default; turned off from Personalizza or the guided setup (which also deletes it online).
+    public bool ShareCollection { get; set; } = true;
+    // Fingerprint of the last collection sent, so an unchanged collection is never uploaded again.
+    public string CollShareHash { get; set; } = "";
 
     // ---- First-run guided setup (welcome.html) ----
     // False until the user finishes (or skips) the guided setup. New installs AND existing users who

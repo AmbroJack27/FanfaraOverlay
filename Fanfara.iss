@@ -4,7 +4,7 @@
 
 #define MyAppName "Fanfara"
 #ifndef MyAppVersion
-  #define MyAppVersion "0.5.2"
+  #define MyAppVersion "0.5.3"
 #endif
 #define MyAppPublisher "AmbroJack27"
 #define MyAppExeName "Fanfara.exe"
