@@ -4,236 +4,276 @@
   <img src="media/fanfara-demo.gif" alt="Fanfara — demo" width="820">
 </p>
 
+<p align="center">
+  <a href="../../releases/latest"><img alt="Ultima versione" src="https://img.shields.io/github/v/release/AmbroJack27/FanfaraOverlay?label=scarica&color=f5c242"></a>
+  <img alt="Windows 10/11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-4c8dff">
+  <img alt="5 lingue" src="https://img.shields.io/badge/lingue-IT%20%C2%B7%20EN%20%C2%B7%20FR%20%C2%B7%20DE%20%C2%B7%20ES-b078ff">
+  <a href="LICENSE"><img alt="Licenza MIT" src="https://img.shields.io/badge/licenza-MIT-4ac46a"></a>
+</p>
+
 [🇬🇧 Read in English](README.md) · **🇮🇹 Italiano**
 
-**Rendi lo sblocco degli achievement di Steam spettacolare come su Xbox e PlayStation.**
+**Rendi gli sblocchi degli obiettivi su Steam spettacolari come su Xbox e PlayStation.**
 
-Su Steam, quando sblocchi un achievement compare una piccola notifica anonima nell'angolo. Fanfara
-la sostituisce con una notifica animata e festosa, in cui **stile, icona e suono cambiano in base
-alla rarità** dell'achievement: più è raro (meno giocatori al mondo l'hanno ottenuto), più lo
-sblocco è epico.
+Su Steam, quando sblocchi un obiettivo compare una piccola notifica anonima nell'angolo. Fanfara la
+sostituisce con una notifica animata e festosa il cui **stile, icona e suono cambiano in base alla
+rarità**: più l'obiettivo è raro (meno giocatori al mondo ce l'hanno), più lo sblocco è epico.
 
-È un **overlay nativo e leggero per Windows**: non rallenta il PC e non richiede ore di
-configurazione. Avvialo, gioca, e pensa a tutto lui. Inoltre tiene una **Cronologia** locale di
-ogni achievement che sblocchi e trasforma tutto il tuo catalogo Steam in una **Collezione** di
-carte collezionabili — creata in automatico, con icone, date e rarità reali, senza login e senza
-configurazione. E ti mette in **Classifica** con i tuoi amici e con il mondo, in base a quanti
-giochi hai completato al 100%.
+È un'**app Windows leggera e nativa**: la avvii, giochi, e pensa a tutto lei. Intorno alle notifiche
+costruisce tutta la tua vita da cacciatore di obiettivi — una **linea del tempo** di ogni sblocco, una
+**Collezione** di carte rilegate in album antichi, una **classifica** dei giochi completati al 100% e le
+**collezioni dei tuoi amici** da confrontare con la tua. Niente login, niente chiave API, niente da
+configurare.
 
 ---
 
-## ⬇️ Scarica e usa (per tutti)
+## Indice
 
-1. Vai nella sezione **[Releases](../../releases)** qui su GitHub.
-2. Scarica l'ultima versione:
-   - **`FanfaraSetup.exe`** — l'installer (consigliato): installa tutto e tiene l'app
-     **aggiornata in automatico** (gli aggiornamenti vengono **verificati con un checksum SHA-256**
-     prima di essere eseguiti).
-   - oppure **`Fanfara.zip`** — la versione portable: estraila e avvia `Fanfara.exe`, niente da installare.
-3. Avvialo.
-
-Nient'altro da installare: niente .NET, niente terminale. È tutto incluso.
-
-> ⚠️ **La prima volta**, Windows potrebbe mostrare l'avviso blu "Windows ha protetto il PC". È
-> normale per le app gratuite non firmate con un certificato a pagamento.
-> Clicca **"Ulteriori informazioni"** → **"Esegui comunque"**.
-
-Fanfara si apre in **un'unica finestra** con una breve animazione del logo, poi una **Home** che ti
-mostra tutto a colpo d'occhio: la tua fanfara (dal vivo, con il pulsante **Prova**), gli ultimi
-sblocchi con le icone vere, la tua posizione nelle classifiche **Mondo** e **Amici**, le carte più
-rare, gli ultimi 7 giorni e i giochi che stai per completare al 100%. Ogni riquadro apre la sua
-sezione — **Personalizza** (stili e impostazioni), **Cronologia**, **Collezione**, **Classifica** e
-**Guida** — tutto dentro questa unica finestra, senza aprirne altre. In Personalizza gli stili sono
-raccolti in grandi riquadri per categoria: passa il mouse su uno stile per vederlo animato, premi
-**Con suono** per sentirlo, cliccalo per sceglierlo e **Salva**. Ogni stile ha già il suo suono —
-niente altro da configurare. Dopo averla chiusa, Fanfara resta attiva con un'icona vicino all'orologio (in basso
-a destra): cliccala per riaprirla o uscire.
-
-Poi avvia Steam, gioca, e la fanfara comparirà al primo achievement sbloccato. 🎮
-
-### Consiglio: disattiva la notifica di Steam
-Per evitare i doppioni, puoi disattivare quella predefinita di Steam:
-**Steam → Impostazioni → Nel gioco** (o **Notifiche**) → disattiva la notifica di sblocco achievement.
+- [Novità](#-novità)
+- [Immagini](#-immagini)
+- [Scarica e installa](#%EF%B8%8F-scarica-e-installa)
+- [Primo avvio](#-primo-avvio)
+- [Funzioni](#-funzioni)
+- [Privacy: cosa resta sul tuo PC e cosa va online](#-privacy-cosa-resta-sul-tuo-pc-e-cosa-va-online)
+- [Problemi comuni](#-problemi-comuni)
+- [Per sviluppatori](#%EF%B8%8F-per-sviluppatori)
+- [Licenza](#licenza)
 
 ---
 
-## ✨ Cosa include
+## 🆕 Novità
 
-- **🧭 Configurazione guidata** — al primo avvio (e una volta dopo l'aggiornamento) una guida passo
-  passo controlla che Steam sia aperto e che i tuoi obiettivi siano **visibili** (se la privacy di Steam
-  li nasconde, spiega esattamente quali voci mettere su Pubblico, con un pulsante per la pagina privacy
-  di Steam), ti fa **provare la notifica** e scegliere lo **schermo** dove vederla, spiega come impostare
-  la **modalità video** dei giochi, imposta avvio con Windows, volume e aggiornamenti, ed esegue la prima
-  importazione mostrando l'avanzamento. Puoi riaprirla quando vuoi dal pulsante **Configurazione guidata**
-  in alto nella Home, dalla Guida o dal menu dell'icona.
-- **🖥️ Più schermi** — la notifica compare sullo schermo dove stai giocando (o su quello scelto nella
-  configurazione guidata), non sempre su quello principale.
-- **🔒 Avviso privacy chiaro** — se Steam nasconde i tuoi obiettivi, la Home mostra un avviso rosso fisso
-  con *Come risolvere*; le notifiche continuano a funzionare e Fanfara riprova l'importazione ogni 30 minuti.
-- **🏠 Una Home tutta tua** — un'unica schermata con la tua fanfara, gli ultimi sblocchi, la
-  posizione in classifica (Mondo/Amici), le carte più rare, gli ultimi 7 giorni e i giochi più
-  vicini al 100%. Si adatta a qualsiasi dimensione e si apre già grande quanto il tuo schermo.
-- **Stili di notifica organizzati in 7 categorie** con **anteprime animate dal vivo**:
-  **Base (con Fantasy) · Console · Capcom · Square-Enix · Microsoft · Ubisoft · CD Projekt**, più
-  una casella di ricerca.
-- Ogni stile ha un **box unico**, un'**icona diversa per ogni rarità** e un **suono integrato** —
-  tutto **in 3D e animato**. (Niente selettore separato del suono: il suono fa parte dello stile.)
-- **10 stili Base originali e astratti**: Onda, Pulsar, Mosaico, Numero, Carica, Coriandoli, Nebula,
-  Tratto, Piega, Orbita.
-- Pacchetti ispirati ai giochi con **emblemi e suoni originali** (nessun logo o audio ufficiale):
-  Capcom, Square-Enix, Microsoft/Xbox, Ubisoft, CD Projekt (The Witcher, Cyberpunk 2077…).
-- **🕒 Cronologia** — una **linea del tempo** locale di ogni achievement che sblocchi: una riga per
-  sblocco con l'ora e un pallino del colore della rarità, mentre gli **epici e leggendari** diventano
-  riquadri grandi con l'immagine del gioco. In alto: il riepilogo di oggi, le statistiche e un
-  **calendario di 16 settimane** (più obiettivi, più il giorno è acceso). A lato: il **calendario del
-  mese** (sfogli i mesi, clicchi un giorno per vedere solo quello), la rarità del mese e i giochi del
-  mese. Ricerca, filtri di rarità e di data (ultimi 7 giorni, questo mese, un anno); i giorni si
-  caricano una settimana alla volta, così resta veloce.
-- **🃏 Collezione** — tutto il tuo catalogo di achievement Steam come **carte da collezione**: cornice
-  metallica nel colore della rarità, gemme di rarità, l'icona reale sopra l'immagine del gioco ed
-  effetti che crescono con la rarità (riflesso di luce, pellicola olografica, scintille). **Clicca una
-  carta**: si solleva, gira in aria e atterra davanti a te (con un suono morbido); **girala** per
-  scoprire la storia di quello sblocco: quanti giocatori su 1.000 ce l'hanno, data e ora, la sua
-  posizione nella tua collezione, il progresso nel gioco, il nastro «completato al 100%» e **quali
-  amici di Fanfara ce l'hanno, e chi è arrivato prima**. Sotto la carta aperta ci sono due pulsanti:
-  **Copia immagine** (la incolli ovunque con Ctrl+V) e **Pubblica in bacheca**, che pubblica la carta
-  in #bacheca-trofei del server Discord di Fanfara dopo aver verificato su Steam che l'obiettivo sia
-  davvero tuo. In alto c'è il tuo **livello da collezionista** (le carte rare valgono più punti); gli
-  sblocchi nuovi dall'ultima visita arrivano in una **bustina** da aprire; una **vetrina** illuminata
-  mostra le tue 5 carte più rare. Sotto, **un album per gioco** (ricerca, ordine, vista Copertine o
-  Scaffale): ogni album è un **libro antico in pelle** che apri tu — fermaglio, fregi d'oro,
-  rilegatura cucita, carte fissate con gli angolini in ordine di sblocco, cornici vuote «?» per quelle
-  che mancano, un Ex Libris con carte, completamento, **ore di gioco**, carta più rara e prima carta,
-  e pagine da sfogliare (clic, angolino o frecce). Dalla vetrina, **Vedi nel suo album** porta alla carta.
-- **☁️ Importazione e sincronizzazione automatica da Steam** — la prima volta Fanfara **importa tutti
-  i tuoi achievement passati** (icone reali, date di sblocco e rarità mondiale) **senza login e senza
-  inserire alcuna chiave API**. Cattura i nuovi sblocchi dal vivo, **aggiorna un gioco appena lo
-  chiudi** e fa un controllo completo ogni 12 ore anche se resta aperta. Funziona tramite un piccolo
-  proxy personale che mantiene privata la chiave API.
-- **🏆 Classifica** — una classifica per **numero di giochi completati al 100%**: i tuoi giochi
-  completati come carte, una classifica **Mondiale** pubblica (facoltativa) e una classifica **Amici**
-  che ti confronta con gli amici Steam che usano Fanfara. Ogni Fanfara calcola il proprio punteggio
-  in locale — niente login, niente da configurare.
-- **📚 Collezioni degli amici** — nella classifica Amici, il pulsante **Collezione** apre la collezione
-  di un amico (vetrina, album, carte) in sola lettura e la **confronta con la tua**: carte in comune,
-  carte che ti mancano, carte solo tue, il bollino «Ce l'hai / Ti manca» su ogni carta, il tuo
-  progresso sotto ogni album e un filtro per i giochi che avete entrambi. Dopo ogni sincronizzazione
-  Fanfara condivide una copia leggera della tua collezione che possono leggere solo i tuoi amici di
-  Steam; è **accesa di base** e si spegne in Personalizza (la copia online viene cancellata).
-- **💬 Invia feedback** — un pulsante nella Home, nella Guida e nel menu dell'icona vicino
-  all'orologio apre un breve modulo (problema / idea / altro). Arriva direttamente allo sviluppatore
-  con solo la versione di Fanfara, la lingua e la versione di Windows; per i problemi puoi allegare il
-  registro tecnico, ripulito dai dati personali.
-- **5 rarità** che cambiano icona, colore, intensità ed effetti — Comune, Non comune, Raro, Epico,
-  Leggendario — e il **Leggendario ha sempre qualcosa in più** ✨.
-- **5 lingue** — Italiano, Inglese, Francese, Tedesco e Spagnolo. L'app segue in automatico la
-  lingua di Windows, oppure puoi sceglierla nelle Impostazioni; **è tutto tradotto**, fino alla
-  scala dei ranghi a tema di ogni stile. Anche l'installer segue la lingua del sistema.
-- **7 posizioni** sullo schermo, durata regolabile, **tema chiaro/scuro ovunque**, **avvio con
-  Windows** e **aggiornamenti automatici** (verificati con SHA-256).
-- **Funziona anche nei giochi a schermo intero e senza bordi** — Fanfara prepara da sola i tuoi giochi Steam perché le notifiche compaiano in gioco, senza configurazione.
-- Notifiche **grandi e leggibili**, perfette su monitor ampi e ad alta risoluzione.
+**0.5.3** — **Collezioni degli amici**: apri la collezione di un amico di Steam dalla classifica Amici
+e confrontala con la tua carta per carta. I problemi di privacy di Steam vengono riconosciuti in ogni
+forma.
+
+**0.5.2** — una **Cronologia a linea del tempo** tutta nuova con calendario di 16 settimane; testi,
+carte e copertine più nitidi ovunque; zoom Ctrl +/−, F12 e scorciatoie del browser disattivati;
+premendo di nuovo **Prova** la prova riparte invece di mettersi in coda.
+
+**0.5.1** — una **configurazione guidata** al primo avvio, un avviso chiaro quando Steam nasconde i
+tuoi obiettivi, le notifiche sullo schermo dove stai giocando e la **Collezione ad album antichi**.
+
+**0.5.0** — Collezione a carte da collezione con retro e «quali amici ce l'hanno», **Invia feedback**
+e aiuto per i giochi a schermo intero esclusivo.
+
+Le note complete di ogni versione: [Releases](../../releases).
 
 ---
 
-## 🛠️ Per sviluppatori (compilalo da solo)
+## 📸 Immagini
 
-Ti serve solo il **.NET 8 SDK** (gratis): https://dotnet.microsoft.com/download
+| | |
+|---|---|
+| <img src="media/screens/home.jpg" alt="Home" width="420"><br>**Home** — la tua fanfara, ultimi sblocchi, classifica, carte più rare, ultimi 7 giorni | <img src="media/screens/personalizza.jpg" alt="Personalizza" width="420"><br>**Personalizza** — 47 stili in 7 categorie, con anteprime animate |
+| <img src="media/screens/collezione.jpg" alt="Collezione" width="420"><br>**Collezione** — livello collezionista, vetrina e un album per gioco | <img src="media/screens/album.jpg" alt="Album" width="420"><br>**Un album** — un libro antico con le carte negli angolini |
+| <img src="media/screens/carta.jpg" alt="Carta, fronte e retro" width="420"><br>**Una carta, fronte e retro** — rarità, data, progresso, amici che ce l'hanno | <img src="media/screens/cronologia.jpg" alt="Cronologia" width="420"><br>**Cronologia** — la linea del tempo di ogni sblocco |
 
-Nella cartella `src/`:
+---
+
+## ⬇️ Scarica e installa
+
+1. Apri l'**[ultima versione](../../releases/latest)**.
+2. Scarica:
+   - **`FanfaraSetup.exe`** — l'installer (consigliato). Tiene Fanfara **aggiornata da sola**; ogni
+     aggiornamento è **verificato con un checksum SHA-256** prima di partire.
+   - oppure **`Fanfara.zip`** — la versione portatile: estraila e avvia `Fanfara.exe`.
+3. Avviala.
+
+Nient'altro da installare: niente .NET, niente terminale. È tutto incluso. Windows 10 o 11 a 64 bit.
+
+> ⚠️ **La prima volta** Windows potrebbe mostrare l'avviso blu «Windows ha protetto il PC». È normale
+> per le app gratuite non firmate con un certificato a pagamento: clicca **«Ulteriori informazioni» →
+> «Esegui comunque»**.
+
+---
+
+## 🚀 Primo avvio
+
+La prima volta (e una volta dopo un aggiornamento) si apre una **configurazione guidata**. Passo
+passo:
+
+1. controlla che Steam sia aperto e che i tuoi obiettivi siano **visibili** — se la privacy di Steam
+   li nasconde, ti dice esattamente quali voci mettere su Pubblico, con un pulsante per la pagina
+   giusta;
+2. ti fa **provare la notifica** e scegliere lo **schermo** dove vederla;
+3. spiega le **modalità video** dei giochi (e prepara i giochi perché la notifica si veda in gioco);
+4. imposta **avvio con Windows**, **volume**, **aggiornamenti**, la **classifica mondiale** pubblica
+   (spenta finché non entri) e la **condivisione della collezione con gli amici** (accesa, puoi
+   spegnerla);
+5. importa **tutti i tuoi obiettivi passati** di Steam, mostrando l'avanzamento.
+
+Puoi riaprirla quando vuoi dal pulsante **Configurazione guidata** in alto nella Home, dalla Guida o
+dal menu dell'icona di Fanfara vicino all'orologio.
+
+Poi Fanfara vive in **una sola finestra** — Home, Personalizza, Cronologia, Collezione, Classifica e
+Guida — e resta attiva con un'icona vicino all'orologio quando la chiudi. Avvia un gioco e la fanfara
+comparirà al primo obiettivo. 🎮
+
+> **Consiglio:** per non avere due notifiche, spegni quella di Steam:
+> **Steam → Impostazioni → In gioco** (o **Notifiche**) → notifica di sblocco obiettivi spenta.
+
+---
+
+## ✨ Funzioni
+
+### 🎺 Notifiche
+- **47 stili in 7 categorie** con anteprime animate e ricerca:
+  **Base (con Fantasy) · Console · Capcom · Square-Enix · Microsoft · Ubisoft · CD Projekt**.
+- Ogni stile ha il **suo riquadro**, un **emblema diverso per ogni rarità** e un **suono incluso** —
+  tutti animati. Niente scelta separata del suono: il suono fa parte dello stile.
+- **5 livelli di rarità** — Comune, Non comune, Raro, Epico, Leggendario — che cambiano emblema,
+  colore, intensità ed effetti. **Il Leggendario ha sempre qualcosa in più** ✨.
+- I pacchetti ispirati ai giochi usano **emblemi e suoni originali**, mai loghi o audio ufficiali.
+- **7 posizioni**, durata regolabile (fino a 12 s), volume e **Prova** per provarla quando vuoi
+  (premendolo di nuovo la prova riparte).
+- Compare sui giochi **a schermo intero e in finestra senza bordi**, sullo **schermo dove stai
+  giocando**.
+
+### 🏠 Home
+Una schermata con la tua fanfara (dal vivo, con **Prova**), gli ultimi sblocchi con le icone vere, la
+tua posizione nelle classifiche Mondiale e Amici, le carte più rare, gli ultimi 7 giorni e i giochi
+più vicini al 100%. Ogni riquadro apre la sua sezione.
+
+### 🕒 Cronologia
+Una **linea del tempo** di ogni sblocco: l'ora e un pallino del colore della rarità, mentre gli sblocchi
+**epici e leggendari** diventano riquadri grandi con l'immagine del gioco. In alto: il riepilogo di
+oggi, le statistiche e un **calendario di 16 settimane** (più obiettivi, più il giorno è acceso). A
+lato: il **calendario del mese** (sfogli i mesi, clicchi un giorno per vedere solo quello), la rarità e
+i giochi del mese. Ricerca, filtri di rarità e di data; i giorni si caricano una settimana alla volta,
+così resta veloce anche con migliaia di sblocchi.
+
+### 🃏 Collezione
+Tutto il tuo catalogo Steam come **carte da collezione**: cornice metallica del colore della rarità,
+gemme, l'icona vera sull'immagine del gioco ed effetti che crescono con la rarità.
+- **Clicca una carta**: si solleva, gira e atterra davanti a te; **girala** per la storia di quello
+  sblocco — quanti giocatori su 1.000 ce l'hanno, data e ora, la sua posizione nella collezione, il tuo
+  progresso nel gioco, il nastro «completato al 100%» e **quali amici ce l'hanno, e chi è arrivato
+  primo**.
+- **Copia immagine** (la incolli dove vuoi) e **Pubblica in bacheca** sul server Discord di Fanfara —
+  solo dopo aver verificato su Steam che l'obiettivo sia davvero tuo.
+- Il tuo **livello collezionista** (le carte rare valgono di più), una **bustina** da strappare con le
+  carte sbloccate dall'ultima visita e una **vetrina** illuminata con le tue 5 carte più rare.
+- **Un album per gioco**, come un **libro antico rilegato in pelle** che apri tu: fermaglio in ottone,
+  fregi dorati, rilegatura cucita, carte negli angolini in ordine di sblocco, cornici «?» per quelle
+  mancanti, un Ex Libris con carte, completamento, **ore di gioco**, carta più rara e prima carta, e
+  pagine da sfogliare. Le copertine usano l'immagine grande della libreria di Steam con il logo del
+  gioco.
+
+### 🏆 Classifica e collezioni degli amici
+- Una classifica per **numero di giochi completati al 100%**: i tuoi giochi completati come carte, una
+  classifica **Mondiale** pubblica (solo se entri) e una classifica **Amici** con gli amici di Steam che
+  usano Fanfara. Ogni Fanfara calcola il proprio punteggio sul tuo PC.
+- **📚 Collezioni degli amici** — nella classifica Amici, **Collezione** apre la collezione di un amico
+  (vetrina, album, carte) e la **confronta con la tua**: carte in comune, carte che ti mancano, carte
+  solo tue, il bollino «Ce l'hai / Ti manca» su ogni carta, il tuo progresso sotto ogni album e un
+  filtro per i giochi che avete entrambi.
+
+### ☁️ Importazione e sincronizzazione automatiche
+La prima volta Fanfara **importa tutti i tuoi obiettivi passati** (icone vere, date di sblocco, rarità
+mondiale). Poi cattura i nuovi sblocchi dal vivo, **aggiorna un gioco appena lo chiudi** e ricontrolla
+tutto ogni 12 ore, anche se resta aperta.
+
+### 🧰 Tutto il resto
+- **5 lingue** — italiano, inglese, francese, tedesco, spagnolo — segue Windows o la tua scelta. È tutto
+  tradotto, fino ai nomi dei gradi di ogni stile. Anche l'installer.
+- **Tema chiaro e scuro** ovunque, **avvio con Windows**, **aggiornamenti automatici**.
+- Un **avviso rosso** chiaro nella Home se Steam nasconde i tuoi obiettivi, con *Come risolvere*.
+- **💬 Invia feedback** dalla Home, dalla Guida o dal menu dell'icona (problema / idea / altro), se vuoi
+  con il registro tecnico ripulito dai dati personali.
+- Una **Guida** nell'app, in 5 lingue, che spiega ogni funzione.
+
+---
+
+## 🔒 Privacy: cosa resta sul tuo PC e cosa va online
+
+| | Dove | Cosa |
+|---|---|---|
+| Cronologia, collezione, impostazioni | **Solo sul tuo PC** | `history.json`, `games.json` (in `%AppData%\Fanfara`), `config.json` (accanto all'app) |
+| Lettura dei tuoi obiettivi | Proxy di Fanfara → Steam | Il tuo **SteamID** (pubblico) per leggere i tuoi dati Steam **pubblici**; non viene salvato niente |
+| Classifica amici | Database di Fanfara | SteamID, nome e avatar di Steam, giochi al 100% — visibili solo ai tuoi amici di Steam che usano Fanfara |
+| Classifica mondiale | Database di Fanfara | Gli stessi dati, visibili a tutti — **solo se entri**; quando esci sparisci dalla classifica (i tuoi amici ti vedono ancora) |
+| Collezioni degli amici | Database di Fanfara | Una copia leggera della tua collezione, leggibile **solo dai tuoi amici di Steam** — accesa di base, se la spegni in Personalizza viene cancellata |
+| Feedback / bacheca | Database di Fanfara + Discord | Solo quello che invii; lo SteamID viene tenuto solo come codice anonimo |
+| Aggiornamenti | GitHub | Controllo di una nuova versione |
+
+La parte online di Fanfara è un piccolo servizio personale su Cloudflare (`proxy/`): tiene segreta la
+chiave della Steam Web API, così tu non ne hai mai bisogno.
+
+---
+
+## 🧩 Problemi comuni
+
+**Fanfara ha importato 0 obiettivi / mostra l'avviso rosso della privacy.**
+Su Steam: *Profilo → Modifica profilo → Impostazioni privacy* → metti su **Pubblico** sia **Il mio
+profilo** sia **Dettagli dei giochi**. Aspetta qualche minuto, poi premi **Ricontrolla** nella Home.
+
+**Sento la fanfara ma non la vedo.**
+- Il gioco è a **schermo intero esclusivo**: nelle opzioni video scegli **Schermo intero** senza
+  «esclusivo» (a volte si chiama **Finestra senza bordi**). Gira comunque alla frequenza del monitor.
+- Il gioco era già aperto quando Fanfara l'ha preparato: **riavvia il gioco** una volta.
+- Alcuni giochi con **Frame Generation** (DLSS 3, FSR 3) nascondono gli overlay: accendi
+  **«Compatibilità con Frame Generation»** in Personalizza (servono i permessi di amministratore e un
+  riavvio).
+- Con più monitor, scegli lo schermo nella **configurazione guidata**.
+
+**Non vedo il pulsante «Collezione» accanto a un amico.**
+Serve che abbia Fanfara **0.5.3 o successiva** con la condivisione accesa, e che abbia sincronizzato
+almeno una volta.
+
+**Dov'è il registro?** `C:\Users\<tuo nome>\fanfara-log.txt` — oppure usa **Invia feedback** e
+allegalo.
+
+---
+
+## 🛠️ Per sviluppatori
+
+Serve il **.NET 8 SDK** (gratuito): <https://dotnet.microsoft.com/download>. In `src/`:
 
 ```bat
 dotnet run
 ```
 
-per avviarlo in sviluppo, oppure per creare il pacchetto distribuibile:
+la avvia in sviluppo; `dotnet publish -c Release` crea il pacchetto autonomo e portatile.
 
-```bat
-dotnet publish -c Release
-```
+L'app deve girare **sul PC dove gira Steam**: parla con il gioco in esecuzione tramite l'API Steamworks
+*come se fosse quel gioco* (nessuna chiave). L'importazione dello storico usa la Steam **Web** API in
+sola lettura, tramite il proxy in [`proxy/`](proxy/README.md).
 
-L'app finita è *self-contained* (include il runtime .NET), quindi la cartella è autonoma e portabile
-su qualunque PC Windows.
+**Pubblicare una versione** — pubblica una **Release** su GitHub con un tag che inizia per `v` (es.
+`v0.5.3`): `.github/workflows/build.yml` compila sui server Windows di GitHub, allega `Fanfara.zip`,
+`FanfaraSetup.exe` e `FanfaraSetup.exe.sha256` e annuncia la versione su Discord.
 
-> L'app deve girare **sul PC dove gira Steam**. Fanfara comunica con il gioco in esecuzione tramite
-> l'API Steamworks come se fosse quel gioco (senza chiave API). L'importazione di Cronologia e
-> Collezione usa invece l'API **Web** di Steam in sola lettura, tramite il proxy in `proxy/` (vedi
-> sotto), così gli utenti finali non inseriscono mai una chiave.
+### Come funziona
 
-### Pubblicare una nuova versione
-Il repo include `.github/workflows/build.yml`. Quando pubblichi una **Release** con un **tag** che
-inizia con `v` (es. `v0.2.0`), GitHub compila l'app sui propri server Windows e allega
-automaticamente `Fanfara.zip`, `FanfaraSetup.exe` **e** `FanfaraSetup.exe.sha256` (il checksum che
-l'auto-updater verifica) alla Release. Nessuna compilazione manuale.
+- `SteamWatcher.cs` / `SteamWorker.cs` — un **processo separato** inizializza Steamworks come il gioco
+  in esecuzione, controlla ogni secondo i nuovi sblocchi (con la rarità mondiale) e li comunica; l'app
+  principale non carica mai Steam, così i giochi non risultano mai «ancora in esecuzione».
+- `OverlayWindow` + `web/notify.html` — una finestra trasparente, sempre in primo piano e
+  attraversabile dal mouse, con una WebView2 che disegna le notifiche sullo schermo giusto.
+- **La finestra unica** — una WebView2 che passa tra `web/home.html` (dati da `HomeData.cs`),
+  `settings.html` (stili in `styles.js`), `history.html`, `collection.html`, `classifica.html`,
+  `guide.html`, `feedback.html` e `welcome.html` (configurazione guidata). Testi in `i18n.js` e nelle
+  pagine, 5 lingue, tema chiaro/scuro. `WebLock.cs` disattiva zoom, F12 e scorciatoie del browser.
+- `SteamId.cs` — trova il tuo SteamID64 in locale (registro / `loginusers.vdf`).
+- `SteamHistory.cs` + `AchievementStore.cs` + `GamesStore.cs` — importazione e archivi locali
+  (`history.json`, `games.json` con progresso e minuti giocati); riconosce gli obiettivi nascosti.
+- `Leaderboard.cs` — punteggi calcolati in locale e registrati tramite il proxy in un database **D1** di
+  Cloudflare.
+- `CollectionShare.cs` — invia una copia compatta e compressa della collezione (~150 KB per ~1.700
+  carte) solo se la condivisione è accesa e qualcosa è cambiato; legge la collezione di un amico solo
+  se siete amici su Steam.
+- `CardShare.cs`, `Feedback.cs` — pubblicazioni in bacheca e feedback, tramite il proxy.
+- `FsOpt.cs` / `Mpo.cs` — preparano i giochi per lo schermo intero e l'opzione Frame Generation.
+- `Updater.cs` — scarica il nuovo installer e **ne verifica lo SHA-256** prima di avviarlo.
+- `proxy/worker.js` — il Worker Cloudflare (piano gratuito): proxy della Steam Web API con la chiave
+  segreta, classifica, collezioni degli amici, feedback e bacheca. Vedi
+  [`proxy/README.md`](proxy/README.md).
 
 ---
 
-## ⚙️ Come funziona (in breve)
-
-- `SteamWatcher.cs` — il supervisore. Avvia un **processo Steam separato** per il gioco in
-  esecuzione, così l'app principale non carica mai Steam direttamente (questo mantiene Fanfara
-  stabile ed evita che il gioco risulti "ancora in esecuzione" dopo che esci). Riavvia anche il
-  processo se va in crash.
-- `SteamWorker.cs` — il processo figlio. Inizializza l'API Steamworks **come il gioco in
-  esecuzione**, controlla ogni secondo se è stato sbloccato un nuovo achievement (leggendo la
-  percentuale di rarità mondiale) e rileva quando il gioco si chiude. Comunica gli sblocchi all'app.
-- `OverlayWindow` — una finestra trasparente, sempre in primo piano e *click-through*, che copre lo
-  schermo e ospita una WebView2.
-- `web/notify.html` — la grafica delle notifiche: gli stili che disegnano lo sblocco con il box,
-  l'icona e il suono giusti; la rarità decide colori ed effetti.
-- **L'interfaccia a finestra unica** — una sola WebView2 che naviga tra `web/home.html` (intro col
-  logo + Home, alimentata da `HomeData.cs`), `web/settings.html` (stili e impostazioni, elenco in
-  `web/styles.js`), `web/history.html` (Cronologia),
-  `web/collection.html` (Collezione), `web/classifica.html` (la classifica) e `web/guide.html`
-  (la guida), più `web/welcome.html` (la configurazione guidata: controllo di Steam e privacy, prova
-  della notifica e scelta dello schermo, consigli sulla modalità video, preferenze, prima importazione). Ogni pagina segue il tema chiaro/scuro e la lingua scelta.
-- `SteamId.cs` — trova il tuo SteamID64 in locale (dalle chiavi di registro di Steam /
-  `loginusers.vdf`), così l'importazione non richiede nulla da te.
-- `SteamHistory.cs` + `AchievementStore.cs` — il backfill e l'archivio locale. Recuperano i tuoi
-  giochi posseduti e gli achievement di ciascuno (icone, date di sblocco, rarità) in parallelo e li
-  salvano in `history.json`, senza duplicati e tenuti aggiornati.
-- `proxy/worker.js` — un piccolo **Cloudflare Worker** che fa da proxy all'API Web di Steam e
-  **tiene la chiave API come segreto privato**, così l'app (e ogni utente) funziona a configurazione
-  zero.
-- `Leaderboard.cs` + `GamesStore.cs` — la classifica online. Ogni app trova in locale i tuoi giochi
-  completati al 100% e registra il punteggio tramite il proxy in un database **D1** di Cloudflare; le
-  classifiche Mondiale e Amici si limitano a leggerlo. **Nessun calcolo per-gioco lato server**,
-  quindi nessun problema di limiti di Steam.
-  `GamesStore` (`games.json`) tiene anche i minuti giocati di ogni gioco, letti da Steam durante la
-  sincronizzazione, per la prima pagina del suo album nella Collezione.
-- `CollectionShare.cs` — collezioni degli amici. Dopo una sincronizzazione invia al proxy una copia
-  compatta e compressa della tua collezione (~100–150 KB per ~1.700 carte; `POST /coll/put`, tabella
-  D1 `collections`), solo se la condivisione è accesa e qualcosa è cambiato; `GET /coll/get` restituisce
-  una collezione solo a un amico di Steam del proprietario. La pagina Collezione la mostra con
-  `collection.html?friend=<SteamID64>`.
-- `CardShare.cs` — invia l'immagine di una carta al proxy (`POST /share`); il proxy verifica lo
-  sblocco su Steam e la inoltra al canale vetrina di Discord (segreto `DISCORD_SHOWCASE_WEBHOOK`).
-- `Feedback.cs` — invia il modulo di feedback dell'app al proxy (`POST /feedback`), che lo salva nel
-  database D1 (dello SteamID resta solo un'impronta non reversibile, per un limite giornaliero anonimo).
-- `Updater.cs` — controlla su GitHub se c'è una Release più recente, **scarica l'installer, lo
-  verifica con il checksum SHA-256 pubblicato** e solo allora lo esegue (si interrompe se non
-  corrisponde).
-- `StartupManager.cs` — avvio con Windows (opzionale). `config.json` — le preferenze, accanto all'exe.
-
-### Note oneste
-- L'overlay compare sui giochi in modalità **Schermo intero / senza bordi** (lo standard di oggi). In
-  **«Schermo intero esclusivo»** Windows non lascia disegnare nulla sopra il gioco: la fanfara si
-  sente ma non si vede. Soluzione: nelle opzioni video del gioco scegli **«Schermo intero»** senza
-  esclusivo (a volte si chiama «Borderless» o «Finestra senza bordi»). Il gioco usa comunque la
-  frequenza impostata in Windows (es. 165 Hz). Fanfara si accorge quando un gioco era in esclusivo e te
-  lo ricorda quando lo chiudi.
-- Alcuni giochi con **Frame Generation** (DLSS 3, FSR 3) possono nascondere gli overlay esterni anche
-  in «Schermo intero». Attiva l'opzione avanzata **“Compatibilità con Frame Generation”** nelle
-  Impostazioni (richiede permessi admin e un riavvio una tantum) per vedere le notifiche anche lì.
-- I suoni sono **sintetizzati dal vivo** dentro ogni stile: ne definiscono il carattere e potranno
-  essere sostituiti con campioni audio registrati in futuro.
-- L'importazione di Cronologia e Collezione legge dati Steam **pubblici**. Se il tuo profilo Steam
-  (i dettagli dei giochi) è privato, non c'è nulla da importare finché non lo rendi pubblico.
-- La classifica **Amici** mostra gli amici che **usano anche loro Fanfara** (ogni app registra il
-  proprio punteggio): più amici la installano, più ne compaiono.
-
-> ℹ️ Progetto amatoriale, non affiliato né approvato dalle case produttrici. Tutti i marchi
-> appartengono ai rispettivi proprietari.
+> ℹ️ Progetto amatoriale, non affiliato né approvato da Valve, Steam o dalle case produttrici. Tutti i
+> marchi appartengono ai rispettivi proprietari.
 
 ## Licenza
-MIT — vedi `LICENSE`. Libero di usare, modificare e condividere.
+MIT — vedi [`LICENSE`](LICENSE). Libero da usare, modificare e condividere.

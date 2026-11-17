@@ -17,9 +17,10 @@ labels: ["bug"]
 3.
 
 ## Setup
-- Fanfara version (bottom-left in Settings):
+- Fanfara version (next to the name, top-left in Home):
 - Windows version:
 - Game and display mode:
 
 ## Screenshots / log
-<!-- Attach a screenshot and the log: C:\Users\<you>\fanfara-log.txt -->
+<!-- Attach a screenshot and the log: C:\Users\<you>\fanfara-log.txt
+     Tip: "Send feedback" in the app can attach the log for you (personal details removed). -->

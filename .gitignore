@@ -13,3 +13,6 @@ mockup-collezione/
 mockup-onboarding/
 mockup-cronologia/
 mockup-amici/
+
+# Cloudflare tool cache (contains account details) — never commit
+.wrangler/
