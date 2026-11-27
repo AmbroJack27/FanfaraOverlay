@@ -175,6 +175,9 @@ public partial class App : System.Windows.Application
                 _ = new CollectionShare(_config, _store, _games).UploadAsync();   // e.g. first start after updating: friends can see it right away
         }
 
+        // 0.6.1: find where Steam keeps the pictures of newer games (a few seconds after start, quietly)
+        _ = Task.Run(async () => { await Task.Delay(8000); await RefreshArtAsync(); });
+
         // Fanfara often stays open for days: re-check periodically and run the full sync again once
         // it's been 12 hours (not only at startup). Skipped while a game is running.
         StartSyncTimer();
@@ -293,6 +296,19 @@ public partial class App : System.Windows.Application
         await Task.Delay(900);
         if (Updater.RunSilentAfterExit(path)) Shutdown();   // free the files so the installer can replace them
         else Dispatcher.Invoke(() => _settings?.PushUpdate("fail"));
+    }
+
+    /// <summary>0.6.1: ask where the pictures of newer games are; if something changed, the pages are refreshed.</summary>
+    private async Task RefreshArtAsync()
+    {
+        try
+        {
+            if (_games == null) return;
+            var ids = _games.All().Select(g => g.Appid).ToList();
+            if (await GameArt.EnsureAsync(_config, ids))
+                await Dispatcher.InvokeAsync(async () => { if (_settings != null) await _settings.ApplyArtAsync(); });
+        }
+        catch { }
     }
 
     /// <summary>First start of a new version: a bell entry, and «What's new» from the release notes.</summary>
@@ -471,6 +487,7 @@ public partial class App : System.Windows.Application
                     if (_games != null) { var lb = new Leaderboard(_config); if (lb.Ready) _ = lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked, _games.PerfectGames()); }
                     // Share the (changed) collection with Steam friends who use Fanfara, if the player allows it.
                     if (_games != null) _ = new CollectionShare(_config, _store, _games).UploadAsync();
+                    _ = RefreshArtAsync();   // pictures of games new to the collection
                     if (manual) System.Windows.MessageBox.Show(string.Format(Loc.S(lang, "syncDone"), _store.Count), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
                     else if (firstRun || retry) Balloon(string.Format(Loc.S(lang, "syncDone"), _store.Count));
                     else if (hist.LastAdded > 0) Balloon(string.Format(Loc.S(lang, "syncNew"), hist.LastAdded));   // quiet refresh: only if there's something new

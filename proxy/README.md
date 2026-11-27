@@ -77,6 +77,7 @@ player's own Fanfara** and registered here; names and avatars are refreshed from
 
 | Endpoint | What it does |
 |---|---|
+| `GET /art?appids=1,2,3` | Picture addresses (hero, header, capsule) of up to 50 games, from Steam's public store service — newer games keep them in hashed folders (0.6.1, cached a week; no SteamID needed) |
 | `GET /lb/submit?steamid=&perfect=&total=` | Registers / refreshes your score (used by the Friends board) |
 | `POST /lb/submit?steamid=&perfect=&total=` | Same, with body `{ games:[[appid, name, lastUnlock], …] }`: the games at 100%, used for the «friends at 100%» notifications (0.6.0; stored in `scores.perf`, column added automatically) |
 | `GET /lb/join?steamid=&perfect=&total=` | Also shows you on the public **World** board |

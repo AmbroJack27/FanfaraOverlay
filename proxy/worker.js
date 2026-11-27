@@ -11,6 +11,7 @@
 // 2) LEADERBOARD (ranking by number of games completed 100%). Each Fanfara user computes their OWN
 //    score locally (the app already scans all their games) and registers it here — so there is NO
 //    per-game server computation and NO Steam rate-limit problem.
+//      GET /art?appids=1,2,3                       -> picture addresses of up to 50 games (newer games use hashed folders, 0.6.1)
 //      GET /lb/submit?steamid=&perfect=&total=   -> register/refresh my score (so friends can see me)
 //      POST /lb/submit (same query) + body {games:[[appid,name,ts],...]} -> also store my games at 100% (scores.perf, 0.6.0)
 //      GET /lb/join?steamid=&perfect=&total=     -> also appear in the PUBLIC world board (opt-in)
@@ -77,6 +78,14 @@ export default {
 
     if (url.pathname === '/' || url.pathname === '/health') {
       return json({ ok: true, service: 'fanfara-steam', leaderboard: !!env.DB }, 200);
+    }
+
+    // 0.6.1: where Steam keeps the pictures of newer games (they are no longer at the classic address)
+    if (url.pathname === '/art') {
+      const ids = [...new Set((url.searchParams.get('appids') || '').split(',').map(x => parseInt(x, 10)).filter(n => n > 0 && n < 100000000))].slice(0, 50);
+      if (!ids.length) return json({ ok: false, error: 'appids' }, 400);
+      try { return await withCache(request, ctx, () => art(ids)); }
+      catch (e) { return json({ ok: false, error: 'steam' }, 502); }
     }
 
     const steamid = url.searchParams.get('steamid') || '';
@@ -150,6 +159,24 @@ async function withCache(request, ctx, producer) {
   // Only answers marked cacheable (max-age) are stored: a "profile is private" answer must never stick.
   if (res.status === 200 && /max-age=\d+/.test(res.headers.get('cache-control') || '')) ctx.waitUntil(cache.put(request, res.clone()));
   return res;
+}
+
+// Picture addresses of up to 50 games, from Steam's public store service (no key needed). Newer games keep their
+// artwork under a hashed folder, so the classic .../steam/apps/<appid>/library_hero.jpg answers 404 for them.
+// Answer: { ok, art: { <appid>: { hero, header, cap } } } — cached for a week.
+async function art(ids) {
+  const input = { ids: ids.map(a => ({ appid: a })), context: { language: 'english', country_code: 'US' }, data_request: { include_assets: true } };
+  const r = await fetch('https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=' + encodeURIComponent(JSON.stringify(input)));
+  if (!r.ok) return json({ ok: false, error: 'steam' }, 502);
+  const j = await r.json().catch(() => ({}));
+  const out = {};
+  for (const it of (j && j.response && j.response.store_items) || []) {
+    const a = it && it.assets;
+    if (!it.appid || !a || !a.asset_url_format) continue;
+    const u = f => f ? 'https://shared.akamai.steamstatic.com/store_item_assets/' + a.asset_url_format.replace('${FILENAME}', f) : '';
+    out[it.appid] = { hero: u(a.library_hero), header: u(a.header), cap: u(a.library_capsule) };
+  }
+  return json({ ok: true, art: out }, 200, 604800);
 }
 
 // Public persona name + avatar for up to 100 SteamIDs. Returns a map steamid -> {name, avatar}.

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Collezione Fanfara</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Shippori+Mincho+B1:wght@700;800&family=IM+Fell+English+SC&display=swap">
 <script>(function(){try{var m=location.search.match(/[?&]theme=(dark|light)/);var t=m?m[1]:(localStorage.getItem('fanfara-theme')||'dark');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <style>
   /* app feel: no text selection or image dragging when holding the mouse (fields stay editable) */
@@ -414,6 +414,22 @@
 .acv .ws{position:absolute; right:-8px; bottom:30px; width:44px; height:44px; border-radius:50%; display:grid; place-items:center; transform:rotate(-12deg);
   background:radial-gradient(circle at 38% 32%, #fff0b8, #e6b23e 38%, #9b6b10 70%, #6e4a08); box-shadow:0 6px 12px -4px rgba(0,0,0,.7), inset 0 0 0 3px rgba(255,255,255,.18)}
 .acv .ws svg{width:20px; height:20px; color:#4a3005}
+/* 0.6.1 · completed game: a «100%» ribbon across the top-right corner, in the colour of each style */
+.rb100{position:absolute; top:0; right:0; width:70px; height:70px; overflow:hidden; pointer-events:none; z-index:3; border-top-right-radius:10px}
+.rb100 span{position:absolute; top:15px; right:-27px; width:110px; transform:rotate(45deg); display:flex; justify-content:center; align-items:center; gap:4px; font:800 10.5px var(--display); letter-spacing:.08em; color:#3a2604; padding:3px 0;
+  background:linear-gradient(90deg,#a87a12,#ffe58a 50%,#c9971c); box-shadow:0 3px 7px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.5)}
+.rb100 svg{width:11px; height:11px; flex:0 0 auto}
+body.sk .rb100{border-top-right-radius:8px}
+/* the same ribbon, bigger, on the closed album */
+.rb100.big{width:calc(var(--sw)*.36); height:calc(var(--sw)*.36); border-top-right-radius:var(--rad,10px)}
+.rb100.big span{top:calc(var(--sw)*.075); right:calc(var(--sw)*-.15); width:calc(var(--sw)*.6); gap:calc(var(--sw)*.018); padding:calc(var(--sw)*.016) 0; font-size:calc(var(--sw)*.05); letter-spacing:.1em; box-shadow:0 calc(var(--sw)*.012) calc(var(--sw)*.03) rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.45)}
+.rb100.big svg{width:calc(var(--sw)*.05); height:calc(var(--sw)*.05)}
+body.sk .rb100.big{border-top-right-radius:0}
+body.sk-ferro .rb100 span{background:linear-gradient(90deg,#6e120e,#b8281f 50%,#6e120e); color:#ffe2a0}
+body.sk-reale .rb100 span{background:linear-gradient(90deg,#4b1f8f,#8f5ae0 50%,#4b1f8f); color:#ffe9a8; box-shadow:0 3px 7px rgba(0,0,0,.6), 0 0 10px rgba(192,140,255,.6)}
+body.sk-olografico .rb100 span{background:linear-gradient(90deg,#063a48,#12a7c9 50%,#063a48); color:#e4fdff; box-shadow:0 0 10px #36d6ff}
+body.sk-lacca .rb100 span{background:linear-gradient(90deg,#7a1418,#c8323a 50%,#7a1418); color:#ffe4a8}
+body.sk-ottone .rb100 span{background:linear-gradient(90deg,#8a6224,#f0d28a 50%,#a87a30); color:#2e1e06}
 /* bookcase view */
 .bookcase{position:relative; padding:18px 18px 24px; border-radius:14px; overflow:hidden; display:flex; flex-wrap:wrap; align-items:flex-end; column-gap:4px; row-gap:24px;
   background:repeating-linear-gradient(180deg, transparent 0 232px, rgba(255,255,255,.55) 232px 233px, rgba(190,215,255,.16) 233px 246px, rgba(0,0,0,.28) 246px 256px), radial-gradient(ellipse 70% 90% at 50% 0%, color-mix(in srgb,var(--gold) 10%,transparent), transparent 70%), var(--panel); background-size:100% 256px, auto, auto; background-position:0 18px, 0 0, 0 0;
@@ -586,16 +602,26 @@ body.sk-reale .as-l .sheet,body.sk-reale .as-l .stk{left:3.87%; right:11.49%} bo
 body.sk-reale .as-l .sheet{background:url(img/album/reale/album.webp) 6.72% 50.00%/246.91% 107.42% no-repeat} body.sk-reale .as-r .sheet{background:url(img/album/reale/album.webp) 92.50% 50.00%/250.00% 107.42% no-repeat}
 body.sk-olografico .as-l .sheet,body.sk-olografico .as-l .stk{left:2.83%; right:6.27%} body.sk-olografico .as-r .sheet,body.sk-olografico .as-r .stk{left:6.27%; right:2.83%}
 body.sk-olografico .as-l .sheet{background:url(img/album/olografico/album.webp) 6.19% 50.00%/229.89% 107.42% no-repeat} body.sk-olografico .as-r .sheet{background:url(img/album/olografico/album.webp) 93.81% 50.00%/229.89% 107.42% no-repeat}
+body.sk-lacca .as-l .sheet,body.sk-lacca .as-l .stk{left:0.11%; right:3.13%} body.sk-lacca .as-r .sheet,body.sk-lacca .as-r .stk{left:3.55%; right:0.74%}
+body.sk-lacca .as-l .sheet{background:url(img/album/lacca/album.webp) 4.10% 50.00%/215.98% 107.42% no-repeat} body.sk-lacca .as-r .sheet{background:url(img/album/lacca/album.webp) 95.39% 50.00%/218.34% 107.42% no-repeat}
+body.sk-ottone .as-l .sheet,body.sk-ottone .as-l .stk{left:4.92%; right:6.27%} body.sk-ottone .as-r .sheet,body.sk-ottone .as-r .stk{left:8.36%; right:5.54%}
+body.sk-ottone .as-l .sheet{background:url(img/album/ottone/album.webp) 7.83% 50.00%/235.29% 107.42% no-repeat} body.sk-ottone .as-r .sheet{background:url(img/album/ottone/album.webp) 91.84% 50.00%/242.72% 107.42% no-repeat}
 /* shared look of the picture styles */
 body.sk-ferro{--sk-cop:url(img/album/ferro/copertina.webp); --sk-alb:url(img/album/ferro/album.webp); --sk-cor:url(img/album/ferro/cornice.webp); --sk-bg:url(img/album/ferro/sfondo.webp);
-  --sk-f1:#e8d3a4; --sk-f2:#b8935a; --sk-f3:#7d5d32; --sk-zl:20%; --sk-zr:13%; --sk-hole:7.04% 7% 13.73% 13%; --sk-fr:1200/608;
+  --sk-f1:#e8d3a4; --sk-f2:#b8935a; --sk-f3:#7d5d32; --sk-zl:20%; --sk-zr:13%; --sk-hole:12.8% 6.9% 13.3% 6.9%; --sk-fr:1200/608;
   --sk-inkL:#3a2410; --sk-ink2L:#5a3e1e; --sk-inkHL:#2e1a08; --sk-qL:rgba(58,36,16,.35); --sk-qR:rgba(255,255,255,.28); --sk-pc:#1b1b1d; --sk-font:'Cinzel',var(--serif)}
 body.sk-reale{--sk-cop:url(img/album/reale/copertina.webp); --sk-alb:url(img/album/reale/album.webp); --sk-cor:url(img/album/reale/cornice.webp); --sk-bg:url(img/album/reale/sfondo.webp);
-  --sk-f1:#f3e2b0; --sk-f2:#c9a55a; --sk-f3:#8a6a2a; --sk-zl:17%; --sk-zr:13%; --sk-hole:8.08% 8.12% 15.06% 14.57%; --sk-fr:1200/653;
+  --sk-f1:#f3e2b0; --sk-f2:#c9a55a; --sk-f3:#8a6a2a; --sk-zl:17%; --sk-zr:13%; --sk-hole:14.2% 7.8% 14.5% 7.8%; --sk-fr:1200/653;
   --sk-inkL:#3b2a12; --sk-ink2L:#6b5230; --sk-inkHL:#2a1c06; --sk-qL:rgba(59,42,18,.35); --sk-qR:rgba(59,42,18,.35); --sk-pc:#b8892a; --sk-font:'Cinzel',var(--serif)}
 body.sk-olografico{--sk-cop:url(img/album/olografico/copertina.webp); --sk-alb:url(img/album/olografico/album.webp); --sk-cor:url(img/album/olografico/cornice.webp); --sk-bg:url(img/album/olografico/sfondo.webp);
-  --sk-f1:#d8fbff; --sk-f2:#7fe6ff; --sk-f3:#2aa8c8; --sk-zl:13%; --sk-zr:12%; --sk-hole:3.67% 3.64% 7.15% 7.01%; --sk-fr:1200/593;
+  --sk-f1:#d8fbff; --sk-f2:#7fe6ff; --sk-f3:#2aa8c8; --sk-zl:13%; --sk-zr:12%; --sk-hole:6.9% 3.4% 6.7% 3.4%; --sk-fr:1200/593;
   --sk-inkL:#cfefff; --sk-ink2L:#7fb6c8; --sk-inkHL:#eafcff; --sk-qL:rgba(120,235,255,.35); --sk-qR:rgba(120,235,255,.35); --sk-pc:#36d6ff; --sk-font:var(--display)}
+body.sk-lacca{--sk-cop:url(img/album/lacca/copertina.webp); --sk-alb:url(img/album/lacca/album.webp); --sk-cor:url(img/album/lacca/cornice.webp); --sk-bg:url(img/album/lacca/sfondo.webp);
+  --sk-f1:#f8e7b0; --sk-f2:#d6a943; --sk-f3:#8c6620; --sk-zl:15%; --sk-zr:11%; --sk-hole:6.3% 2.7% 5.7% 2.8%; --sk-fr:1200/528;
+  --sk-inkL:#2b1a12; --sk-ink2L:#7a3b2a; --sk-inkHL:#1a0f0a; --sk-qL:rgba(43,26,18,.32); --sk-qR:rgba(43,26,18,.32); --sk-pc:#b3262a; --sk-font:'Shippori Mincho B1',var(--serif)}
+body.sk-ottone{--sk-cop:url(img/album/ottone/copertina.webp); --sk-alb:url(img/album/ottone/album.webp); --sk-cor:url(img/album/ottone/cornice.webp); --sk-bg:url(img/album/ottone/sfondo.webp);
+  --sk-f1:#f3dfa2; --sk-f2:#c99b47; --sk-f3:#7a5822; --sk-zl:17%; --sk-zr:13%; --sk-hole:9.6% 5.3% 10.2% 5.1%; --sk-fr:1200/593;
+  --sk-inkL:#3a2814; --sk-ink2L:#6e5330; --sk-inkHL:#24180a; --sk-qL:rgba(58,40,20,.32); --sk-qR:rgba(58,40,20,.32); --sk-pc:#9a7432; --sk-font:'IM Fell English SC',var(--serif)}
 /* the desk */
 body.sk .alb{background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55) 100%), var(--sk-bg) left top/cover no-repeat}
 :root:not([data-theme="dark"]) body.sk .alb{background:radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,.35) 100%), var(--sk-bg) left top/cover no-repeat}
@@ -644,8 +670,12 @@ body.sk-ferro .wax span,body.sk-ferro .wax svg,body.sk-ferro .acv .ws svg{color:
 body.sk-reale .wax,body.sk-reale .acv .ws{box-shadow:0 6px 12px -4px rgba(0,0,0,.7), 0 0 18px rgba(192,140,255,.55), inset 0 0 0 calc(var(--sw)*.012) rgba(107,47,196,.55)}
 body.sk-olografico .wax,body.sk-olografico .acv .ws{border-radius:0; clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%); background:linear-gradient(160deg,#0b2430,#06121a); transform:none; box-shadow:none; filter:drop-shadow(0 0 6px #36d6ff)}
 body.sk-olografico .wax span,body.sk-olografico .wax svg,body.sk-olografico .acv .ws svg{color:#9af0ff; text-shadow:0 0 6px #36d6ff}
+body.sk-lacca .wax{border-radius:14%; background:radial-gradient(circle at 38% 32%,#e0493f,#b3262a 55%,#6e1015); box-shadow:0 6px 12px -4px rgba(0,0,0,.7), inset 0 0 0 calc(var(--sw)*.01) rgba(255,220,200,.35)}
+body.sk-lacca .wax span,body.sk-lacca .wax svg{color:#ffe9d0; text-shadow:none}
+body.sk-ottone .wax{background:radial-gradient(circle at 38% 32%,#fff1c2,#d6a94e 38%,#8a6224 70%,#4e360f); box-shadow:0 6px 12px -4px rgba(0,0,0,.7), inset 0 0 0 calc(var(--sw)*.012) rgba(78,54,15,.55), 0 0 0 calc(var(--sw)*.008) #6e4f1c}
+body.sk-ottone .wax span,body.sk-ottone .wax svg{color:#3a2604; text-shadow:none}
 body.sk .wax{right:auto; left:calc((var(--sk-zl) - var(--sk-zr))/2 + 50%); bottom:6%; width:calc(var(--sw)*.17); transform:translateX(-50%) rotate(-8deg)}
-body.sk-olografico .wax{transform:translateX(-50%)}
+body.sk-olografico .wax,body.sk-lacca .wax{transform:translateX(-50%)}
 /* library: the covers lie on the style's desk */
 body.sk .covers{padding:28px 26px 30px; border-radius:16px; background:radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,.45)), var(--sk-bg) center/cover no-repeat; box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
 body.sk .acv{aspect-ratio:3/4; padding:10% var(--sk-zr) 9% var(--sk-zl); gap:7px; border-radius:3px 8px 8px 3px; background:var(--sk-cop) 0 0/100% 100% no-repeat; box-shadow:0 14px 22px -10px rgba(0,0,0,.85)}
@@ -655,6 +685,8 @@ body.sk .acv .br{order:0} body.sk .acv .nm{order:1; min-height:2.45em; display:-
 body.sk .acv .br,body.sk .acv .nm{font-family:var(--sk-font)}
 body.sk .acv .pg{color:var(--sk-f1)} body.sk .acv .pg i b{background:linear-gradient(90deg,var(--sk-f3),var(--sk-f1))}
 body.sk .acv.done .pg i b{background:linear-gradient(90deg,#c48a14,#ffe08a)}
+body.sk-lacca .acv,body.sk-ottone .acv{padding-top:15%}
+body.sk-lacca .gold-t{filter:drop-shadow(0 1px 0 #000) drop-shadow(0 0 4px rgba(0,0,0,.95))}
 body.sk .acv .ws{right:auto; left:calc((var(--sk-zl) - var(--sk-zr))/2 + 50%); margin-left:-22px; bottom:8px}
 /* ambience: candle, magic mist, neon — and a canvas for dust / motes / sparks */
 .alb-amb{position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden; display:none}
@@ -668,6 +700,9 @@ body.sk-reale .alb-amb .mst{display:block; inset:-20%; background:radial-gradien
 body.sk-olografico .alb-amb .neo{display:block; inset:0; background:radial-gradient(40% 60% at 0% 50%,rgba(40,220,255,.2),transparent 70%),radial-gradient(40% 60% at 100% 50%,rgba(255,60,200,.18),transparent 70%); animation:skneon 4s ease-in-out infinite}
 body.sk-olografico .alb-amb .scn{display:block; left:0; right:0; height:140px; top:-140px; background:linear-gradient(transparent,rgba(120,240,255,.07),transparent); animation:skscan 6s linear infinite}
 @keyframes skneon{50%{opacity:.55}} @keyframes skscan{to{top:100%}}
+body.sk-lacca .alb-amb .cdl{display:block; left:var(--cx,10%); top:var(--cy,15%); width:1000px; height:1000px; margin:-500px 0 0 -500px; background:radial-gradient(closest-side, rgba(255,214,150,.32), rgba(255,170,90,.11) 42%, transparent 72%); animation:skflick 5s infinite}
+body.sk-ottone .alb-amb .cdl{display:block; left:var(--cx,8%); top:var(--cy,8%); width:900px; height:900px; margin:-450px 0 0 -450px; background:radial-gradient(closest-side, rgba(255,200,120,.34), rgba(255,150,60,.12) 40%, transparent 72%); animation:skflick 3.6s infinite}
+body.sk-ottone .alb-amb .flm{display:block; left:var(--cx,8%); top:var(--cy,8%); width:60px; height:80px; margin:-40px 0 0 -30px; background:radial-gradient(closest-side, rgba(255,235,170,.9), rgba(255,170,60,.35) 50%, transparent); animation:skflick 1.2s infinite}
 .alb-amb canvas{position:absolute; inset:0; width:100%; height:100%}
 body.skfx-lite .alb-amb i{animation-duration:16s}
 body.skfx-off .alb-amb{display:none}
@@ -810,7 +845,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
     if(t===4) SPARKS.forEach(function(p){ h+='<span class="spark" style="left:'+p[0]+'%;top:'+p[1]+'%;animation-delay:'+p[2]+'s"></span>'; });
     return h+'<div class="glare"></div>';
   }
-  function hdrUrl(c){ return c.appid ? 'https://cdn.cloudflare.steamstatic.com/steam/apps/'+c.appid+'/header.jpg' : ''; }
+  function hdrUrl(c){ var m=window.FAN_ART, r=m&&m[c.appid]; return c.appid ? ((r&&r.header)||'https://cdn.cloudflare.steamstatic.com/steam/apps/'+c.appid+'/header.jpg') : ''; }
   // One card (the front).
   function face(c,i){
     var hdr=hdrUrl(c);
@@ -841,7 +876,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
         cardsOf:'{u} / {t} carte',complete:'★ completo',setDone:'★ Set completo',wax:'SET<br>COMPLETO',albumOf:'ALBUM DEI TROFEI',
         cover:'Copertina',pg1:'Pagina {a} di {n}',pg2:'Pagine {a}–{b} di {n}',openAlb:'Apri l’album',orCover:'oppure clicca la copertina',
         albHint:'Clicca una carta per aprirla · clicca la pagina o usa ← → per sfogliare · Esc per chiudere',
-        plU:'Carte raccolte',plUv:'{u} su {t}',plC:'Completamento',plH:'Ore di gioco',plR:'Carta più rara',plF:'Prima carta',plSig:'Collezione di un giocatore Fanfara',
+        plU:'Carte raccolte',plUv:'{u} su {t}',plC:'Completamento',plH:'Ore di gioco',plR:'Carta più rara',plF:'Prima carta',plSig:'Collezione di un giocatore Fanfara',plSigMe:'Collezione di {f}',
         hrs:'{n} ore',hrs1:'1 ora',no:'N°',findAlb:'Vedi nel suo album',theme:'Tema'},
     en:{lvl:'LEVEL',lvlSub:'Level {l} collector · {p} points to level {n} (rare cards are worth more)',kSets:'complete sets of {n}',kPts:'points',
         packN:'{n} NEW CARDS',pack1:'1 NEW CARD',packT:'You have {n} new cards to open!',packT1:'You have a new card to open!',
@@ -852,7 +887,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
         cardsOf:'{u} / {t} cards',complete:'★ complete',setDone:'★ Set complete',wax:'SET<br>COMPLETE',albumOf:'TROPHY ALBUM',
         cover:'Cover',pg1:'Page {a} of {n}',pg2:'Pages {a}–{b} of {n}',openAlb:'Open the album',orCover:'or click the cover',
         albHint:'Click a card to open it · click the page or use ← → to turn · Esc to close',
-        plU:'Cards collected',plUv:'{u} of {t}',plC:'Completion',plH:'Hours played',plR:'Rarest card',plF:'First card',plSig:'Collection of a Fanfara player',
+        plU:'Cards collected',plUv:'{u} of {t}',plC:'Completion',plH:'Hours played',plR:'Rarest card',plF:'First card',plSig:'Collection of a Fanfara player',plSigMe:'Collection of {f}',
         hrs:'{n} hours',hrs1:'1 hour',no:'No.',findAlb:'See it in its album',theme:'Theme'},
     fr:{lvl:'NIVEAU',lvlSub:'Collectionneur niveau {l} · {p} points avant le niveau {n} (les cartes rares valent plus)',kSets:'sets complets sur {n}',kPts:'points',
         packN:'{n} NOUVELLES CARTES',pack1:'1 NOUVELLE CARTE',packT:'Vous avez {n} nouvelles cartes à ouvrir !',packT1:'Vous avez une nouvelle carte à ouvrir !',
@@ -863,7 +898,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
         cardsOf:'{u} / {t} cartes',complete:'★ complet',setDone:'★ Set complet',wax:'SET<br>COMPLET',albumOf:'ALBUM DES TROPHÉES',
         cover:'Couverture',pg1:'Page {a} sur {n}',pg2:'Pages {a}–{b} sur {n}',openAlb:'Ouvrir l’album',orCover:'ou cliquez sur la couverture',
         albHint:'Cliquez sur une carte pour l’ouvrir · cliquez sur la page ou utilisez ← → pour tourner · Échap pour fermer',
-        plU:'Cartes collectées',plUv:'{u} sur {t}',plC:'Progression',plH:'Heures de jeu',plR:'Carte la plus rare',plF:'Première carte',plSig:'Collection d’un joueur Fanfara',
+        plU:'Cartes collectées',plUv:'{u} sur {t}',plC:'Progression',plH:'Heures de jeu',plR:'Carte la plus rare',plF:'Première carte',plSig:'Collection d’un joueur Fanfara',plSigMe:'Collection de {f}',
         hrs:'{n} heures',hrs1:'1 heure',no:'N°',findAlb:'Voir dans son album',theme:'Thème'},
     de:{lvl:'STUFE',lvlSub:'Sammler Stufe {l} · noch {p} Punkte bis Stufe {n} (seltene Karten zählen mehr)',kSets:'komplette Sets von {n}',kPts:'Punkte',
         packN:'{n} NEUE KARTEN',pack1:'1 NEUE KARTE',packT:'Du hast {n} neue Karten zum Öffnen!',packT1:'Du hast eine neue Karte zum Öffnen!',
@@ -874,7 +909,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
         cardsOf:'{u} / {t} Karten',complete:'★ komplett',setDone:'★ Set komplett',wax:'SET<br>KOMPLETT',albumOf:'TROPHÄENALBUM',
         cover:'Einband',pg1:'Seite {a} von {n}',pg2:'Seiten {a}–{b} von {n}',openAlb:'Album öffnen',orCover:'oder klicke auf den Einband',
         albHint:'Klicke auf eine Karte, um sie zu öffnen · klicke auf die Seite oder nutze ← → zum Blättern · Esc zum Schließen',
-        plU:'Gesammelte Karten',plUv:'{u} von {t}',plC:'Fortschritt',plH:'Spielzeit',plR:'Seltenste Karte',plF:'Erste Karte',plSig:'Sammlung eines Fanfara-Spielers',
+        plU:'Gesammelte Karten',plUv:'{u} von {t}',plC:'Fortschritt',plH:'Spielzeit',plR:'Seltenste Karte',plF:'Erste Karte',plSig:'Sammlung eines Fanfara-Spielers',plSigMe:'Sammlung von {f}',
         hrs:'{n} Std.',hrs1:'1 Std.',no:'Nr.',findAlb:'Im Album zeigen',theme:'Design'},
     es:{lvl:'NIVEL',lvlSub:'Coleccionista de nivel {l} · {p} puntos para el nivel {n} (las cartas raras valen más)',kSets:'sets completos de {n}',kPts:'puntos',
         packN:'{n} CARTAS NUEVAS',pack1:'1 CARTA NUEVA',packT:'¡Tienes {n} cartas nuevas por abrir!',packT1:'¡Tienes una carta nueva por abrir!',
@@ -885,7 +920,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
         cardsOf:'{u} / {t} cartas',complete:'★ completo',setDone:'★ Set completo',wax:'SET<br>COMPLETO',albumOf:'ÁLBUM DE TROFEOS',
         cover:'Portada',pg1:'Página {a} de {n}',pg2:'Páginas {a}–{b} de {n}',openAlb:'Abrir el álbum',orCover:'o haz clic en la portada',
         albHint:'Haz clic en una carta para abrirla · haz clic en la página o usa ← → para pasar · Esc para cerrar',
-        plU:'Cartas reunidas',plUv:'{u} de {t}',plC:'Progreso',plH:'Horas de juego',plR:'Carta más rara',plF:'Primera carta',plSig:'Colección de un jugador de Fanfara',
+        plU:'Cartas reunidas',plUv:'{u} de {t}',plC:'Progreso',plH:'Horas de juego',plR:'Carta más rara',plF:'Primera carta',plSig:'Colección de un jugador de Fanfara',plSigMe:'Colección de {f}',
         hrs:'{n} horas',hrs1:'1 hora',no:'N.º',findAlb:'Ver en su álbum',theme:'Tema'}
   };
   Object.keys(NSTR).forEach(function(l){ var d=STR[l]; if(!d) return; Object.keys(NSTR[l]).forEach(function(k){ d[k]=NSTR[l][k]; }); });
@@ -1168,20 +1203,22 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
   // =============== STATE ===============
   var CARDS=[], GAMES={}, SETS=[], VOL=0.8, PENDING=false, PACKBUSY=false, NEWC=[];
   var SORT='recent', VIEW='covers', QUERY='';
-  try{ SORT=localStorage.getItem('fanfara-coll-sort')||'recent'; VIEW=localStorage.getItem('fanfara-coll-view')||'covers'; }catch(e){}
+  try{ SORT=localStorage.getItem('fanfara-coll-sort')||'recent'; }catch(e){}   // 0.6.1: the «Shelf» view was removed
   function byId(id){ return document.getElementById(id); }
   function fmt(s,o){ return String(s==null?'':s).replace(/\{(\w+)\}/g,function(m,k){ return o[k]!=null?o[k]:m; }); }
   var TROPHY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>';
   var BOOK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5A2.5 2.5 0 0 1 4.5 3H11v17H4.5A2.5 2.5 0 0 0 2 22.5zM22 5.5A2.5 2.5 0 0 0 19.5 3H13v17h6.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg>';
   var SUNMOON='<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
-  function hdrOf(appid){ return appid ? 'https://cdn.cloudflare.steamstatic.com/steam/apps/'+appid+'/header.jpg' : ''; }
+  function fanArt(a,k){ var m=window.FAN_ART, r=m&&m[a]; return r&&r[k]?r[k]:''; }   // 0.6.1: newer games keep their pictures elsewhere
+  function hdrOf(appid){ return appid ? (fanArt(appid,'header')||'https://cdn.cloudflare.steamstatic.com/steam/apps/'+appid+'/header.jpg') : ''; }
   // Sharp game art: Steam's big library picture (1920×620) with the game's logo on top, like Steam's own
   // library. Games without them fall back to the classic small picture (header.jpg, which has the title).
-  function heroOf(appid){ return appid ? 'https://cdn.cloudflare.steamstatic.com/steam/apps/'+appid+'/library_hero.jpg' : ''; }
+  function heroOf(appid){ return appid ? (fanArt(appid,'hero')||'https://cdn.cloudflare.steamstatic.com/steam/apps/'+appid+'/library_hero.jpg') : ''; }
   function logoOf(appid){ return appid ? 'https://cdn.cloudflare.steamstatic.com/steam/apps/'+appid+'/logo.png' : ''; }
   function gart(appid,lazy){
     if(!appid) return '<span class="gart"></span>';
     var lz=lazy?' loading="lazy"':'';
+    if(fanArt(appid,'header')) return '<span class="gart" data-a="'+appid+'" data-fb="1"><img class="ga-bg"'+lz+' src="'+hdrOf(appid)+'" alt="" onerror="this.style.visibility=\'hidden\'"></span>';
     return '<span class="gart" data-a="'+appid+'"><img class="ga-bg"'+lz+' src="'+heroOf(appid)+'" alt="" onerror="gartFb(this)">'
       +'<img class="ga-lg"'+lz+' src="'+logoOf(appid)+'" alt="" onerror="gartFb(this)"></span>';
   }
@@ -1228,7 +1265,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
     }catch(e){}
   };
   // ---- album styles (0.6.0): picture skins over the same book engine ----
-  var SKINS={ferro:1, reale:1, olografico:1}, SKIN='', SKFX='full';
+  var SKINS={ferro:1, reale:1, olografico:1, lacca:1, ottone:1}, SKIN='', SKFX='full';
   function applySkin(st, fx){
     var q=location.search.match(/[?&]alb=(\w+)/); if(q) st=q[1];
     SKIN=SKINS[st]?st:''; SKFX=(fx==='lite'||fx==='off')?fx:'full'; if(REDUCE) SKFX='off';
@@ -1241,11 +1278,16 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
     var cv=host.querySelector('canvas'), cx=cv.getContext('2d'), P=[], run=true, d=Math.min(2,devicePixelRatio||1), W=0, H=0, img={w:2400,h:1321};
     function size(){ W=host.clientWidth; H=host.clientHeight; cv.width=W*d; cv.height=H*d; cx.setTransform(d,0,0,d,0,0);
       // the candle of "Ferro e cuoio" is painted in the desk picture: follow it as the picture is scaled to cover the window
-      var sc=Math.max(W/img.w,H/img.h); host.style.setProperty('--cx',(.106*img.w*sc)+'px'); host.style.setProperty('--cy',(.145*img.h*sc)+'px'); host.style.setProperty('--fy',(.106*img.h*sc)+'px'); }
+      // the lamp of each desk (ferro: candle, lacca: paper lantern, ottone: oil lamp)
+      var L=SKIN==='lacca'?[.108,.152,.152]:SKIN==='ottone'?[.08,.082,.082]:[.106,.145,.106];
+      var sc=Math.max(W/img.w,H/img.h); host.style.setProperty('--cx',(L[0]*img.w*sc)+'px'); host.style.setProperty('--cy',(L[1]*img.h*sc)+'px'); host.style.setProperty('--fy',(L[2]*img.h*sc)+'px'); }
     size(); window.addEventListener('resize',size);
-    var N=SKFX==='full'?60:18, col=SKIN==='ferro'?'255,224,170':SKIN==='reale'?'190,170,255':'120,235,255';
+    var N=SKFX==='full'?60:18, col=SKIN==='ferro'||SKIN==='ottone'?'255,224,170':SKIN==='reale'?'190,170,255':SKIN==='lacca'?'255,190,205':'120,235,255';
+    if(SKIN==='lacca') N=SKFX==='full'?26:9;   // cherry petals drifting down
     function spawn(){ var p={l:0,m:400+Math.random()*500,s:.6+Math.random()*1.4,ph:Math.random()*6};
-      if(SKIN==='ferro'){ var cxp=parseFloat(host.style.getPropertyValue('--cx'))||W*.1, cyp=parseFloat(host.style.getPropertyValue('--cy'))||H*.14, a=Math.random()*Math.PI*2, r=Math.pow(Math.random(),.6)*Math.max(W,H)*.45;
+      if(SKIN==='lacca'){ p.x=Math.random()*W*1.1-W*.05; p.y=-20-Math.random()*H*.3; p.vx=.25+Math.random()*.35; p.vy=.35+Math.random()*.4; p.s=4+Math.random()*4; p.r=Math.random()*6.28; p.vr=(Math.random()-.5)*.04; p.m=700+Math.random()*500; return p; }
+      if(SKIN==='ottone' && Math.random()<.18){ p.steam=1; p.x=(Math.random()<.5?Math.random()*W*.18:W*.82+Math.random()*W*.18); p.y=H+30; p.vx=(Math.random()-.5)*.2; p.vy=-.35-Math.random()*.3; p.s=18+Math.random()*22; p.m=500+Math.random()*300; return p; }
+      if(SKIN==='ferro'||SKIN==='ottone'){ var cxp=parseFloat(host.style.getPropertyValue('--cx'))||W*.1, cyp=parseFloat(host.style.getPropertyValue('--cy'))||H*.14, a=Math.random()*Math.PI*2, r=Math.pow(Math.random(),.6)*Math.max(W,H)*.45;
         p.x=cxp+Math.cos(a)*r*1.3; p.y=cyp+Math.abs(Math.sin(a))*r; p.vx=(Math.random()-.5)*.12; p.vy=-.03-Math.random()*.08; p.cx=cxp; p.cy=cyp; }
       else if(SKIN==='reale'){ p.x=Math.random()*W; p.y=H*.2+Math.random()*H*.8; p.vx=(Math.random()-.5)*.15; p.vy=-.08-Math.random()*.15; p.s=.8+Math.random()*1.6; }
       else { var side=Math.random()<.5; p.x=side?Math.random()*W*.12:W*.88+Math.random()*W*.12; p.y=Math.random()*H; p.vx=0; p.vy=-(.2+Math.random()*.4); p.s=.7+Math.random(); p.m=250+Math.random()*250; }
@@ -1254,7 +1296,9 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
       while(P.length<N) P.push(spawn());
       for(var i=P.length-1;i>=0;i--){ var p=P[i]; p.l++; p.x+=p.vx+Math.sin((p.l/60)+p.ph)*.08; p.y+=p.vy; if(p.l>p.m){ P.splice(i,1); continue; }
         var k=p.l/p.m, al=(k<.15?k/.15:k>.8?(1-k)/.2:1);
-        if(SKIN==='ferro'){ al*=Math.max(.12,1-Math.hypot(p.x-p.cx,p.y-p.cy)/(Math.max(W,H)*.55))*.75; cx.fillStyle='rgba('+col+','+al.toFixed(3)+')'; cx.beginPath(); cx.arc(p.x,p.y,p.s,0,6.283); cx.fill(); }
+        if(SKIN==='lacca'){ p.r+=p.vr; cx.save(); cx.translate(p.x,p.y); cx.rotate(p.r); cx.fillStyle='rgba('+col+','+(al*.75).toFixed(3)+')'; cx.beginPath(); cx.ellipse(0,0,p.s,p.s*.55,0,0,6.283); cx.fill(); cx.restore(); continue; }
+        if(p.steam){ var gs=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.s*(1+k)); gs.addColorStop(0,'rgba(235,230,220,'+(al*.09).toFixed(3)+')'); gs.addColorStop(1,'rgba(235,230,220,0)'); cx.fillStyle=gs; cx.beginPath(); cx.arc(p.x,p.y,p.s*(1+k),0,6.283); cx.fill(); continue; }
+        if(SKIN==='ferro'||SKIN==='ottone'){ al*=Math.max(.12,1-Math.hypot(p.x-p.cx,p.y-p.cy)/(Math.max(W,H)*.55))*.75; cx.fillStyle='rgba('+col+','+al.toFixed(3)+')'; cx.beginPath(); cx.arc(p.x,p.y,p.s,0,6.283); cx.fill(); }
         else if(SKIN==='reale'){ al*=.8; var g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.s*4); g.addColorStop(0,'rgba('+col+','+al+')'); g.addColorStop(1,'rgba('+col+',0)'); cx.fillStyle=g; cx.beginPath(); cx.arc(p.x,p.y,p.s*4,0,6.283); cx.fill(); }
         else { cx.fillStyle='rgba('+col+','+(al*.7)+')'; cx.fillRect(p.x,p.y,p.s*1.4,p.s*5); } }
       requestAnimationFrame(tick); })();
@@ -1408,7 +1452,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
     byId('lib').innerHTML='<div class="lib-hd"><h2>'+esc(S.libT)+'</h2><span class="kpi"><b>'+fmtN(SETS.length)+'</b>'+esc(S.libN)+'</span><div class="sp"></div>'
       +'<label class="srch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="'+esc(S.search)+'"></label>'
       +'<div class="seg" id="sortSeg">'+[['recent',S.sRecent],['compl',S.sCompl],['az',S.sAz]].map(function(x){ return '<button data-sort="'+x[0]+'"'+(SORT===x[0]?' class="on"':'')+'>'+esc(x[1])+'</button>'; }).join('')+'</div>'
-      +'<div class="seg" id="viewSeg">'+[['covers',S.vCovers],['shelf',S.vShelf]].map(function(x){ return '<button data-view="'+x[0]+'"'+(VIEW===x[0]?' class="on"':'')+'>'+esc(x[1])+'</button>'; }).join('')+'</div></div>'
+      +'</div>'
       +'<div id="libList"></div>';
     var q=byId('q'); q.value=QUERY; q.oninput=function(){ QUERY=this.value; renderList(); };
     renderList();
@@ -1416,25 +1460,17 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
   function renderList(){
     var qq=QUERY.trim().toLowerCase(), list=sortedSets().filter(function(s){ return (!qq || s.name.toLowerCase().indexOf(qq)>=0) && !(FRIEND && ONLYC && !MYG[s.appid]); }), box=byId('libList');
     if(!list.length){ box.innerHTML='<div class="lib-empty">'+esc(S.libEmpty)+'</div>'; return; }
-    if(VIEW!=='shelf'){
       box.innerHTML='<div class="covers">'+list.map(function(s){
         return '<div class="acv'+(s.done?' done':'')+'" data-a="'+s.appid+'" style="'+lvars(s)+'"><div class="br gold-t">FANFARA</div><div class="im">'+gart(s.appid,true)+'</div>'
           +'<div class="nm gold-t">'+esc(s.name)+'</div><div class="pg"><i><b style="width:'+Math.round(s.u/s.t*100)+'%"></b></i>'+fmtN(s.u)+'/'+fmtN(s.t)+'</div>'
           +(FRIEND && MINE ? (MYG[s.appid] ? '<div class="pg me">'+esc(S.fYou)+' <i><b style="width:'+Math.round(MYG[s.appid].u/Math.max(1,MYG[s.appid].t)*100)+'%"></b></i>'+fmtN(MYG[s.appid].u)+'/'+fmtN(MYG[s.appid].t)+'</div>' : '<div class="pg me none">'+esc(S.fNoGame)+'</div>') : '')
-          +(s.done?'<div class="ws">'+TROPHY+'</div>':'')+'</div>'; }).join('')+'</div>';
-      return;
-    }
-    box.innerHTML='<div class="bookcase">'+list.map(function(s){ var w=Math.round(58+Math.min(1,s.t/120)*18), h=Math.round(204+((s.appid*2654435761)%977)/977*26);
-      return '<div class="slot"><div class="spb'+(s.done?' done':'')+'" data-a="'+s.appid+'" data-tip="'+esc(s.name)+'" data-tip2="'+esc(fmt(S.cardsOf,{u:fmtN(s.u),t:fmtN(s.t)})+(s.done?' · '+S.complete:''))+'" style="'+lvars(s)+';width:'+w+'px;height:'+h+'px">'
-        +'<div class="bd"></div><div class="sth" style="background-image:'+bgArt(s.appid)+'"></div><div class="tt gold-t">'+esc(s.name)+'</div><div class="nb">'+fmtN(s.u)+'<br>'+fmtN(s.t)+'</div></div></div>'; }).join('')+'</div>';
+          +(s.done?'<div class="rb100"><span>'+TROPHY+'100%</span></div>':'')+'</div>'; }).join('')+'</div>';
   }
 
   document.addEventListener('click',function(e){
     if(cur) return;
     var t=e.target.closest('#show .mc'); if(t){ openCard(t,+t.dataset.i); return; }
     t=e.target.closest('.acv,.spb'); if(t){ byId('tip').classList.remove('on'); openAlbum(+t.dataset.a); return; }
-    t=e.target.closest('#viewSeg [data-view]'); if(t){ VIEW=t.dataset.view; try{ localStorage.setItem('fanfara-coll-view',VIEW); }catch(x){}
-      Array.prototype.forEach.call(document.querySelectorAll('#viewSeg button'),function(b){ b.classList.toggle('on',b===t); }); renderList(); return; }
     t=e.target.closest('#sortSeg [data-sort]'); if(t){ SORT=t.dataset.sort; try{ localStorage.setItem('fanfara-coll-sort',SORT); }catch(x){}
       Array.prototype.forEach.call(document.querySelectorAll('#sortSeg button'),function(b){ b.classList.toggle('on',b===t); }); renderList(); return; }
   });
@@ -1477,13 +1513,19 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
       +'<div class="emb"><div class="brand gold-t">FANFARA</div><div class="ttl gold-t">'+esc(s.name)+'</div><div class="rule">'+RULE+'</div>'
       +'<div class="shot"><div>'+gart(s.appid)+'</div></div>'
       +'<div class="lbl gold-t">'+esc(S.albumOf)+'</div><div class="cnt gold-t">'+fmtN(s.u)+' / '+fmtN(s.t)+'</div></div>'
-      +(s.done?'<div class="wax"><span>'+TROPHY+S.wax+'</span></div>':'')+'</div>'
+      +(s.done?'<div class="rb100 big"><span>'+TROPHY+'100%</span></div>':'')+'</div>'
       +'<div class="cv-b"><div class="plate"><div class="exl">EX LIBRIS</div><h4>'+esc(s.name)+'</h4><div class="ph">'+gart(s.appid)+'</div>'
       +'<dl><dt>'+esc(S.plU)+'</dt><dd>'+esc(fmt(S.plUv,{u:fmtN(s.u),t:fmtN(s.t)}))+'</dd><dt>'+esc(S.plC)+'</dt><dd>'+Math.floor(s.u/s.t*100)+'%</dd>'
       +'<dt>'+esc(S.plH)+'</dt><dd>'+esc(fmtHours(s.h))+'</dd>'
       +(rare?'<dt>'+esc(S.plR)+'</dt><dd>'+esc(rare.name.trim().length>24?rare.name.trim().slice(0,23)+'…':rare.name.trim())+' · '+fmtPct(rare.p)+'</dd>':'')
       +(first&&first.unlock?'<dt>'+esc(S.plF)+'</dt><dd>'+esc(new Date(first.unlock*1000).toLocaleDateString(LOCALE,{day:'numeric',month:'short',year:'numeric'}))+'</dd>':'')+'</dl>'
-      +'<div class="sig">'+esc(S.plSig)+'</div></div></div></div>'; }
+      +'<div class="sig">'+esc(sigText())+'</div></div></div></div>'; }
+  // 0.6.1: the Ex Libris is signed with the owner's Steam name (the Home remembers it from the leaderboard)
+  function sigText(){
+    if(FRIEND) return S.plSig;   // «Collection of <friend>»
+    var me=''; try{ me=(JSON.parse(localStorage.getItem('fanfara-me')||'{}')||{}).name||''; }catch(e){}
+    return me ? S.plSigMe.replace('{f}',me) : S.plSig;
+  }
 
   function openAlbum(appid, focusCard){
     var s=setBy(appid); if(!s || A.set) return; audio();

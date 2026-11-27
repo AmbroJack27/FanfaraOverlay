@@ -43,6 +43,11 @@ configurare.
 
 ## 🆕 Novità
 
+**0.6.1** — due nuovi stili degli album, **Lacca e oro** e **Ottone e ingranaggi**; i giochi completati
+al 100% hanno un nastro «100%» sul loro album; le immagini dei giochi tornano centrate nelle cornici e i
+giochi più recenti (di cui Steam ha spostato le immagini) mostrano la loro copertina. Tolta la vista
+«Scaffale».
+
 **0.6.0** — **Stili degli album**: oltre al classico, «Ferro e cuoio», «Grimorio reale» e «Archivio
 olografico», con sfondi animati. La **Super Fanfara** festeggia ogni gioco completato al 100%. Una
 notifica (anche in gioco) quando un **amico completa un gioco al 100%**, una **campanella** con tutte
@@ -170,8 +175,10 @@ gemme, l'icona vera sull'immagine del gioco ed effetti che crescono con la rarit
   pagine da sfogliare. Le copertine usano l'immagine grande della libreria di Steam con il logo del
   gioco.
 - **📖 Stili degli album** (Personalizza → Stile degli album): **Classico**, **Ferro e cuoio**,
-  **Grimorio reale** e **Archivio olografico** — ognuno con copertina, pagine, cornice e sfondo animato
-  (candele, polvere, scintille). Gli effetti possono essere Pieni, Leggeri o Spenti.
+  **Grimorio reale**, **Archivio olografico**, **Lacca e oro** e **Ottone e ingranaggi** — ognuno con
+  copertina, pagine, cornice e sfondo animato (candele, polvere, scintille, petali di ciliegio, vapore).
+  Gli effetti possono essere Pieni, Leggeri o Spenti. I giochi completati al 100% hanno un nastro «100%»
+  sull'angolo del loro album.
 
 ### 🏅 Super Fanfara e amici al 100%
 - **Super Fanfara**: quando sblocchi l'ultimo obiettivo di un gioco, un «100%» dorato riempie lo
@@ -216,6 +223,7 @@ tutto ogni 12 ore, anche se resta aperta.
 | Classifica mondiale | Database di Fanfara | Gli stessi dati, visibili a tutti — **solo se entri**; quando esci sparisci dalla classifica (i tuoi amici ti vedono ancora) |
 | Collezioni degli amici | Database di Fanfara | Una copia leggera della tua collezione, leggibile **solo dai tuoi amici di Steam** — accesa di base, se la spegni in Personalizza viene cancellata |
 | Feedback / bacheca | Database di Fanfara + Discord | Solo quello che invii; lo SteamID viene tenuto solo come codice anonimo |
+| Immagini dei giochi | Proxy di Fanfara → Steam | Solo i numeri dei giochi (appid), per trovare dove Steam tiene le immagini dei giochi più recenti |
 | Aggiornamenti | GitHub | Controllo di una nuova versione e lettura delle sue note |
 | Notifiche (campanella) | **Solo sul tuo PC** | `notifications.json`, `friends-perf.json` in `%AppData%\Fanfara` |
 
@@ -289,6 +297,8 @@ sola lettura, tramite il proxy in [`proxy/`](proxy/README.md).
 - `FsOpt.cs` / `Mpo.cs` — preparano i giochi per lo schermo intero e l'opzione Frame Generation.
 - `Updater.cs` — scarica il nuovo installer, **ne verifica lo SHA-256**, lo avvia in silenzio dopo la
   chiusura di Fanfara (l'installer la riapre) e legge le note della versione per le «Novità».
+- `GameArt.cs` — trova dove Steam tiene le immagini dei giochi più recenti (tramite `/art` del proxy)
+  e lo ricorda in `art.json`.
 - `Notifications.cs` / `FriendWatch.cs` — l'elenco della campanella e il controllo «amici al 100%»
   (ogni 5 minuti, dalla classifica Amici).
 - `proxy/worker.js` — il Worker Cloudflare (piano gratuito): proxy della Steam Web API con la chiave

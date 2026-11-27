@@ -495,7 +495,7 @@ function renderGuide(){
 
 // ---- 0.6.0: album styles ----
 function renderAlbs(){ const box=$('#albs'); if(!box) return;
-  box.innerHTML=['classic','ferro','reale','olografico'].map(k=>{ const bg=k==='classic'?'':`style="background-image:url(img/album/${k}/sfondo.webp)"`, cv=k==='classic'?'':`style="background-image:url(img/album/${k}/copertina.webp)"`;
+  box.innerHTML=['classic','ferro','reale','olografico','lacca','ottone'].map(k=>{ const bg=k==='classic'?'':`style="background-image:url(img/album/${k}/sfondo.webp)"`, cv=k==='classic'?'':`style="background-image:url(img/album/${k}/copertina.webp)"`;
     return `<button class="alt ${k}${S.album===k?' sel':''}" data-k="${k}" ${bg}><span class="cv" ${cv}></span><span class="lb">${esc((U&&U['alb_'+k])||k)}</span></button>`; }).join('');
   document.querySelectorAll('#albFx button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.albumFx)); }
 $('#albs').onclick=e=>{ const b=e.target.closest('.alt'); if(!b) return; S.album=b.dataset.k; renderAlbs(); };

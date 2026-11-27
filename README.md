@@ -43,6 +43,10 @@ collections** to compare with yours. No login, no API key, nothing to configure.
 
 ## 🆕 What's new
 
+**0.6.1** — two new album styles, **Lacquer & gold** and **Brass & gears**; games completed 100% get a
+«100%» ribbon on their album; game pictures are centred in the frames again and newer games (whose
+pictures Steam moved) show their artwork. The «Shelf» view is gone.
+
 **0.6.0** — **Album styles**: besides the classic one, «Iron & leather», «Royal grimoire» and «Holo
 archive», with animated backdrops. The **Super Fanfara** celebrates every game you complete 100%. A
 notification (even in game) when a **friend completes a game 100%**, a **bell** with all the news in
@@ -160,9 +164,10 @@ the real icon over the game artwork, and effects that grow with rarity.
   tooling, sewn binding, cards in photo corners in unlock order, «?» frames for the missing ones, a
   bookplate with cards, completion, **hours played**, rarest and first card, and pages you turn.
   Covers use Steam's large library artwork with the game's logo.
-- **📖 Album styles** (Customize → Album style): **Classic**, **Iron & leather**, **Royal grimoire**
-  and **Holo archive** — each with its own cover, pages, frame and animated backdrop (candles, dust,
-  sparks). Effects can be Full, Light or Off.
+- **📖 Album styles** (Customize → Album style): **Classic**, **Iron & leather**, **Royal grimoire**,
+  **Holo archive**, **Lacquer & gold** and **Brass & gears** — each with its own cover, pages, frame and
+  animated backdrop (candles, dust, sparks, cherry petals, steam). Effects can be Full, Light or Off.
+  Games completed 100% wear a «100%» ribbon across the corner of their album.
 
 ### 🏅 Super Fanfara and friends at 100%
 - **Super Fanfara**: when you unlock a game's last achievement, a golden «100%» takes the screen with
@@ -206,6 +211,7 @@ everything again every 12 hours, even while it stays open.
 | World leaderboard | Fanfara's database | The same, visible to everyone — **only if you join**; when you leave you disappear from it (your friends still see you) |
 | Friends' collections | Fanfara's database | A light copy of your collection, readable **only by your Steam friends** — on by default, turn it off in Personalizza and it's deleted |
 | Feedback / showcase | Fanfara's database + Discord | Only what you send; your SteamID is kept only as an anonymous hash |
+| Game pictures | Fanfara's proxy → Steam | Only game numbers (appid), to find where Steam keeps the pictures of newer games |
 | Updates | GitHub | Checks for a new release and reads its notes |
 | Notifications (bell) | **Only on your PC** | `notifications.json`, `friends-perf.json` in `%AppData%\Fanfara` |
 
@@ -275,6 +281,8 @@ read-only, through the proxy in [`proxy/`](proxy/README.md).
 - `FsOpt.cs` / `Mpo.cs` — prepare games for fullscreen and the Frame Generation option.
 - `Updater.cs` — downloads the new installer, **verifies its SHA-256**, runs it silently after Fanfara
   closes (the installer starts Fanfara again) and fetches the release notes for «What's new».
+- `GameArt.cs` — finds where Steam keeps the pictures of newer games (through the proxy's `/art`) and
+  remembers it in `art.json`.
 - `Notifications.cs` / `FriendWatch.cs` — the bell's list and the «friends at 100%» check (every 5
   minutes, from the Friends leaderboard).
 - `proxy/worker.js` — the Cloudflare Worker (free tier): Steam Web API proxy with the key as a secret,

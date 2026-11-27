@@ -124,8 +124,8 @@ public partial class OverlayWindow : Window
         RunShow($"window.fanfara.show({json})", moved);
     }
 
-    private static string HeroUrl(uint appid) => $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appid}/library_hero.jpg";
-    private static string HeaderUrl(uint appid) => $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appid}/header.jpg";
+    private static string HeroUrl(uint appid) => GameArt.Hero(appid);
+    private static string HeaderUrl(uint appid) => GameArt.Header(appid);
 
     /// <summary>Super Fanfara: the game was just completed 100% (queued after the last achievement's notification).</summary>
     public void ShowSuper(uint appid, string game, int total, int minutes, int nth, Config config, bool preview = false)

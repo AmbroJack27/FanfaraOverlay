@@ -255,6 +255,7 @@
   var LOCMAP={it:'it-IT',en:'en-GB',fr:'fr-FR',de:'de-DE',es:'es-ES'};
   var LANG='it', S=STR.it, TL=TIERLAB.it, LOCALE='it-IT';
   var CDN='https://cdn.cloudflare.steamstatic.com/steam/apps/';
+  function artOf(a,k,f){ var m=window.FAN_ART, r=m&&m[a]; return (r&&r[k])||(CDN+a+'/'+f); }   // 0.6.1: newer games keep their pictures elsewhere
   var TROPHY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>';
   function $(id){ return document.getElementById(id); }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
@@ -274,7 +275,7 @@
   function rarest(list){ return list.reduce(function(a,r){ return (r.p!=null && (a==null||r.p<a.p))?r:a; },null); }
   function icon(r){ return '<span class="ico">'+(r.icon?'<img src="'+esc(r.icon)+'" alt="" loading="lazy" onerror="this.outerHTML=\'<span class=ph>'+TROPHY.replace(/"/g,'&quot;')+'</span>\'">':'<span class="ph">'+TROPHY+'</span>')+'</span>'; }
   // big library picture of the game, falling back to the classic small one
-  function heroImg(appid){ if(!appid) return ''; return '<img class="bgart" src="'+CDN+appid+'/library_hero.jpg" alt="" loading="lazy" onerror="this.onerror=function(){this.remove()};this.src=\''+CDN+appid+'/header.jpg\'">'; }
+  function heroImg(appid){ if(!appid) return ''; return '<img class="bgart" src="'+artOf(appid,'hero','library_hero.jpg')+'" alt="" loading="lazy" onerror="this.onerror=function(){this.remove()};this.src=\''+artOf(appid,'header','header.jpg')+'\'">'; }
 
   var DATA=[], GAMES=[], FT=-1, WHEN='all', DAYF=null, SHOW=7, STEP=7, MON=null;
 
@@ -402,7 +403,7 @@
     $('side').innerHTML='<div class="hcard cal"><h4><button id="mPrev" title="'+esc(S.prevM)+'"'+(canPrev?'':' disabled')+'>‹</button><b>'+esc(first.toLocaleDateString(LOCALE,{month:'long',year:'numeric'}))+'</b><button id="mNext" title="'+esc(S.nextM)+'"'+(canNext?'':' disabled')+'>›</button></h4>'
       +'<span class="ctot">'+mon.length+' '+words(mon.length)+'</span>'+cal+'</div>'
       +'<div class="hcard dist"><h4>'+S.mRar+'</h4>'+dist+'</div>'
-      +'<div class="hcard tops"><h4>'+S.mGames+'</h4>'+(tops.length? tops.map(function(g){ return '<div class="trow">'+(g.a?'<img class="th" src="'+CDN+g.a+'/header.jpg" alt="" onerror="this.style.visibility=\'hidden\'">':'<span class="th"></span>')+'<div>'+esc(g.g)+'</div><b>'+g.n+'</b></div>'; }).join('') : '<div class="none">'+S.mNone+'</div>')+'</div>';
+      +'<div class="hcard tops"><h4>'+S.mGames+'</h4>'+(tops.length? tops.map(function(g){ return '<div class="trow">'+(g.a?'<img class="th" src="'+artOf(g.a,'header','header.jpg')+'" alt=""" onerror="this.style.visibility=\'hidden\'">':'<span class="th"></span>')+'<div>'+esc(g.g)+'</div><b>'+g.n+'</b></div>'; }).join('') : '<div class="none">'+S.mNone+'</div>')+'</div>';
     $('mPrev').onclick=function(){ if(!canPrev) return; MON.m--; if(MON.m<0){MON.m=11;MON.y--;} side(); };
     $('mNext').onclick=function(){ if(!canNext) return; MON.m++; if(MON.m>11){MON.m=0;MON.y++;} side(); };
   }

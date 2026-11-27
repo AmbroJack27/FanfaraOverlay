@@ -54,7 +54,7 @@ public class Config
     public string CollShareHash { get; set; } = "";
 
     // ---- 0.6.0 ----
-    // Look of the Collection albums: "classic" (drawn book) or a picture style: "ferro" | "reale" | "olografico".
+    // Look of the Collection albums: "classic" (drawn book) or a picture style: "ferro" | "reale" | "olografico" | "lacca" | "ottone".
     public string AlbumStyle { get; set; } = "classic";
     // Album ambience (candle, dust, magic mist, neon): "full" | "lite" | "off".
     public string AlbumFx { get; set; } = "full";

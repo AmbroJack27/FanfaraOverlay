@@ -426,7 +426,7 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
   }
   function gtile(appid, name){
     var ini=String(name||'?').split(/\s+/).map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-    var img=appid? '<img src="https://cdn.cloudflare.steamstatic.com/steam/apps/'+appid+'/header.jpg" alt="" onerror="this.remove()">' : '';
+    var fa=window.FAN_ART&&window.FAN_ART[appid], img=appid? '<img src="'+((fa&&fa.header)||'https://cdn.cloudflare.steamstatic.com/steam/apps/'+appid+'/header.jpg')+'" alt="" onerror="this.remove()">' : '';   // 0.6.1: newer games keep their pictures elsewhere
     return '<div class="gt">'+esc(ini)+img+'</div>';
   }
   function avatar(name, url){

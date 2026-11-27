@@ -22,6 +22,24 @@ public partial class SettingsWindow : Window
 
     /// <summary>The Home asked for a Steam sync (the app owns the sync, so it handles this).</summary>
     public event Action? SyncRequested;
+    private string? _artScriptId;
+    /// <summary>
+    /// 0.6.1: give every page the addresses of the games whose pictures moved (window.FAN_ART), from the
+    /// next page on and — when refresh is true — on the page that is showing now too.
+    /// </summary>
+    public async Task ApplyArtAsync(bool refresh = true)
+    {
+        try
+        {
+            var core = Web.CoreWebView2; if (core == null) return;
+            var js = "window.FAN_ART=" + GameArt.ScriptJson() + ";";
+            if (_artScriptId != null) core.RemoveScriptToExecuteOnDocumentCreated(_artScriptId);
+            _artScriptId = await core.AddScriptToExecuteOnDocumentCreatedAsync(js);
+            if (refresh) { await core.ExecuteScriptAsync(js); RefreshData(); }
+        }
+        catch { }
+    }
+
     /// <summary>«Update now» pressed in the Home (0.6.0).</summary>
     public event Action? UpdateRequested;
     private string? _pendingNews;   // «What's new» waiting for the Home to be shown
@@ -137,6 +155,7 @@ public partial class SettingsWindow : Window
 
         Web.CoreWebView2.WebMessageReceived += OnWebMessage;
         Web.CoreWebView2.NavigationCompleted += (_, _) => OnNavigated();
+        await ApplyArtAsync(refresh: false);   // 0.6.1: every page knows where the pictures of newer games are
 
         _coreReady = true;
         Web.CoreWebView2.Navigate(PageUrl(_pendingPage ?? "home.html"));
@@ -674,7 +693,7 @@ public partial class SettingsWindow : Window
                     else _ = share.DeleteAsync();
                 }
                 if (msg.language != null) { _config.Language = msg.language; _overlay.ApplyLanguage(); }
-                if (msg.albumStyle is "classic" or "ferro" or "reale" or "olografico") _config.AlbumStyle = msg.albumStyle;
+                if (msg.albumStyle is "classic" or "ferro" or "reale" or "olografico" or "lacca" or "ottone") _config.AlbumStyle = msg.albumStyle;
                 if (msg.albumFx is "full" or "lite" or "off") _config.AlbumFx = msg.albumFx;
                 if (msg.superFanfara is bool sfan) _config.SuperFanfara = sfan;
                 if (msg.friendAlerts is bool fal) _config.FriendAlerts = fal;
