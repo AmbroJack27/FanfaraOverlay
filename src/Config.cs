@@ -53,6 +53,19 @@ public class Config
     // Fingerprint of the last collection sent, so an unchanged collection is never uploaded again.
     public string CollShareHash { get; set; } = "";
 
+    // ---- 0.6.0 ----
+    // Look of the Collection albums: "classic" (drawn book) or a picture style: "ferro" | "reale" | "olografico".
+    public string AlbumStyle { get; set; } = "classic";
+    // Album ambience (candle, dust, magic mist, neon): "full" | "lite" | "off".
+    public string AlbumFx { get; set; } = "full";
+    // The big golden celebration when a game reaches 100%.
+    public bool SuperFanfara { get; set; } = true;
+    // Bottom-right alert (also in game) when a Steam friend who uses Fanfara completes a game 100%, and its sound.
+    public bool FriendAlerts { get; set; } = true;
+    public bool FriendSound { get; set; } = true;
+    // Version that ran last time: when it changes, the Home shows «What's new».
+    public string LastVersion { get; set; } = "";
+
     // ---- First-run guided setup (welcome.html) ----
     // False until the user finishes (or skips) the guided setup. New installs AND existing users who
     // update see it once; it can be reopened any time from the Guide or the tray menu.

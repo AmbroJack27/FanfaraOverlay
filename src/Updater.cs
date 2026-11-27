@@ -22,7 +22,7 @@ public static class Updater
     // HTTPS-downloaded installer as before (older releases have no checksum).
     private const string HashAssetName = "FanfaraSetup.exe.sha256";
 
-    public record UpdateInfo(string Version, string Tag, string DownloadUrl, string? Sha256Url);
+    public record UpdateInfo(string Version, string Tag, string DownloadUrl, string? Sha256Url, string Body = "");
 
     /// <summary>Current app version as Major.Minor.Build (revision ignored).</summary>
     public static Version CurrentVersion
@@ -69,7 +69,8 @@ public static class Updater
             }
             if (string.IsNullOrEmpty(dl)) return null;
 
-            return new UpdateInfo(verStr, tag, dl!, hashUrl);
+            string body = root.TryGetProperty("body", out var b) ? b.GetString() ?? "" : "";
+            return new UpdateInfo(verStr, tag, dl!, hashUrl, body);
         }
         catch { return null; }
     }
@@ -108,6 +109,89 @@ public static class Updater
             return true;
         }
         catch { return false; }
+    }
+
+    // ================= 0.6.0: one-click update =================
+
+    /// <summary>Downloads the installer and checks its SHA-256. Returns the local path, or null (failed / not genuine).</summary>
+    public static async Task<string?> DownloadAsync(UpdateInfo info, IProgress<int>? progress = null)
+    {
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("Fanfara-Updater");
+            using var resp = await http.GetAsync(info.DownloadUrl, HttpCompletionOption.ResponseHeadersRead);
+            resp.EnsureSuccessStatusCode();
+            long len = resp.Content.Headers.ContentLength ?? 0;
+            using var src = await resp.Content.ReadAsStreamAsync();
+            using var ms = new MemoryStream();
+            var buf = new byte[81920]; int n; long got = 0; int last = -1;
+            while ((n = await src.ReadAsync(buf)) > 0)
+            {
+                ms.Write(buf, 0, n); got += n;
+                if (len > 0) { int pc = (int)(got * 100 / len); if (pc != last) { last = pc; progress?.Report(pc); } }
+            }
+            var bytes = ms.ToArray();
+            if (!string.IsNullOrEmpty(info.Sha256Url))
+            {
+                string? expected = null;
+                try { expected = ParseHash(await http.GetStringAsync(info.Sha256Url)); } catch { }
+                if (!string.IsNullOrEmpty(expected) &&
+                    !string.Equals(expected, Convert.ToHexString(SHA256.HashData(bytes)), StringComparison.OrdinalIgnoreCase))
+                    return null;   // tampered / corrupted: never run it
+            }
+            var path = Path.Combine(Path.GetTempPath(), $"FanfaraSetup-{info.Version}.exe");
+            await File.WriteAllBytesAsync(path, bytes);
+            return path;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>
+    /// Starts the installer silently a couple of seconds after Fanfara has closed (so nothing is in use),
+    /// with no windows; the installer starts Fanfara again when it's done (see Fanfara.iss).
+    /// </summary>
+    public static bool RunSilentAfterExit(string installerPath)
+    {
+        try
+        {
+            var args = $"/c ping -n 4 127.0.0.1 >nul & start \"\" \"{installerPath}\" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-";
+            Process.Start(new ProcessStartInfo("cmd.exe", args) { CreateNoWindow = true, UseShellExecute = false, WindowStyle = ProcessWindowStyle.Hidden });
+            return true;
+        }
+        catch { return false; }
+    }
+
+    /// <summary>The release notes of one version (for the «What's new» window after an update), or "".</summary>
+    public static async Task<string> NotesAsync(string version)
+    {
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("Fanfara-Updater");
+            http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+            var json = await http.GetStringAsync($"https://api.github.com/repos/{Owner}/{Repo}/releases/tags/v{version}");
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty("body", out var b) ? b.GetString() ?? "" : "";
+        }
+        catch { return ""; }
+    }
+
+    /// <summary>The part of the release notes in the user's language: «## 🇮🇹 Novità» for Italian, otherwise «## 🇬🇧 What's new».</summary>
+    public static string Section(string body, string lang)
+    {
+        if (string.IsNullOrWhiteSpace(body)) return "";
+        string Find(string marker)
+        {
+            var lines = body.Replace("\r\n", "\n").Split('\n');
+            int start = Array.FindIndex(lines, l => l.TrimStart().StartsWith("## ") && l.Contains(marker, StringComparison.OrdinalIgnoreCase));
+            if (start < 0) return "";
+            int end = Array.FindIndex(lines, start + 1, l => l.TrimStart().StartsWith("## "));
+            if (end < 0) end = lines.Length;
+            return string.Join("\n", lines[(start + 1)..end]).Trim();
+        }
+        var it = lang == "it" ? Find("Novità") : "";
+        return it.Length > 0 ? it : (Find("What's new") is { Length: > 0 } en ? en : body.Trim());
     }
 
     // Pulls the 64-hex-char SHA-256 out of a checksum file. Accepts a bare hash or the

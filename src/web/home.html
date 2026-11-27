@@ -241,6 +241,72 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
     .a-me .av{width:46px; height:46px; font-size:16px} .a-me b,.a-guide b{font-size:16px}
     .cd{width:min(80px,28%)} .snm{font-size:20px} .big{font-size:44px} }
   @media (prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important} #intro{display:none} .app{opacity:1} .tile,.pr{opacity:1; transform:none} .aurora{display:none} }
+  /* ===== 0.6.0: the bell, the update offer and «What's new» ===== */
+  .ibtn.bell{position:relative}
+  .ibtn.bell .bdg{position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:#ff5a6e; color:#fff; font:800 10.5px/18px var(--display); text-align:center; box-shadow:0 0 0 2px var(--bg)}
+  .ibtn.bell .bdg:empty{display:none}
+  .ibtn.bell.ring svg{animation:ring 1.1s ease .4s 2; transform-origin:50% 10%}
+  @keyframes ring{0%,100%{transform:rotate(0)}15%{transform:rotate(14deg)}30%{transform:rotate(-12deg)}45%{transform:rotate(8deg)}60%{transform:rotate(-5deg)}75%{transform:rotate(2deg)}}
+  .ibtn.bell.on{color:var(--gold); border-color:color-mix(in srgb,var(--gold) 45%,var(--line))}
+  .np{position:fixed; z-index:80; top:70px; right:30px; width:392px; max-width:calc(100vw - 32px); max-height:min(560px,calc(100vh - 100px)); display:flex; flex-direction:column; border-radius:18px; background:linear-gradient(var(--tileB),var(--tileB)),var(--bg); border:1px solid var(--line); box-shadow:0 30px 70px -20px rgba(0,0,0,.6); overflow:hidden; opacity:0; transform:translateY(-8px) scale(.98); transform-origin:top right; pointer-events:none; transition:opacity .18s, transform .18s}
+  :root[data-theme="light"] .np{box-shadow:0 26px 60px -24px rgba(16,24,40,.4)}
+  .np.open{opacity:1; transform:none; pointer-events:auto}
+  .np .nh{display:flex; align-items:center; gap:10px; padding:14px 16px 12px; border-bottom:1px solid var(--line)}
+  .np .nh b{font:800 15px var(--display); flex:1}
+  .np .nh button{cursor:pointer; border:0; background:none; color:var(--gold); font:600 12px var(--body); padding:4px 6px; border-radius:8px}
+  .np .nh button:hover{background:var(--soft2)} .np .nh button:disabled{color:var(--faint); cursor:default; background:none}
+  .np .nl{overflow-y:auto; padding:6px 8px 10px}
+  .np .ng{font:700 10.5px var(--display); letter-spacing:.08em; text-transform:uppercase; color:var(--faint); padding:10px 8px 6px}
+  .np .ni{display:flex; gap:12px; align-items:flex-start; padding:10px 8px; border-radius:12px; cursor:pointer; position:relative}
+  .np .ni:hover,.np .ni:focus-visible{background:var(--soft2); outline:none}
+  .np .ni .ic{flex:0 0 auto; width:38px; height:38px; border-radius:11px; display:grid; place-items:center; background:var(--soft2); color:var(--muted); overflow:hidden}
+  .np .ni .ic img{width:100%; height:100%; object-fit:cover}
+  .np .ni .ic svg{width:19px; height:19px}
+  .np .ni .ic.g{color:#1b1405; background:linear-gradient(145deg,#ffe58a,#F5C242)}
+  .np .ni .ic.b{color:#fff; background:linear-gradient(145deg,#6fa5ff,#4C8DFF)}
+  .np .ni .ic.p{color:#fff; background:linear-gradient(145deg,#c9a0ff,#B078FF)}
+  .np .ni .ic.av{border-radius:50%; font:800 15px var(--display); color:#fff; background:linear-gradient(145deg,#2fd0c6,#4C8DFF)}
+  .np .ni .tx{flex:1; min-width:0; font-size:13px; line-height:1.4; color:var(--fg)}
+  .np .ni .tx b{font-weight:700}
+  .np .ni .tx small{display:block; color:var(--muted); font-size:12px; margin-top:2px}
+  .np .ni .tm{flex:0 0 auto; font-size:11px; color:var(--faint); white-space:nowrap; padding-top:2px}
+  .np .ni.new::after{content:''; position:absolute; left:-1px; top:50%; width:6px; height:6px; margin-top:-3px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold)}
+  .np .ne{padding:34px 20px 38px; text-align:center; color:var(--muted); font-size:13px}
+  .np .ne svg{width:34px; height:34px; margin:0 auto 10px; color:var(--faint)}
+
+  .upd{position:fixed; z-index:85; right:30px; bottom:26px; width:370px; max-width:calc(100vw - 32px); padding:16px 16px 14px; border-radius:18px; background:linear-gradient(var(--tileB),var(--tileB)),var(--bg); border:1px solid color-mix(in srgb,var(--gold) 40%,var(--line)); box-shadow:0 30px 70px -24px rgba(0,0,0,.65); display:flex; gap:13px; transform:translateY(24px); opacity:0; pointer-events:none; transition:transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .25s}
+  .upd.show{transform:none; opacity:1; pointer-events:auto}
+  .upd .ui{flex:0 0 auto; width:42px; height:42px; border-radius:13px; display:grid; place-items:center; color:#1b1405; background:linear-gradient(145deg,#ffe58a,#F5C242); box-shadow:0 8px 20px -8px color-mix(in srgb,var(--gold) 70%,transparent)}
+  .upd .ui svg{width:21px; height:21px}
+  .upd .ub{flex:1; min-width:0}
+  .upd .ub b{display:block; font:800 14.5px var(--display)}
+  .upd .ub span{display:block; font-size:12.5px; color:var(--muted); line-height:1.45; margin-top:3px}
+  .upd .ua{display:flex; gap:8px; margin-top:11px}
+  .upd .ua button{cursor:pointer; padding:8px 13px; border-radius:10px; font:700 12.5px var(--display); border:1px solid var(--line); background:var(--chip); color:var(--fg)}
+  .upd .ua button.gold{border:0; color:#1b1405; background:linear-gradient(145deg,#ffe58a,#F5C242)}
+  .upd .ua button:hover{filter:brightness(1.07)}
+  .upd .pb{height:6px; border-radius:99px; background:var(--soft2); margin-top:11px; overflow:hidden}
+  .upd .pb i{display:block; height:100%; width:0; border-radius:inherit; background:linear-gradient(90deg,#F5C242,#ffe58a); transition:width .3s}
+  .upd .pb.ind i{width:35%; animation:indet 1.1s ease-in-out infinite}
+  @keyframes indet{0%{transform:translateX(-100%)}100%{transform:translateX(290%)}}
+  .upd .ux{position:absolute; top:8px; right:8px; width:26px; height:26px; border-radius:8px; border:0; background:none; color:var(--faint); cursor:pointer; display:grid; place-items:center}
+  .upd .ux:hover{background:var(--soft2); color:var(--fg)} .upd .ux svg{width:14px; height:14px}
+
+  .nws{position:fixed; inset:0; z-index:95; display:grid; place-items:center; padding:24px; background:rgba(4,6,12,.6); opacity:0; pointer-events:none; transition:opacity .25s}
+  :root[data-theme="light"] .nws{background:rgba(22,28,43,.35)}
+  .nws.show{opacity:1; pointer-events:auto}
+  .nws .nc{width:560px; max-width:100%; max-height:calc(100vh - 48px); display:flex; flex-direction:column; border-radius:22px; background:linear-gradient(var(--tileB),var(--tileB)),var(--bg); border:1px solid var(--line); box-shadow:0 40px 90px -30px rgba(0,0,0,.7); overflow:hidden; transform:translateY(16px) scale(.97); transition:transform .35s cubic-bezier(.2,.9,.3,1.15)}
+  .nws.show .nc{transform:none}
+  .nws .nt{position:relative; padding:26px 28px 20px; background:radial-gradient(120% 140% at 0% 0%, color-mix(in srgb,var(--gold) 22%,transparent), transparent 60%), radial-gradient(120% 140% at 100% 0%, color-mix(in srgb,var(--purple) 20%,transparent), transparent 60%); border-bottom:1px solid var(--line)}
+  .nws .nt small{font:700 11px var(--display); letter-spacing:.12em; text-transform:uppercase; color:var(--gold)}
+  .nws .nt b{display:block; font:800 25px var(--display); margin-top:4px}
+  .nws .nm{overflow-y:auto; padding:18px 28px 6px; font-size:14px; line-height:1.55; color:var(--fg); -webkit-user-select:text; user-select:text}
+  .nws .nm h4{font:800 14.5px var(--display); margin:16px 0 6px; color:var(--fg)} .nws .nm h4:first-child{margin-top:0}
+  .nws .nm ul{margin:0 0 8px; padding-left:20px} .nws .nm li{margin:5px 0} .nws .nm li::marker{color:var(--gold)}
+  .nws .nm p{margin:0 0 10px} .nws .nm code{font-size:12.5px; padding:1px 5px; border-radius:6px; background:var(--soft2)}
+  .nws .nf{display:flex; justify-content:flex-end; padding:14px 28px 22px}
+  .nws .nf button{cursor:pointer; padding:10px 20px; border-radius:12px; border:0; font:800 14px var(--display); color:#1b1405; background:linear-gradient(145deg,#ffe58a,#F5C242)}
+  @media (max-width:520px){ .np{right:16px; top:64px} .upd{right:16px; bottom:16px} }
 </style></head>
 <body>
 <div class="aurora"><i class="x1"></i><i class="x2"></i><i class="x3"></i></div>
@@ -259,6 +325,7 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
     <span class="chip fbk wz" id="wz" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8 19 13M15 9h.01M17.8 6.2 19 5M3 21l9-9M12.2 6.2 11 5"/></svg><span id="wzt"></span></span>
     <span class="chip fbk" id="fbk" role="button" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span id="fbkt"></span></span>
     <span class="chip never" id="sync" role="button" tabindex="0"><span class="ok"></span><span id="synct"></span></span>
+    <span class="ibtn bell" id="bell" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><i class="bdg" id="bdg"></i></span>
     <span class="ibtn" id="theme" role="button" tabindex="0">
       <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
       <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -304,6 +371,11 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
       <div><b id="guideT"></b><p id="guideS"></p></div></section>
   </div>
 </div>
+
+<!-- 0.6.0: bell panel, update offer, «What's new» -->
+<div class="np" id="np" role="dialog" aria-labelledby="npT"><div class="nh"><b id="npT"></b><button id="npRead"></button></div><div class="nl" id="npL"></div></div>
+<div class="upd" id="upd" role="status" aria-live="polite"><div class="ui"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg></div><div class="ub"><b id="updT"></b><span id="updS"></span><div id="updP"></div><div id="updA"></div></div><button class="ux" id="updX" aria-label="×"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+<div class="nws" id="nws" role="dialog" aria-modal="true" aria-labelledby="nwsT"><div class="nc"><div class="nt"><small id="nwsK"></small><b id="nwsT"></b></div><div class="nm" id="nwsM"></div><div class="nf"><button id="nwsOk"></button></div></div></div>
 
 <script src="i18n.js"></script>
 <script src="styles.js"></script>
@@ -546,7 +618,7 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
     if(d.theme && !qp('theme')) document.documentElement.setAttribute('data-theme', d.theme==='light'?'light':'dark');
     D=d; lastSyncSeen=lastSyncSeen||d.lastSync||'';
     if(d.version) $('ver').textContent=d.version;
-    render();
+    render(); renderNotif();
   };
   window.fanfaraHomeBoard=function(kind, raw){
     BOARD[kind]=raw||{ok:false};
@@ -562,6 +634,177 @@ document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}
     if(!st.running && wantSync){ wantSync=false; toast(st.lastSync && st.lastSync!==lastSyncSeen ? H.syncDone : H.syncFail); }
     if(st.lastSync) { D.lastSync=st.lastSync; lastSyncSeen=st.lastSync; }
   };
+
+  // ---------------- 0.6.0: bell, update offer, «What's new» ----------------
+  var NT={
+    it:{bell:'Notifiche', readAll:'Segna tutte come lette', today:'Oggi', week:'Questa settimana', older:'Prima', empty:'Nessuna notifica, per ora.<br>Qui arrivano i 100% dei tuoi amici e le novità di Fanfara.',
+      friend100:'<b>{who}</b> ha completato <b>{game}</b> al 100%', friend100s:'Ora ha {n} giochi al 100%',
+      mine100:'Hai completato <b>{game}</b> al 100%', mine100s:'Giochi al 100%: {n}',
+      update:'<b>Fanfara {ver}</b> è disponibile', updates:'Clicca per aggiornare',
+      updated:'Fanfara è aggiornata alla <b>{ver}</b>', updateds:'Guarda le novità',
+      styles:'<b>Nuovi stili per gli album</b>', styless:'Scegline uno in Personalizza',
+      upT:'Fanfara {ver} è pronta', upS:'Si installa da sola e Fanfara si riapre in pochi secondi.', upNow:'Aggiorna ora', upLater:'Più tardi',
+      upDl:'Scarico l\'aggiornamento… {p}%', upInst:'Installo… Fanfara si chiude e si riapre da sola.', upWait:'Lo installo appena chiudi il gioco, così non ti disturbo.', upFail:'Aggiornamento non riuscito. Controlla la connessione e riprova.', upRetry:'Riprova',
+      newsK:'Novità', newsT:'Cosa c\'è di nuovo in Fanfara {ver}', newsOk:'Fantastico!'},
+    en:{bell:'Notifications', readAll:'Mark all as read', today:'Today', week:'This week', older:'Earlier', empty:'No notifications yet.<br>Your friends\' 100% games and Fanfara news land here.',
+      friend100:'<b>{who}</b> completed <b>{game}</b> 100%', friend100s:'Now at {n} games at 100%',
+      mine100:'You completed <b>{game}</b> 100%', mine100s:'Games at 100%: {n}',
+      update:'<b>Fanfara {ver}</b> is available', updates:'Click to update',
+      updated:'Fanfara was updated to <b>{ver}</b>', updateds:'See what\'s new',
+      styles:'<b>New album styles</b>', styless:'Pick one in Customize',
+      upT:'Fanfara {ver} is ready', upS:'It installs by itself and Fanfara reopens in a few seconds.', upNow:'Update now', upLater:'Later',
+      upDl:'Downloading the update… {p}%', upInst:'Installing… Fanfara closes and reopens by itself.', upWait:'I\'ll install it as soon as you close your game, so I won\'t get in the way.', upFail:'The update didn\'t work. Check your connection and try again.', upRetry:'Try again',
+      newsK:'What\'s new', newsT:'What\'s new in Fanfara {ver}', newsOk:'Awesome!'},
+    fr:{bell:'Notifications', readAll:'Tout marquer comme lu', today:'Aujourd\'hui', week:'Cette semaine', older:'Plus tôt', empty:'Aucune notification pour l\'instant.<br>Les 100 % de tes amis et les nouveautés de Fanfara arrivent ici.',
+      friend100:'<b>{who}</b> a terminé <b>{game}</b> à 100 %', friend100s:'Maintenant {n} jeux à 100 %',
+      mine100:'Tu as terminé <b>{game}</b> à 100 %', mine100s:'Jeux à 100 % : {n}',
+      update:'<b>Fanfara {ver}</b> est disponible', updates:'Clique pour mettre à jour',
+      updated:'Fanfara est passé en <b>{ver}</b>', updateds:'Voir les nouveautés',
+      styles:'<b>Nouveaux styles d\'album</b>', styless:'Choisis-en un dans Personnaliser',
+      upT:'Fanfara {ver} est prêt', upS:'Il s\'installe tout seul et Fanfara se rouvre en quelques secondes.', upNow:'Mettre à jour', upLater:'Plus tard',
+      upDl:'Téléchargement de la mise à jour… {p} %', upInst:'Installation… Fanfara se ferme et se rouvre tout seul.', upWait:'Je l\'installerai dès que tu fermeras ton jeu, pour ne pas te déranger.', upFail:'La mise à jour a échoué. Vérifie ta connexion et réessaie.', upRetry:'Réessayer',
+      newsK:'Nouveautés', newsT:'Les nouveautés de Fanfara {ver}', newsOk:'Génial !'},
+    de:{bell:'Benachrichtigungen', readAll:'Alle als gelesen markieren', today:'Heute', week:'Diese Woche', older:'Früher', empty:'Noch keine Benachrichtigungen.<br>Hier landen die 100 %-Spiele deiner Freunde und Fanfara-Neuigkeiten.',
+      friend100:'<b>{who}</b> hat <b>{game}</b> zu 100 % abgeschlossen', friend100s:'Jetzt {n} Spiele mit 100 %',
+      mine100:'Du hast <b>{game}</b> zu 100 % abgeschlossen', mine100s:'Spiele mit 100 %: {n}',
+      update:'<b>Fanfara {ver}</b> ist verfügbar', updates:'Klicken zum Aktualisieren',
+      updated:'Fanfara wurde auf <b>{ver}</b> aktualisiert', updateds:'Neuigkeiten ansehen',
+      styles:'<b>Neue Album-Stile</b>', styless:'Wähle einen unter Anpassen',
+      upT:'Fanfara {ver} ist bereit', upS:'Es installiert sich selbst und Fanfara öffnet sich in wenigen Sekunden wieder.', upNow:'Jetzt aktualisieren', upLater:'Später',
+      upDl:'Update wird geladen… {p} %', upInst:'Wird installiert… Fanfara schließt sich und startet von selbst neu.', upWait:'Ich installiere es, sobald du dein Spiel schließt, damit ich nicht störe.', upFail:'Das Update hat nicht geklappt. Prüfe die Verbindung und versuche es erneut.', upRetry:'Erneut versuchen',
+      newsK:'Neuigkeiten', newsT:'Neu in Fanfara {ver}', newsOk:'Super!'},
+    es:{bell:'Notificaciones', readAll:'Marcar todas como leídas', today:'Hoy', week:'Esta semana', older:'Antes', empty:'Aún no hay notificaciones.<br>Aquí llegan los 100 % de tus amigos y las novedades de Fanfara.',
+      friend100:'<b>{who}</b> ha completado <b>{game}</b> al 100 %', friend100s:'Ahora tiene {n} juegos al 100 %',
+      mine100:'Has completado <b>{game}</b> al 100 %', mine100s:'Juegos al 100 %: {n}',
+      update:'<b>Fanfara {ver}</b> está disponible', updates:'Haz clic para actualizar',
+      updated:'Fanfara se ha actualizado a la <b>{ver}</b>', updateds:'Ver las novedades',
+      styles:'<b>Nuevos estilos de álbum</b>', styless:'Elige uno en Personalizar',
+      upT:'Fanfara {ver} está lista', upS:'Se instala sola y Fanfara se vuelve a abrir en unos segundos.', upNow:'Actualizar ahora', upLater:'Más tarde',
+      upDl:'Descargando la actualización… {p} %', upInst:'Instalando… Fanfara se cierra y se vuelve a abrir sola.', upWait:'La instalaré en cuanto cierres el juego, para no molestarte.', upFail:'La actualización ha fallado. Revisa la conexión y vuelve a intentarlo.', upRetry:'Reintentar',
+      newsK:'Novedades', newsT:'Novedades de Fanfara {ver}', newsOk:'¡Genial!'}
+  };
+  function N(){ return NT[LANG]||NT.en; }
+  var BI={
+    bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+    trophy:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>',
+    down:'<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
+    star:'<path d="M12 3l2.1 5.4L20 9l-4.5 3.9L17 19l-5-3-5 3 1.5-6.1L4 9l5.9-.6z"/>',
+    book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
+    x:'<path d="M18 6 6 18M6 6l12 12"/>'
+  };
+  function bsvg(n){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+BI[n]+'</svg>'; }
+  var bellOpen=false, lastUnread=-1, NEWS=null, UPST=null;
+  function nfmt(k,o){ return fmt(N()[k]||'', o); }
+  function notifRow(x){
+    var o={who:esc(x.who||'?'), game:esc(x.game||''), n:num(x.n||0), ver:esc(x.ver||'')}, ic='', t='', s='';
+    if(x.kind==='friend100'){ ic=x.avatar? '<div class="ic av"><img src="'+esc(x.avatar)+'" alt=""></div>' : '<div class="ic av">'+esc((x.who||'?').charAt(0).toUpperCase())+'</div>'; t=nfmt('friend100',o); s=x.n? nfmt('friend100s',o):''; }
+    else if(x.kind==='mine100'){ ic='<div class="ic g">'+bsvg('trophy')+'</div>'; t=nfmt('mine100',o); s=x.n? nfmt('mine100s',o):''; }
+    else if(x.kind==='update'){ ic='<div class="ic b">'+bsvg('down')+'</div>'; t=nfmt('update',o); s=nfmt('updates',o); }
+    else if(x.kind==='updated'){ ic='<div class="ic p">'+bsvg('star')+'</div>'; t=nfmt('updated',o); s=nfmt('updateds',o); }
+    else if(x.kind==='styles'){ ic='<div class="ic g">'+bsvg('book')+'</div>'; t=nfmt('styles',o); s=nfmt('styless',o); }
+    else return '';
+    return '<div class="ni'+(x.read?'':' new')+'" role="button" tabindex="0" data-id="'+esc(x.id)+'">'+ic+'<div class="tx">'+t+(s?'<small>'+s+'</small>':'')+'</div><div class="tm">'+esc(ago(x.ts))+'</div></div>';
+  }
+  function renderBell(){
+    if(!D) return;
+    var list=D.notifs||[], un=D.unread||0, b=$('bell');
+    b.setAttribute('aria-label', N().bell+(un? ' ('+un+')':'')); b.title=N().bell;
+    $('bdg').textContent= un>0 ? (un>9?'9+':String(un)) : '';
+    if(lastUnread>=0 && un>lastUnread){ b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring'); }
+    lastUnread=un;
+    $('npT').textContent=N().bell; $('npRead').textContent=N().readAll; $('npRead').disabled=!un;
+    if(!list.length){ $('npL').innerHTML='<div class="ne">'+bsvg('bell')+N().empty+'</div>'; return; }
+    var now=Date.now()/1000, day=new Date(); day.setHours(0,0,0,0); var d0=day.getTime()/1000, w0=now-7*86400, g={t:[],w:[],o:[]};
+    list.forEach(function(x){ (x.ts>=d0?g.t: x.ts>=w0?g.w:g.o).push(x); });
+    var h='';
+    [['t','today'],['w','week'],['o','older']].forEach(function(p){ if(g[p[0]].length) h+='<div class="ng">'+esc(N()[p[1]])+'</div>'+g[p[0]].map(notifRow).join(''); });
+    $('npL').innerHTML=h;
+  }
+  function markRead(){
+    if(!D || !D.unread) return;
+    post({action:'notif-read'});
+    D.unread=0; (D.notifs||[]).forEach(function(x){ x.read=true; }); renderBell();
+  }
+  function setBell(open){
+    bellOpen=open; $('np').classList.toggle('open',open); $('bell').classList.toggle('on',open); $('bell').setAttribute('aria-expanded',open?'true':'false');
+    if(!open) markRead();   // seen = read: the dots stay while the panel is open, then go
+  }
+  function notifGo(x){
+    setBell(false);
+    if(x.kind==='friend100') location.href=withCtx('classifica.html')+'&tab=friends';
+    else if(x.kind==='mine100') location.href=withCtx('collection.html')+(x.appid?'&open='+x.appid:'');
+    else if(x.kind==='update'){ if(D && D.update) showUpd(true, true); else post({action:'update-now'}); }
+    else if(x.kind==='updated'){ if(NEWS) showNews(NEWS); else post({action:'news'}); }
+    else if(x.kind==='styles') location.href=withCtx('settings.html');
+  }
+  $('bell').addEventListener('click', function(e){ e.stopPropagation(); setBell(!bellOpen); });
+  $('bell').addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setBell(!bellOpen); } });
+  $('npRead').addEventListener('click', function(e){ e.stopPropagation(); markRead(); });
+  $('np').addEventListener('click', function(e){ e.stopPropagation(); var r=e.target.closest('.ni'); if(!r||!D) return;
+    var x=(D.notifs||[]).filter(function(n){ return n.id===r.dataset.id; })[0]; if(x) notifGo(x); });
+  $('np').addEventListener('keydown', function(e){ if((e.key==='Enter'||e.key===' ') && e.target.classList.contains('ni')){ e.preventDefault(); e.target.click(); } });
+  document.addEventListener('click', function(){ if(bellOpen) setBell(false); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ if(bellOpen) setBell(false); if($('nws').classList.contains('show')) closeNews(); } });
+
+  // update offer (bottom right). «Later» hides it until Fanfara restarts; the bell keeps the entry.
+  function later(v){ try{ return sessionStorage.getItem('fan-upd-later')===v; }catch(e){ return false; } }
+  function showUpd(on, force){
+    var el=$('upd');
+    if(!on || !D || !D.update){ el.classList.remove('show'); return; }
+    if(!force && !UPST && later(D.update)) return;
+    if(!UPST) paintUpd();
+    el.classList.add('show');
+  }
+  function paintUpd(){
+    var n=N(), st=UPST&&UPST.state, v=esc((D&&D.update)||''), p=UPST? Math.max(0,Math.min(100,UPST.pct|0)) : 0;
+    $('updT').textContent=fmt(n.upT,{ver:(D&&D.update)||''});
+    var s=n.upS, acts='<button class="gold" id="updGo">'+esc(n.upNow)+'</button><button id="updNo">'+esc(n.upLater)+'</button>', bar='';
+    if(st==='download'){ s=fmt(n.upDl,{p:p}); acts=''; bar='<div class="pb"><i style="width:'+p+'%"></i></div>'; }
+    else if(st==='verify'||st==='install'){ s=n.upInst; acts=''; bar='<div class="pb ind"><i></i></div>'; }
+    else if(st==='wait'){ s=n.upWait; acts='<button id="updNo">'+esc(n.upLater)+'</button>'; }
+    else if(st==='fail'){ s=n.upFail; acts='<button class="gold" id="updGo">'+esc(n.upRetry)+'</button><button id="updNo">'+esc(n.upLater)+'</button>'; }
+    $('updS').textContent=s; $('updA').innerHTML=acts?'<div class="ua">'+acts+'</div>':''; $('updP').innerHTML=bar;
+    $('updX').hidden= st==='download'||st==='install'||st==='verify';
+    var go=$('updGo'), no=$('updNo');
+    if(go) go.onclick=function(){ UPST={state:'download',pct:0}; paintUpd(); post({action:'update-now'});
+      if(!HOST){ var q=0, t=setInterval(function(){ q+=9; if(q>=100){ clearInterval(t); window.fanfaraUpdate({state:'install',pct:100}); } else window.fanfaraUpdate({state:'download',pct:q}); },180); } };
+    if(no) no.onclick=dismissUpd;
+  }
+  function dismissUpd(){ try{ sessionStorage.setItem('fan-upd-later', (D&&D.update)||''); }catch(e){} $('upd').classList.remove('show'); if(UPST && UPST.state==='fail') UPST=null; }
+  $('updX').addEventListener('click', dismissUpd);
+  window.fanfaraUpdate=function(u){
+    if(!u) return; UPST=u; if(!D) return;
+    if(!D.update) D.update='…';
+    paintUpd(); $('upd').classList.add('show');
+  };
+
+  // «What's new» after an update: the release notes in the player's language (simple markdown)
+  function md(src){
+    var out=[], inList=false;
+    function inl(t){ return esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1').replace(/(^|\s)\*([^*]+)\*/g,'$1<i>$2</i>'); }
+    String(src||'').replace(/\r/g,'').split('\n').forEach(function(l){
+      var m;
+      if(/^\s*!\[/.test(l)) return;   // pictures stay on GitHub
+      if((m=l.match(/^\s*[-*•]\s+(.*)$/))){ if(!inList){ out.push('<ul>'); inList=true; } out.push('<li>'+inl(m[1])+'</li>'); return; }
+      if(inList){ out.push('</ul>'); inList=false; }
+      if((m=l.match(/^\s*#{1,6}\s+(.*)$/))){ out.push('<h4>'+inl(m[1])+'</h4>'); return; }
+      if(/^\s*(---+|\*\*\*+)\s*$/.test(l) || !l.trim()) return;
+      out.push('<p>'+inl(l)+'</p>');
+    });
+    if(inList) out.push('</ul>');
+    return out.join('');
+  }
+  function showNews(n){
+    NEWS=n; var t=N();
+    $('nwsK').textContent=t.newsK; $('nwsT').textContent=fmt(t.newsT,{ver:n.ver||''}); $('nwsOk').textContent=t.newsOk;
+    $('nwsM').innerHTML=md(n.md); $('nwsM').scrollTop=0;
+    $('nws').classList.add('show'); setTimeout(function(){ $('nwsOk').focus(); }, 60);
+  }
+  function closeNews(){ $('nws').classList.remove('show'); }
+  $('nwsOk').addEventListener('click', closeNews);
+  $('nws').addEventListener('click', function(e){ if(e.target===$('nws')) closeNews(); });
+  window.fanfaraNews=function(n){ if(!n || !n.md) return; if(!revealed){ setTimeout(function(){ window.fanfaraNews(n); }, 900); return; } showNews(n); };
+  function renderNotif(){ renderBell(); if(D && D.update) showUpd(true); else if(!UPST) showUpd(false); }
 
   // ---------------- interactions ----------------
   labels();

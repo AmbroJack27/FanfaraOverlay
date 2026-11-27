@@ -12,10 +12,11 @@
 //    score locally (the app already scans all their games) and registers it here — so there is NO
 //    per-game server computation and NO Steam rate-limit problem.
 //      GET /lb/submit?steamid=&perfect=&total=   -> register/refresh my score (so friends can see me)
+//      POST /lb/submit (same query) + body {games:[[appid,name,ts],...]} -> also store my games at 100% (scores.perf, 0.6.0)
 //      GET /lb/join?steamid=&perfect=&total=     -> also appear in the PUBLIC world board (opt-in)
 //      GET /lb/leave?steamid=                     -> leave the public world board (stay visible to friends)
 //      GET /lb/world?steamid=&limit=              -> the public world ranking (+ my rank)
-//      GET /lb/friends?steamid=                    -> my Steam friends who use Fanfara, ranked (private to me)
+//      GET /lb/friends?steamid=                    -> my Steam friends who use Fanfara, ranked (private to me), with their perf list
 //      GET /lb/friends-ach?steamid=&appid=         -> which of those friends unlocked what in ONE game, and when
 //
 // 3) FEEDBACK from the app's «Send feedback» form.
@@ -72,7 +73,7 @@ export default {
       try { return url.pathname === '/coll/put' ? await collPut(request, env) : await collDel(request, env); }
       catch (e) { return json({ ok: false, error: 'server' }, 500); }
     }
-    if (request.method !== 'GET') return json({ ok: false, error: 'method' }, 405);
+    if (request.method !== 'GET' && !(request.method === 'POST' && url.pathname === '/lb/submit')) return json({ ok: false, error: 'method' }, 405);
 
     if (url.pathname === '/' || url.pathname === '/health') {
       return json({ ok: true, service: 'fanfara-steam', leaderboard: !!env.DB }, 200);
@@ -104,7 +105,7 @@ export default {
       // ---- leaderboard ----
       if (url.pathname.startsWith('/lb/')) {
         if (!env.DB) return json({ ok: false, error: 'nodb' }, 503);
-        if (url.pathname === '/lb/submit')  return await lbSubmit(steamid, url, env);
+        if (url.pathname === '/lb/submit')  return await lbSubmit(steamid, url, env, request);
         if (url.pathname === '/lb/join')    return await lbJoin(steamid, url, env);
         if (url.pathname === '/lb/leave')   return await lbLeave(steamid, env);
         if (url.pathname === '/lb/world')   return await lbWorld(steamid, url, env);
@@ -439,11 +440,30 @@ async function registerScore(steamid, perfect, total, member, env) {
   }
 }
 
-async function lbSubmit(steamid, url, env) {
+async function lbSubmit(steamid, url, env, request) {
   const perfect = clampInt(url.searchParams.get('perfect'), 0, 100000);
   const total = clampInt(url.searchParams.get('total'), 0, 10000000);
   await registerScore(steamid, perfect, total, undefined, env);
+  // 0.6.0+: the app also sends WHICH games are at 100% (POST body), so friends can be told when one is added.
+  if (request && request.method === 'POST') {
+    try {
+      const b = await request.json();
+      const games = Array.isArray(b && b.games) ? b.games.slice(0, 600) : [];
+      const clean = games.filter(g => Array.isArray(g) && /^\d{1,8}$/.test(String(g[0])))
+        .map(g => [Number(g[0]), clip(g[1], 80), clampInt(g[2], 0, 4102444800)]);
+      await ensurePerf(env);
+      await env.DB.prepare('UPDATE scores SET perf=? WHERE steamid=?').bind(JSON.stringify(clean), steamid).run();
+    } catch (e) { /* the score itself is saved anyway */ }
+  }
   return json({ ok: true, perfect, total });
+}
+
+// The per-player list of games at 100% ([appid, name, completedAt]) lives in scores.perf (added in 0.6.0).
+let PERF_OK = false;
+async function ensurePerf(env) {
+  if (PERF_OK) return;
+  try { await env.DB.prepare('ALTER TABLE scores ADD COLUMN perf TEXT').run(); } catch (e) { /* already there */ }
+  PERF_OK = true;
 }
 
 async function lbJoin(steamid, url, env) {
@@ -529,9 +549,9 @@ async function lbFriends(steamid, env) {
   const known = {};
   for (let i = 0; i < all.length; i += 100) {
     const batch = all.slice(i, i + 100);
-    const q = 'SELECT steamid,name,avatar,perfect,total FROM scores WHERE steamid IN (' +
-      batch.map(() => '?').join(',') + ')';
-    const res = await env.DB.prepare(q).bind(...batch).all();
+    let res;
+    try { await ensurePerf(env); res = await env.DB.prepare('SELECT steamid,name,avatar,perfect,total,perf FROM scores WHERE steamid IN (' + batch.map(() => '?').join(',') + ')').bind(...batch).all(); }
+    catch (e) { res = await env.DB.prepare('SELECT steamid,name,avatar,perfect,total FROM scores WHERE steamid IN (' + batch.map(() => '?').join(',') + ')').bind(...batch).all(); }
     for (const r of (res.results || [])) known[r.steamid] = r;
   }
 
@@ -551,7 +571,8 @@ async function lbFriends(steamid, env) {
   for (const id of all) {
     const k = known[id];
     if (!k) continue; // not a Fanfara user (or hasn't registered yet)
-    friends.push({ you: id === steamid, steamid: id, name: k.name, avatar: k.avatar, perfect: k.perfect, total: k.total, cards: cards[id] || 0, ready: true });
+    let perf = []; try { perf = k.perf ? JSON.parse(k.perf) : []; } catch (e) { perf = []; }
+    friends.push({ you: id === steamid, steamid: id, name: k.name, avatar: k.avatar, perfect: k.perfect, total: k.total, cards: cards[id] || 0, perf, ready: true });
   }
   friends.sort((a, b) => (b.perfect - a.perfect) || (b.total - a.total));
   friends.forEach((f, i) => { f.rank = i + 1; });

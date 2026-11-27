@@ -1014,6 +1014,35 @@
     zoom:1 !important; width:440px !important; justify-content:center !important;
     transform:translate(-50%,-50%) scale(var(--fit,.5)) !important; transform-origin:50% 50%}
   html.embed.freeze *, html.embed.freeze *::before, html.embed.freeze *::after{animation-play-state:paused !important}
+/* ===== 0.6.0 · Super Fanfara + friend at 100% ===== */
+#sfLayer{position:fixed; inset:0; pointer-events:none; z-index:50}
+.ssf{position:absolute; inset:0}
+.sf-rays{position:absolute; left:50%; top:28%; width:200vmax; height:200vmax; margin:-100vmax 0 0 -100vmax; background:repeating-conic-gradient(from 0deg, rgba(255,214,110,.16) 0 6deg, transparent 6deg 18deg);
+  -webkit-mask:radial-gradient(closest-side,#000 10%,transparent 45%); mask:radial-gradient(closest-side,#000 10%,transparent 45%); animation:sfspin 30s linear infinite}
+@keyframes sfspin{to{transform:rotate(360deg)}}
+.sf-ban{position:absolute; left:50%; top:6vh; width:min(760px,80vw); transform-origin:50% 0; margin-left:calc(min(760px,80vw)/-2); text-align:center}
+.sf-hero{position:relative; height:min(180px,20vh); border-radius:12px; overflow:hidden; padding:4px; background:linear-gradient(135deg,#fff3c4,#f5c242 30%,#a8741a 58%,#ffe08a 80%,#c48a14); box-shadow:0 0 50px rgba(245,194,66,.55), 0 20px 40px -10px #000}
+.sf-hero img{width:100%; height:100%; object-fit:cover; border-radius:9px; display:block}
+.sf-hero::after{content:""; position:absolute; inset:4px; border-radius:9px; background:linear-gradient(180deg,transparent 40%,rgba(10,8,2,.85))}
+.sf-pct{position:relative; margin-top:-38px; z-index:2; font:900 108px/1 'Cinzel','Book Antiqua',Georgia,serif; background:linear-gradient(180deg,#fffbe6 0%,#ffd65e 40%,#b07a1c 72%,#ffe9a6 100%); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 4px 0 #5a3a08) drop-shadow(0 0 24px rgba(255,200,80,.7))}
+.sf-t1{margin-top:6px; font:800 15px 'Segoe UI',system-ui,sans-serif; letter-spacing:.4em; color:#ffe7a8; text-shadow:0 2px 6px #000}
+.sf-t2{margin-top:4px; font:800 34px/1.1 'Cinzel','Book Antiqua',Georgia,serif; color:#fff; text-shadow:0 3px 10px #000, 0 0 20px rgba(245,194,66,.6)}
+.sf-t3{margin-top:8px; display:inline-flex; flex-wrap:wrap; justify-content:center; gap:10px; padding:7px 16px; border-radius:999px; background:rgba(10,8,2,.72); border:1px solid rgba(245,194,66,.6); font:700 14px 'Segoe UI',system-ui,sans-serif; color:#ffe7a8}
+.sf-t3 i{font-style:normal; opacity:.6}
+.sf-lau{position:absolute; top:calc(6vh + min(180px,20vh) + 10px); width:120px; height:150px}
+.sf-lau.l{left:calc(50% - min(760px,80vw)/2 - 40px)} .sf-lau.r{right:calc(50% - min(760px,80vw)/2 - 40px)}
+.sf-lau svg{width:100%; height:100%}
+.sf-cf{position:absolute; inset:0; width:100%; height:100%}
+.sfr{position:absolute; right:24px; bottom:24px; width:430px; border-radius:14px; overflow:hidden; background:rgba(12,16,30,.94); border:1px solid rgba(245,194,66,.55); box-shadow:0 20px 40px -12px #000, 0 0 24px rgba(245,194,66,.25); color:#e9edf7; font-family:'Segoe UI',system-ui,sans-serif}
+.fr-hd{position:relative; height:86px} .fr-bg{width:100%; height:100%; object-fit:cover; display:block; filter:brightness(.8)}
+.fr-hd::after{content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(12,16,30,.95) 0%,rgba(12,16,30,.35) 60%,transparent)}
+.fr-av{position:absolute; left:14px; top:14px; z-index:2; width:56px; height:56px; border-radius:12px; overflow:hidden; display:grid; place-items:center; font:800 24px 'Segoe UI',sans-serif; color:#fff; background:linear-gradient(135deg,#7a5cff,#3b2fb0); box-shadow:0 0 0 2px #F5C242, 0 6px 14px rgba(0,0,0,.6)}
+.fr-av img{width:100%; height:100%; object-fit:cover}
+.fr-who{position:absolute; left:84px; top:16px; z-index:2} .fr-who b{display:block; font-size:17px; font-weight:800} .fr-who span{font-size:11px; font-weight:700; letter-spacing:.18em; color:#F5C242}
+.fr-pc{position:absolute; right:14px; top:18px; z-index:2; font:900 30px 'Cinzel',Georgia,serif; background:linear-gradient(180deg,#fffbe6,#ffd65e 45%,#b07a1c); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 2px 0 #3a2508)}
+.fr-bd{padding:10px 14px 12px} .fr-gn{font-size:16px; font-weight:800}
+.fr-vs{margin-top:6px; display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700; color:#8e98b3} .fr-vs b{color:#fff; white-space:nowrap}
+.fr-bar{flex:1; height:6px; border-radius:3px; background:#2a3350; overflow:hidden; display:flex} .fr-bar i{display:block; height:100%} .fr-bar .a{background:#7a5cff} .fr-bar .b{background:#F5C242}
 </style>
 <script>
   // Mark embed mode before first paint (used by the settings page previews).
@@ -1579,6 +1608,8 @@ function obMark(i){const n=i+1;let r='';for(let k=0;k<n;k++){const sz=92-k*16;co
   }
 
   function present(opts){
+    if(opts && opts.kind==="super"){ presentSuper(opts); return; }
+    if(opts && opts.kind==="friend"){ presentFriend(opts); return; }
     const o = Object.assign({}, DEFAULT, opts||{});
     clearCurrent();
     currentIsPreview = !!o.preview;
@@ -1794,6 +1825,79 @@ function syn(c,t0,f,g){const o=c.createOscillator(),o2=c.createOscillator(),gg=c
     if(_master) _master.gain.value = notifVol;   // apply current volume to synth styles
     const th = THEMES[currentSound];
     if(th && th.custom){ th.custom(c, c.currentTime + 0.02, t); }
+  }
+
+  /* ===================== 0.6.0 · SUPER FANFARA (100%) + FRIEND AT 100% ===================== */
+  const SF_STR = {
+    it:{done:"GIOCO COMPLETATO", ach:"{u} / {t} obiettivi", hrs:"{n} ore", hr1:"1 ora", nth:"il tuo {n} gioco al 100%", fdone:"HA COMPLETATO AL 100%", fvs:"Giochi al 100%:", you:"tu", fgame:"un gioco"},
+    en:{done:"GAME COMPLETED", ach:"{u} / {t} achievements", hrs:"{n} hours", hr1:"1 hour", nth:"your {n} game at 100%", fdone:"COMPLETED 100%", fvs:"Games at 100%:", you:"you", fgame:"a game"},
+    fr:{done:"JEU TERMINÉ", ach:"{u} / {t} succès", hrs:"{n} heures", hr1:"1 heure", nth:"votre {n} jeu à 100 %", fdone:"A TERMINÉ À 100 %", fvs:"Jeux à 100 % :", you:"vous", fgame:"un jeu"},
+    de:{done:"SPIEL ABGESCHLOSSEN", ach:"{u} / {t} Erfolge", hrs:"{n} Stunden", hr1:"1 Stunde", nth:"dein {n} Spiel mit 100 %", fdone:"HAT 100 % GESCHAFFT", fvs:"Spiele mit 100 %:", you:"du", fgame:"ein Spiel"},
+    es:{done:"JUEGO COMPLETADO", ach:"{u} / {t} logros", hrs:"{n} horas", hr1:"1 hora", nth:"tu {n} juego al 100 %", fdone:"HA COMPLETADO AL 100 %", fvs:"Juegos al 100 %:", you:"tú", fgame:"un juego"}
+  };
+  function sfS(){ return SF_STR[LANG] || SF_STR.en; }
+  function sfFmt(s,o){ return String(s).replace(/\{(\w+)\}/g,(m,k)=> o[k]==null?m:o[k]); }
+  function sfOrd(n){ n=Number(n)||0;
+    if(LANG==="en"){ const v=n%100; return n+(v>=11&&v<=13?"th":({1:"st",2:"nd",3:"rd"}[n%10]||"th")); }
+    if(LANG==="fr") return n+(n===1?"er":"e"); if(LANG==="de") return n+"."; if(LANG==="es") return n+".º"; return n+"°"; }
+  const SF_LAUREL = '<svg viewBox="0 0 120 150"><defs><linearGradient id="sfg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".3" stop-color="#f5c242"/><stop offset=".58" stop-color="#a8741a"/><stop offset=".8" stop-color="#ffe08a"/><stop offset="1" stop-color="#c48a14"/></linearGradient></defs>'
+    +'<path d="M100 145 C40 120 15 70 30 8" fill="none" stroke="url(#sfg)" stroke-width="5" stroke-linecap="round"/><g fill="url(#sfg)" stroke="#6a470c" stroke-width=".8">'
+    +'<path d="M30 20 q-18 -6 -16 -18 q14 4 16 18z"/><path d="M32 22 q14 -10 22 -4 q-10 10 -22 4z"/><path d="M25 45 q-20 -4 -20 -18 q16 4 20 18z"/><path d="M28 46 q14 -12 24 -6 q-10 12 -24 6z"/>'
+    +'<path d="M25 72 q-20 0 -22 -14 q16 2 22 14z"/><path d="M29 72 q14 -12 24 -6 q-10 12 -24 6z"/><path d="M33 98 q-18 4 -24 -8 q16 -2 24 8z"/><path d="M38 97 q12 -14 24 -10 q-8 14 -24 10z"/>'
+    +'<path d="M50 120 q-16 8 -24 -2 q14 -6 24 2z"/><path d="M56 118 q10 -14 22 -12 q-6 14 -22 12z"/></g></svg>';
+  let sfLayer = null, sfTimer = 0;
+  function sfLayerEl(){ if(!sfLayer){ sfLayer=document.createElement("div"); sfLayer.id="sfLayer"; document.body.appendChild(sfLayer); } return sfLayer; }
+  function sfEnd(){ clearTimeout(sfTimer); if(sfLayer) sfLayer.innerHTML=""; current=null; fanBusy=false; if(fanQueue.length) setTimeout(pump,220); }
+  // confetti on a canvas over the whole screen
+  function sfConfetti(cv){
+    const cx=cv.getContext("2d"), d=Math.min(2,window.devicePixelRatio||1); let W=innerWidth, H=innerHeight; cv.width=W*d; cv.height=H*d; cx.setTransform(d,0,0,d,0,0);
+    const P=[], COLS=["#ffd65e","#fff3c4","#f5c242","#c98bff","#5cc8ff","#ff7a59","#4ac46a"]; let run=true;
+    function burst(x,y,n,spread){ for(let i=0;i<n;i++){ const a=-Math.PI/2+(Math.random()-.5)*spread, v=(6+Math.random()*9)*Math.max(1,H/720); P.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,w:6+Math.random()*7,h:3+Math.random()*5,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:COLS[(Math.random()*COLS.length)|0],l:0}); } }
+    (function tick(){ if(!run) return; cx.clearRect(0,0,W,H);
+      for(let i=P.length-1;i>=0;i--){ const p=P[i]; p.l++; p.vy+=.22; p.vx*=.99; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; if(p.y>H+40){P.splice(i,1);continue;}
+        cx.save(); cx.translate(p.x,p.y); cx.rotate(p.r); cx.fillStyle=p.c; cx.globalAlpha=Math.min(1,(H+40-p.y)/200); cx.fillRect(-p.w/2,-p.h/2,p.w,p.h*Math.abs(Math.cos(p.l*.15))); cx.restore(); }
+      requestAnimationFrame(tick); })();
+    return { burst, stop(){ run=false; } };
+  }
+  function presentSuper(o){
+    clearCurrent(); currentIsPreview=!!o.preview;
+    notifVol=(o.volume==null?100:Number(o.volume))/100;
+    const S=sfS(), L=sfLayerEl(), hrs=Math.round((o.minutes||0)/60);
+    const stats=[sfFmt(S.ach,{u:o.u||o.t||0,t:o.t||0})]; if(hrs>0) stats.push(hrs===1?S.hr1:sfFmt(S.hrs,{n:hrs})); if(o.nth>0) stats.push(sfFmt(S.nth,{n:sfOrd(o.nth)}));
+    L.innerHTML='<div class="ssf"><div class="sf-rays"></div><div class="sf-ban"><div class="sf-hero"><img alt=""></div><div class="sf-pct">100%</div>'
+      +'<div class="sf-t1">'+esc(S.done)+'</div><div class="sf-t2">'+esc(o.game||"")+'</div><div class="sf-t3">'+stats.map(x=>'<span>'+esc(x)+'</span>').join('<i>·</i>')+'</div></div>'
+      +'<div class="sf-lau l">'+SF_LAUREL+'</div><div class="sf-lau r">'+SF_LAUREL+'</div><canvas class="sf-cf"></canvas></div>';
+    const root=L.firstChild; current=root;
+    const img=root.querySelector(".sf-hero img"); img.onerror=function(){ if(o.header && this.src!==o.header) this.src=o.header; else this.style.visibility="hidden"; }; img.src=o.hero||o.header||"";
+    // sound: the recorded orchestral "Epica" fanfare (the big chord lands at 1.82 s, with the "100%")
+    if(!embedSilent){ try{ let a=fanAudio.__super; if(!a){ a=fanAudio.__super=new Audio("snd/superfanfara.ogg"); }
+      a.pause(); a.currentTime=0; a.volume=Math.max(0,Math.min(1,notifVol)); a.play().catch(()=>{}); }catch(e){} }
+    const ease="cubic-bezier(.2,.8,.2,1)", A=(el,k,o2)=>el && el.animate(k,Object.assign({fill:"both",easing:ease},o2));
+    const HIT=1820, still=reduce;
+    A(root.querySelector(".sf-rays"),[{opacity:0},{opacity:1}],{duration:still?1:900,delay:still?0:200});
+    A(root.querySelector(".sf-ban"),[{opacity:0,transform:"translateY(-40px) scale(.92)"},{opacity:1,transform:"none"}],{duration:still?1:700});
+    A(root.querySelector(".sf-pct"),[{opacity:0,transform:"scale(2.4)"},{opacity:1,transform:"scale(1)"}],{duration:still?1:450,delay:still?0:HIT-300});
+    root.querySelectorAll(".sf-lau").forEach((l,i)=>A(l,[{opacity:0,transform:(i?"scaleX(-1) ":"")+"translateY(30px) rotate("+(i?"":"-")+"20deg)"},{opacity:1,transform:i?"scaleX(-1)":"none"}],{duration:still?1:700,delay:still?0:HIT-200}));
+    let cf=null; if(!still){ cf=sfConfetti(root.querySelector(".sf-cf")); setTimeout(()=>{ if(current!==root) return; cf.burst(innerWidth/2,innerHeight*.42,170,2.2); setTimeout(()=>{ cf.burst(innerWidth*.23,innerHeight*.58,70,1.4); cf.burst(innerWidth*.77,innerHeight*.58,70,1.4); },300); },HIT-120); }
+    const mine=++seqTok;
+    sfTimer=setTimeout(()=>{ if(seqTok!==mine) return; const a=root.animate([{opacity:1},{opacity:0}],{duration:700,fill:"forwards"}); a.onfinish=()=>{ if(cf) cf.stop(); if(seqTok===mine) sfEnd(); }; }, 7600);
+  }
+  // a Steam friend completed a game: small card in the bottom-right corner, with two soft chimes
+  function sfChime(c,t,f,g){ [[1,1],[2.76,.45],[5.4,.22],[8.93,.1]].forEach(([m,a])=>{ const o=c.createOscillator(), e=c.createGain(); o.type="sine"; o.frequency.value=f*m;
+      e.gain.setValueAtTime(0.0001,t); e.gain.linearRampToValueAtTime(g*a,t+.005); e.gain.exponentialRampToValueAtTime(0.0001,t+1.6/(1+m*.3)); o.connect(e); e.connect(c.destination); o.start(t); o.stop(t+1.8); }); }
+  function presentFriend(o){
+    clearCurrent(); currentIsPreview=!!o.preview;
+    notifVol=(o.volume==null?100:Number(o.volume))/100;
+    const S=sfS(), L=sfLayerEl(), th=Number(o.theirs)||0, me=Number(o.mine)||0, tot=Math.max(1,th+me);
+    const av=o.avatar?'<img src="'+esc(o.avatar).replace(/"/g,"&quot;")+'" alt="">':esc((o.who||"?").slice(0,1).toUpperCase());
+    L.innerHTML='<div class="sfr"><div class="fr-hd"><img class="fr-bg" alt=""><div class="fr-av">'+av+'</div><div class="fr-who"><b>'+esc(o.who||"")+'</b><span>'+esc(S.fdone)+'</span></div><div class="fr-pc">100%</div></div>'
+      +'<div class="fr-bd"><div class="fr-gn">'+esc(o.game||S.fgame)+'</div><div class="fr-vs"><span>'+esc(S.fvs)+'</span><b>'+esc(o.who||"")+' '+th+'</b><div class="fr-bar"><i class="a" style="width:'+(th/tot*100).toFixed(1)+'%"></i><i class="b" style="width:'+(me/tot*100).toFixed(1)+'%"></i></div><b>'+esc(S.you)+' '+me+'</b></div></div></div>';
+    const root=L.firstChild; current=root;
+    const img=root.querySelector(".fr-bg"); img.onerror=function(){ if(o.header && this.src!==o.header) this.src=o.header; else this.style.visibility="hidden"; }; img.src=o.hero||o.header||"";
+    if(o.sound!==false && !embedSilent){ try{ const c=ctx(); if(c.state==="suspended") c.resume(); const g=.24*notifVol; sfChime(c,c.currentTime+.05,1318.5,g); sfChime(c,c.currentTime+.31,987.8,g*.9); }catch(e){} }
+    root.animate([{opacity:0,transform:"translateX(40px)"},{opacity:1,transform:"none"}],{duration:reduce?1:450,easing:"ease-out",fill:"both"});
+    const mine=++seqTok;
+    sfTimer=setTimeout(()=>{ if(seqTok!==mine) return; const a=root.animate([{opacity:1,transform:"none"},{opacity:0,transform:"translateX(40px)"}],{duration:450,fill:"forwards"}); a.onfinish=()=>{ if(seqTok===mine) sfEnd(); }; }, 7000);
   }
 
   window.fanfara = { show, tierFromPercent, setLang };

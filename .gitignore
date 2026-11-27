@@ -16,3 +16,9 @@ mockup-amici/
 
 # Cloudflare tool cache (contains account details) — never commit
 .wrangler/
+
+# Raw images for the album styles (the optimized ones go into src/web/img)
+Collector/
+
+# Raw emblem drafts (Gemini images) — not part of the app
+Stemmi/

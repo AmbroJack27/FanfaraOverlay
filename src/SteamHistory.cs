@@ -21,6 +21,9 @@ public class SteamHistory
     /// <summary>How many achievements were newly added by the last BackfillAsync run.</summary>
     public int LastAdded { get; private set; }
 
+    /// <summary>True when, during this pass, Steam answered with fewer unlocks than Fanfara already knew.</summary>
+    public bool SteamBehind { get; private set; }
+
     private readonly Config _config;
     private readonly AchievementStore _store;
     private readonly GamesStore _games;
@@ -216,7 +219,18 @@ public class SteamHistory
             }
         }
         // Per-game completion for the "100% games" cards and the leaderboard score.
-        _games.Set(appid, name, a.total, a.unlocked, last);
+        // Right after a game closes, Steam's Web API can still be a few minutes behind: it may answer
+        // "39 of 40" for an achievement Fanfara has just seen unlocked live. Unlocks don't go back, so
+        // never count fewer than the achievements already in the local store.
+        int unlocked = a.unlocked;
+        int known = _store.CountFor(appid);
+        if (known > unlocked)
+        {
+            unlocked = a.total > 0 ? Math.Min(known, a.total) : known;
+            SteamBehind = true;
+            Log($"gioco {appid}: Steam dice {a.unlocked}/{a.total}, Fanfara ne conosce {known} — tengo {unlocked}");
+        }
+        _games.Set(appid, name, a.total, unlocked, last);
         return added;
     }
 
@@ -228,6 +242,7 @@ public class SteamHistory
     public async Task<Result> SyncGameAsync(uint appid, CancellationToken ct = default)
     {
         LastAdded = 0;
+        SteamBehind = false;
         if (appid == 0) return Result.Error;
         if (string.IsNullOrEmpty(Base) || Base.Contains("REPLACE-ME")) return Result.NoProxy;
         ulong id = _config.ResolvedSteamId();

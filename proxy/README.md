@@ -78,10 +78,11 @@ player's own Fanfara** and registered here; names and avatars are refreshed from
 | Endpoint | What it does |
 |---|---|
 | `GET /lb/submit?steamid=&perfect=&total=` | Registers / refreshes your score (used by the Friends board) |
+| `POST /lb/submit?steamid=&perfect=&total=` | Same, with body `{ games:[[appid, name, lastUnlock], …] }`: the games at 100%, used for the «friends at 100%» notifications (0.6.0; stored in `scores.perf`, column added automatically) |
 | `GET /lb/join?steamid=&perfect=&total=` | Also shows you on the public **World** board |
 | `GET /lb/leave?steamid=` | Removes you from the World board (friends still see you) |
 | `GET /lb/world?steamid=&limit=` | `{ ok, you:{ rank, perfect, total }, top:[…] }` |
-| `GET /lb/friends?steamid=` | Your Steam friends who use Fanfara, ranked, with `steamid` and `cards` (shared collection size); `friendsPrivate:true` if your friends list is private |
+| `GET /lb/friends?steamid=` | Your Steam friends who use Fanfara, ranked, with `steamid`, `cards` (shared collection size) and `perf` (their games at 100%, 0.6.0); `friendsPrivate:true` if your friends list is private |
 | `GET /lb/friends-ach?steamid=&appid=` | Which of your Fanfara friends unlocked achievements in a game, and when (back of a card) |
 
 ### Friends' collections

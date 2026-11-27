@@ -11,6 +11,11 @@ public partial class App : System.Windows.Application
     private OverlayWindow? _overlay;
     private SteamWatcher? _steam;
     private SettingsWindow? _settings;
+    // 0.6.0: one-click update, «What's new», friends at 100%
+    private Updater.UpdateInfo? _update;
+    private bool _installAfterGame;
+    private string? _newsJson;
+    private System.Windows.Threading.DispatcherTimer? _friendTimer, _updateTimer;
     private System.Windows.Forms.NotifyIcon? _tray;
     private static Mutex? _appMutex;   // lets the installer detect/close a running instance
     private readonly Config _config = Config.Load();
@@ -91,10 +96,31 @@ public partial class App : System.Windows.Application
             }
             catch { }
         };
+        // The last achievement of a game: mark it 100% right away and play the Super Fanfara.
+        _steam.GameCompleted += (appid, total) =>
+        {
+            try
+            {
+                var g = _games?.All().FirstOrDefault(x => x.Appid == appid);
+                string name = g?.Name ?? "";
+                if (string.IsNullOrEmpty(name)) name = _store?.All().FirstOrDefault(r => r.Appid == appid && !string.IsNullOrEmpty(r.Game))?.Game ?? "";
+                _games?.Set(appid, name, total, total, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                _games?.Save();
+                int nth = _games?.PerfectCount ?? 0;
+                if (_config.SuperFanfara)
+                    _overlay?.Dispatcher.Invoke(() => _overlay.ShowSuper(appid, name, total, g?.Playtime ?? 0, nth, _config));
+                Notifications.Add("mine100", game: name, appid: appid, n: nth);
+                var lb = new Leaderboard(_config);
+                if (lb.Ready && _games != null) _ = lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked, _games.PerfectGames());
+                RefreshData();
+            }
+            catch { }
+        };
         _steam.GameOptimized += () => Dispatcher.Invoke(ShowRestartGameTip);
         // When a game closes, refresh just that game (real icons, rarity, 100% status) — a few calls.
         _steam.GameClosed += appid =>
         {
+            if (_installAfterGame) { _installAfterGame = false; _ = InstallUpdateAsync(); }
             if (_exclusiveMissed.TryRemove(appid, out var missed) && missed > 0)
                 Balloon(Loc.S(_config.EffectiveLanguage, "exclusiveTip"));
             _ = SyncClosedGameAsync(appid);
@@ -108,9 +134,34 @@ public partial class App : System.Windows.Application
         if (!autoStarted)
             ShowSettings();
 
-        // Quiet check for a newer version on GitHub (if enabled).
+        // Quiet check for a newer version on GitHub (if enabled) — at startup and every 12 hours.
         if (_config.CheckUpdates)
             _ = CheckForUpdatesAsync(silent: true);
+        _updateTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromHours(12) };
+        _updateTimer.Tick += (_, _) => { if (_config.CheckUpdates && _update == null) _ = CheckForUpdatesAsync(silent: true); };
+        _updateTimer.Start();
+
+        // 0.6.0: the bell refreshes the Home; a new version shows «What's new»; friends at 100% are checked every 5 minutes.
+        Notifications.Changed += RefreshData;
+        AfterUpdateNews();
+        _friendTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(90) };
+        _friendTimer.Tick += async (_, _) =>
+        {
+            _friendTimer!.Interval = TimeSpan.FromMinutes(5);
+            try
+            {
+                var news = await FriendWatch.CheckAsync(_config);
+                int shown = 0;
+                foreach (var f in news)
+                {
+                    Notifications.Add("friend100", who: f.Who, avatar: f.Avatar, game: f.Game, appid: f.Appid, n: f.Theirs);
+                    if (_config.FriendAlerts && shown++ < 3)
+                        _overlay?.ShowFriend(f.Who, f.Avatar, f.Game, f.Appid, f.Theirs, _games?.PerfectCount ?? 0, _config);
+                }
+            }
+            catch { }
+        };
+        _friendTimer.Start();
 
         // First launch imports everything (with a welcome); afterwards a quiet background refresh at
         // startup (when it's been a while) keeps History/Collection current — new unlocks, achievements
@@ -162,27 +213,29 @@ public partial class App : System.Windows.Application
     /// Quiet — the unlocks were already announced live; this brings real icons, rarity and the
     /// up-to-date total, so a game finished 100% shows up in Classifica straight away.
     /// </summary>
-    private async Task SyncClosedGameAsync(uint appid)
+    private async Task SyncClosedGameAsync(uint appid, bool again = false)
     {
         if (_store == null || _games == null || appid == 0) return;
         if (!_config.SyncHistory || !_config.HistoryImported) return;
-        try { await Task.Delay(TimeSpan.FromSeconds(15)); } catch { }   // let Steam settle after the game exits
+        // let Steam settle after the game exits (a second pass waits longer: Steam was behind)
+        try { await Task.Delay(again ? TimeSpan.FromMinutes(5) : TimeSpan.FromSeconds(15)); } catch { }
         if (Interlocked.Exchange(ref _backfillRunning, 1) == 1) return;  // a full sync is running: it covers this game
         SetSyncUi(true);
         try
         {
-            int perfectBefore = _games.PerfectCount;
             var hist = new SteamHistory(_config, _store, _games);
             var res = await hist.SyncGameAsync(appid);
             if (res == SteamHistory.Result.ProfilePrivate && _config.SyncState != "private") { _config.SyncState = "private"; _config.Save(); }
             if (res == SteamHistory.Result.Ok)
             {
                 RefreshData();
-                if (_games.PerfectCount != perfectBefore)
-                {
-                    var lb = new Leaderboard(_config);
-                    if (lb.Ready) _ = lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked);
-                }
+                // Always refresh the score after playing: a game finished live (already 100% here before
+                // this sync) must reach the leaderboard too, not only when the count changes now.
+                var lb = new Leaderboard(_config);
+                if (lb.Ready) _ = lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked, _games.PerfectGames());
+                // Steam was still behind the live unlocks: the counts are kept, but ask once more in a
+                // few minutes to get the real icons and rarity of the newest cards.
+                if (hist.SteamBehind && !again) _ = SyncClosedGameAsync(appid, again: true);
                 if (hist.LastAdded > 0) Balloon(string.Format(Loc.S(_config.EffectiveLanguage, "syncNew"), hist.LastAdded));
                 if (hist.LastAdded > 0) _ = new CollectionShare(_config, _store, _games).UploadAsync();   // friends see the new cards
             }
@@ -202,18 +255,65 @@ public partial class App : System.Windows.Application
                     "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
-
+        // 0.6.0: the offer lives in the Home (toast + bell) and installs with one click.
+        bool isNew = _update == null || _update.Version != info.Version;
+        _update = info;
+        AppNews.PendingUpdate = info.Version;
+        Notifications.DropUpdatesExcept(info.Version);
+        Notifications.Add("update", ver: info.Version);
+        RefreshData();
+        if (silent)
+        {
+            if (isNew) Balloon(Loc.S(lang, "updateAvailTitle") + " — Fanfara " + info.Version);
+            return;
+        }
         var r = System.Windows.MessageBox.Show(
             string.Format(Loc.S(lang, "updateAvailBody"), info.Version),
             Loc.S(lang, "updateAvailTitle"), MessageBoxButton.YesNo, MessageBoxImage.Question);
-        if (r != MessageBoxResult.Yes) return;
+        if (r == MessageBoxResult.Yes) await InstallUpdateAsync();
+    }
 
-        if (await Updater.DownloadAndRunAsync(info))
-            Shutdown();   // free the files so the installer can replace them
-        else
-            System.Windows.MessageBox.Show(
-                Loc.S(lang, "downloadFailBody"),
-                "Fanfara", MessageBoxButton.OK, MessageBoxImage.Warning);
+    /// <summary>
+    /// One-click update (0.6.0): download, check it's genuine (SHA-256), then close Fanfara and let the
+    /// installer run silently; it starts Fanfara again, which shows «What's new». Never during a game.
+    /// </summary>
+    private async Task InstallUpdateAsync()
+    {
+        if (_update == null) { await CheckForUpdatesAsync(silent: true); if (_update == null) return; }
+        if (_steam?.GameRunning == true) { _installAfterGame = true; Dispatcher.Invoke(() => _settings?.PushUpdate("wait")); return; }
+        Dispatcher.Invoke(() => _settings?.PushUpdate("download", 0));
+        var path = await Updater.DownloadAsync(_update, new Progress<int>(p => Dispatcher.BeginInvoke(new Action(() => _settings?.PushUpdate("download", p)))));
+        if (path == null)
+        {
+            Dispatcher.Invoke(() => _settings?.PushUpdate("fail"));
+            Balloon(Loc.S(_config.EffectiveLanguage, "downloadFailBody"));
+            return;
+        }
+        Dispatcher.Invoke(() => _settings?.PushUpdate("install", 100));
+        await Task.Delay(900);
+        if (Updater.RunSilentAfterExit(path)) Shutdown();   // free the files so the installer can replace them
+        else Dispatcher.Invoke(() => _settings?.PushUpdate("fail"));
+    }
+
+    /// <summary>First start of a new version: a bell entry, and «What's new» from the release notes.</summary>
+    private void AfterUpdateNews()
+    {
+        string cur = Updater.CurrentVersion.ToString(3);
+        if (_config.LastVersion == cur) return;
+        // 0.5.x had no LastVersion: an existing user (guided setup done) is updating, a new one is not.
+        bool updated = _config.LastVersion.Length > 0 || _config.OnboardingDone;
+        _config.LastVersion = cur;
+        _config.Save();
+        if (!updated) return;
+        Notifications.Add("updated", ver: cur);
+        if (cur.StartsWith("0.6.")) Notifications.Add("styles");
+        _ = Task.Run(async () =>
+        {
+            var md = Updater.Section(await Updater.NotesAsync(cur), _config.EffectiveLanguage);
+            if (string.IsNullOrWhiteSpace(md)) return;
+            var json = JsonSerializer.Serialize(new { ver = cur, md });
+            Dispatcher.Invoke(() => { _newsJson = json; _settings?.ShowNews(json); });
+        });
     }
 
     private void SetupTray()
@@ -290,6 +390,8 @@ public partial class App : System.Windows.Application
             _settings = new SettingsWindow(_config, _overlay!, _store!, _games!, page);
             // The Home's "Sincronizzato" chip can start a sync; it runs quietly (no message boxes).
             _settings.SyncRequested += () => _ = RunBackfillAsync(manual: false);
+            _settings.UpdateRequested += () => _ = InstallUpdateAsync();
+            if (_newsJson != null) _settings.ShowNews(_newsJson);
             _settings.SetSyncState(Volatile.Read(ref _backfillRunning) == 1);
             _settings.Show();
         }
@@ -366,7 +468,7 @@ public partial class App : System.Windows.Application
                 case SteamHistory.Result.Ok:
                     RefreshData();
                     // Register the refreshed 100% score so friends (and, if opted in, the world board) see it.
-                    if (_games != null) { var lb = new Leaderboard(_config); if (lb.Ready) _ = lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked); }
+                    if (_games != null) { var lb = new Leaderboard(_config); if (lb.Ready) _ = lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked, _games.PerfectGames()); }
                     // Share the (changed) collection with Steam friends who use Fanfara, if the player allows it.
                     if (_games != null) _ = new CollectionShare(_config, _store, _games).UploadAsync();
                     if (manual) System.Windows.MessageBox.Show(string.Format(Loc.S(lang, "syncDone"), _store.Count), "Fanfara", MessageBoxButton.OK, MessageBoxImage.Information);

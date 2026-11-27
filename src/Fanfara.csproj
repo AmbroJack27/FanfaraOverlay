@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Fanfara</AssemblyName>
     <RootNamespace>Fanfara</RootNamespace>
-    <Version>0.5.3</Version>
+    <Version>0.6.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <!-- Single self-contained .exe for end users (see README / GitHub Actions) -->
@@ -70,6 +70,10 @@
     </None>
     <!-- Fantasy style: real crest images + sampled-orchestra stingers (one per rarity) -->
     <None Update="web\img\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!-- Album styles (0.6.0): cover, pages, frame and backdrop of each picture style -->
+    <None Update="web\img\album\**\*.webp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="web\snd\*.ogg">

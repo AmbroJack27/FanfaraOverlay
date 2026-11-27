@@ -22,6 +22,27 @@ public partial class SettingsWindow : Window
 
     /// <summary>The Home asked for a Steam sync (the app owns the sync, so it handles this).</summary>
     public event Action? SyncRequested;
+    /// <summary>«Update now» pressed in the Home (0.6.0).</summary>
+    public event Action? UpdateRequested;
+    private string? _pendingNews;   // «What's new» waiting for the Home to be shown
+    private string? _lastNews;      // the last «What's new», so the bell can open it again
+
+    /// <summary>After an update: show the «What's new» window in the Home (now, or as soon as the Home opens).</summary>
+    public void ShowNews(string json)
+    {
+        _pendingNews = json; _lastNews = json;
+        if (OnHome) PushNews();
+    }
+    private void PushNews()
+    {
+        if (_pendingNews == null) return;
+        try { Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraNews && window.fanfaraNews({_pendingNews})"); _pendingNews = null; } catch { }
+    }
+    /// <summary>One-click update progress for the Home toast: state = download | verify | install | wait | fail.</summary>
+    public void PushUpdate(string state, int pct = 0)
+    {
+        try { if (OnHome) Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraUpdate && window.fanfaraUpdate({JsonSerializer.Serialize(new { state, pct })})"); } catch { }
+    }
 
     public SettingsWindow(Config config, OverlayWindow overlay, AchievementStore store, GamesStore games, string? initialPage = null)
     {
@@ -146,7 +167,7 @@ public partial class SettingsWindow : Window
         if (src.Contains("settings.html")) PushConfig();
         else if (src.Contains("history.html") || src.Contains("collection.html")) InjectData();
         else if (src.Contains("classifica.html")) { SubmitSelf(); InjectClassifica(); _ = PushWorld(); }
-        else if (src.Contains("home.html")) { SubmitSelf(); InjectHome(); _ = PushHomeBoards(); }
+        else if (src.Contains("home.html")) { SubmitSelf(); InjectHome(); _ = PushHomeBoards(); PushNews(); }
         else if (src.Contains("welcome.html")) InjectWelcome();
     }
 
@@ -194,7 +215,7 @@ public partial class SettingsWindow : Window
         {
             try
             {
-                await _lb.SubmitAsync(_games?.PerfectCount ?? 0, _games?.TotalUnlocked ?? 0);   // makes sure the proxy knows the player
+                await (_games != null ? _lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked, _games.PerfectGames()) : _lb.SubmitAsync(0, 0));   // makes sure the proxy knows the player
                 var raw = await _lb.FriendsAsync();
                 if (raw != null)
                 {
@@ -283,7 +304,7 @@ public partial class SettingsWindow : Window
     /// <summary>Register the user's current 100% score so they (and their friends) see it in the leaderboard.</summary>
     private void SubmitSelf()
     {
-        try { if (_lb.Ready && _games != null) _ = _lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked); }
+        try { if (_lb.Ready && _games != null) _ = _lb.SubmitAsync(_games.PerfectCount, _games.TotalUnlocked, _games.PerfectGames()); }
         catch { }
     }
 
@@ -418,7 +439,7 @@ public partial class SettingsWindow : Window
         // Per-game progress (unlocked / total), name and minutes played: card backs and the Collection albums.
         var games = (_games?.All() ?? new System.Collections.Generic.List<GameRecord>())
             .Select(g => new { appid = g.Appid, u = g.Unlocked, t = g.Total, n = g.Name, h = g.Playtime });
-        return JsonSerializer.Serialize(new { theme = _config.Theme, lang = _config.EffectiveLanguage, volume = _config.Volume, items, games });
+        return JsonSerializer.Serialize(new { theme = _config.Theme, lang = _config.EffectiveLanguage, volume = _config.Volume, albumStyle = _config.AlbumStyle, albumFx = _config.AlbumFx, items, games });
     }
 
     /// <summary>Re-send data if the History/Collection screen is currently showing (after a live unlock or sync).</summary>
@@ -449,6 +470,11 @@ public partial class SettingsWindow : Window
             shareCollection = _config.ShareCollection,
             gameOverlayFix = _config.GameOverlayFix,
             frameGenFix = _config.FrameGenFix,
+            albumStyle = _config.AlbumStyle,
+            albumFx = _config.AlbumFx,
+            superFanfara = _config.SuperFanfara,
+            friendAlerts = _config.FriendAlerts,
+            friendSound = _config.FriendSound,
             theme = _config.Theme,
             language = _config.Language,
             osLang = Config.OsLang,
@@ -471,6 +497,18 @@ public partial class SettingsWindow : Window
             else if (msg.action == "sync")
             {
                 SyncRequested?.Invoke();
+            }
+            else if (msg.action == "notif-read")
+            {
+                Notifications.MarkAllRead();
+            }
+            else if (msg.action == "news")
+            {
+                if (_lastNews != null) { _pendingNews = _lastNews; PushNews(); }
+            }
+            else if (msg.action == "update-now")
+            {
+                UpdateRequested?.Invoke();
             }
             else if (msg.action == "wz-check")
             {
@@ -556,6 +594,22 @@ public partial class SettingsWindow : Window
                     0.6, Loc.S(_config.EffectiveLanguage, "preview"),
                     msg.volume ?? _config.Volume, Loc.S(_config.EffectiveLanguage, "previewDesc"));
             }
+            else if (msg.action == "test-super" || msg.action == "test-friend")
+            {
+                // 0.6.0 «Prova»: the last game completed 100% (or any known game) as the example
+                var g = _games.PerfectGames().FirstOrDefault() ?? _games.All().Where(x => x.Total > 0).OrderByDescending(x => x.LastUnlock).FirstOrDefault();
+                uint appid = g?.Appid ?? 1145360; string name = g?.Name ?? "Hades"; int total = g?.Total ?? 49;
+                int mine = _games.PerfectCount;
+                if (msg.action == "test-super")
+                    _overlay.ShowSuper(appid, name, total, g?.Playtime ?? 0, Math.Max(1, mine), _config, preview: true);
+                else
+                {
+                    bool keep = _config.FriendSound;
+                    if (msg.friendSound is bool tfs) _config.FriendSound = tfs;   // follow the switch even before Save
+                    _overlay.ShowFriend("Fanfara", "", name, appid, mine + 1, mine, _config, preview: true);
+                    _config.FriendSound = keep;
+                }
+            }
             else if (msg.action == "theme")
             {
                 if (msg.theme != null) { _config.Theme = msg.theme; _config.Save(); ApplyTitleBar(msg.theme != "light"); }
@@ -620,6 +674,11 @@ public partial class SettingsWindow : Window
                     else _ = share.DeleteAsync();
                 }
                 if (msg.language != null) { _config.Language = msg.language; _overlay.ApplyLanguage(); }
+                if (msg.albumStyle is "classic" or "ferro" or "reale" or "olografico") _config.AlbumStyle = msg.albumStyle;
+                if (msg.albumFx is "full" or "lite" or "off") _config.AlbumFx = msg.albumFx;
+                if (msg.superFanfara is bool sfan) _config.SuperFanfara = sfan;
+                if (msg.friendAlerts is bool fal) _config.FriendAlerts = fal;
+                if (msg.friendSound is bool fsnd) _config.FriendSound = fsnd;
                 if (msg.gameOverlayFix is bool g && g != _config.GameOverlayFix)
                 {
                     _config.GameOverlayFix = g;
@@ -678,6 +737,11 @@ public partial class SettingsWindow : Window
         public string? page { get; set; }
         public string? friend { get; set; }
         public bool? shareCollection { get; set; }
+        public string? albumStyle { get; set; }
+        public string? albumFx { get; set; }
+        public bool? superFanfara { get; set; }
+        public bool? friendAlerts { get; set; }
+        public bool? friendSound { get; set; }
     }
 
     private class CardMeta

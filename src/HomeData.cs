@@ -76,7 +76,11 @@ public static class HomeData
             lastSync = config.LastSyncUtc,
             syncState = config.SyncState,   // "private" → the Home shows how to fix Steam's privacy
             syncing,
-            version = AppVersion()
+            version = AppVersion(),
+            // 0.6.0: the bell, and the one-click update offer
+            notifs = Notifications.All().Take(40).Select(n => new { id = n.Id, ts = n.Ts, kind = n.Kind, who = n.Who, avatar = n.Avatar, game = n.Game, appid = n.Appid, n = n.N, ver = n.Ver, read = n.Read }),
+            unread = Notifications.Unread(),
+            update = AppNews.PendingUpdate
         });
     }
 }

@@ -23,6 +23,8 @@ public class SteamWatcher
     public event Action? GameOptimized;
     /// <summary>Raised once when the game being watched closes (appid of the game that ended).</summary>
     public event Action<uint>? GameClosed;
+    /// <summary>The game just reached 100%: (appid, total achievements).</summary>
+    public event Action<uint, int>? GameCompleted;
 
     /// <summary>True while a Steam game is running (used to keep heavy syncs out of the way).</summary>
     public bool GameRunning => _currentApp != 0;
@@ -174,6 +176,16 @@ public class SteamWatcher
             string api = parts.Length >= 6 ? parts[5] : "";
             Log($"SBLOCCO nome='{name}' global={pct:0.0}% app={appid}");
             try { AchievementUnlocked?.Invoke(name, pct, desc, appid, api); } catch { }
+            return;
+        }
+
+        // PERFECT \t appid \t total — the last achievement of the game was just unlocked.
+        if (parts.Length >= 3 && parts[0] == "PERFECT")
+        {
+            uint appid = uint.TryParse(parts[1], out var ai) ? ai : 0u;
+            int total = int.TryParse(parts[2], out var t) ? t : 0;
+            Log($"100% app={appid} ({total})");
+            try { GameCompleted?.Invoke(appid, total); } catch { }
             return;
         }
 

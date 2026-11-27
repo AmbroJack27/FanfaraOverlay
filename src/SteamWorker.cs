@@ -42,6 +42,7 @@ public static class SteamWorker
 
         var known = new HashSet<string>();
         bool primed = false;
+        bool perfectSent = false;   // PERFECT is announced once per game run
         bool gameSeen = false;
         bool exeEmitted = false;
         int missing = 0;
@@ -77,11 +78,12 @@ public static class SteamWorker
 
             try
             {
-                int total = 0;
+                int total = 0, achieved = 0; bool fresh = false;
                 foreach (var a in SteamUserStats.Achievements)
                 {
                     total++;
                     if (!a.State) continue;
+                    achieved++;
                     if (known.Contains(a.Identifier)) continue;
                     if (!primed) { known.Add(a.Identifier); continue; }
 
@@ -94,6 +96,16 @@ public static class SteamWorker
                     Log($"SBLOCCO {name} ({pct.ToString("0.0", CultureInfo.InvariantCulture)}%)");
                     // UNLOCK \t name \t pct \t desc \t appid \t api  (appid+api added for the History/Collection store)
                     Console.Out.WriteLine($"UNLOCK\t{name}\t{pct.ToString("0.0", CultureInfo.InvariantCulture)}\t{desc}\t{appId}\t{api}");
+                    Console.Out.Flush();
+                    fresh = true;
+                }
+                // The unlock that just happened completed the game: every achievement is now unlocked.
+                // PERFECT \t appid \t total   (the app then plays the Super Fanfara)
+                if (primed && fresh && !perfectSent && total > 0 && achieved == total)
+                {
+                    perfectSent = true;
+                    Log($"GIOCO COMPLETATO AL 100% ({total} obiettivi)");
+                    Console.Out.WriteLine($"PERFECT\t{appId}\t{total}");
                     Console.Out.Flush();
                 }
                 if (!primed && total > 0) { primed = true; Log($"baseline: {total} achievement"); }

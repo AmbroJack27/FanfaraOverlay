@@ -43,6 +43,12 @@ configurare.
 
 ## 🆕 Novità
 
+**0.6.0** — **Stili degli album**: oltre al classico, «Ferro e cuoio», «Grimorio reale» e «Archivio
+olografico», con sfondi animati. La **Super Fanfara** festeggia ogni gioco completato al 100%. Una
+notifica (anche in gioco) quando un **amico completa un gioco al 100%**, una **campanella** con tutte
+le novità nella Home e gli **aggiornamenti con un clic**, che si installano da soli e ti mostrano le
+novità.
+
 **0.5.3** — **Collezioni degli amici**: apri la collezione di un amico di Steam dalla classifica Amici
 e confrontala con la tua carta per carta. I problemi di privacy di Steam vengono riconosciuti in ogni
 forma.
@@ -134,6 +140,10 @@ comparirà al primo obiettivo. 🎮
 Una schermata con la tua fanfara (dal vivo, con **Prova**), gli ultimi sblocchi con le icone vere, la
 tua posizione nelle classifiche Mondiale e Amici, le carte più rare, gli ultimi 7 giorni e i giochi
 più vicini al 100%. Ogni riquadro apre la sua sezione.
+- **🔔 La campanella** raccoglie i 100% degli amici, i tuoi, le nuove versioni e le novità; clicchi e
+  vai al punto giusto.
+- **Aggiornamenti con un clic**: «Aggiorna ora» scarica, verifica, installa e riapre Fanfara da sola
+  (mai durante un gioco), poi ti mostra le note della versione nella tua lingua.
 
 ### 🕒 Cronologia
 Una **linea del tempo** di ogni sblocco: l'ora e un pallino del colore della rarità, mentre gli sblocchi
@@ -159,6 +169,17 @@ gemme, l'icona vera sull'immagine del gioco ed effetti che crescono con la rarit
   mancanti, un Ex Libris con carte, completamento, **ore di gioco**, carta più rara e prima carta, e
   pagine da sfogliare. Le copertine usano l'immagine grande della libreria di Steam con il logo del
   gioco.
+- **📖 Stili degli album** (Personalizza → Stile degli album): **Classico**, **Ferro e cuoio**,
+  **Grimorio reale** e **Archivio olografico** — ognuno con copertina, pagine, cornice e sfondo animato
+  (candele, polvere, scintille). Gli effetti possono essere Pieni, Leggeri o Spenti.
+
+### 🏅 Super Fanfara e amici al 100%
+- **Super Fanfara**: quando sblocchi l'ultimo obiettivo di un gioco, un «100%» dorato riempie lo
+  schermo con l'immagine del gioco, le ore giocate, il numero di quel 100% per te, coriandoli e una
+  fanfara orchestrale.
+- **Amici al 100%**: quando un amico di Steam che usa Fanfara completa un gioco al 100%, compare una
+  scheda in basso a destra — anche in gioco — con i suoi 100% contro i tuoi e due rintocchi leggeri.
+  Si possono spegnere entrambe (quella degli amici anche solo nel suono) in Personalizza.
 
 ### 🏆 Classifica e collezioni degli amici
 - Una classifica per **numero di giochi completati al 100%**: i tuoi giochi completati come carte, una
@@ -191,11 +212,12 @@ tutto ogni 12 ore, anche se resta aperta.
 |---|---|---|
 | Cronologia, collezione, impostazioni | **Solo sul tuo PC** | `history.json`, `games.json` (in `%AppData%\Fanfara`), `config.json` (accanto all'app) |
 | Lettura dei tuoi obiettivi | Proxy di Fanfara → Steam | Il tuo **SteamID** (pubblico) per leggere i tuoi dati Steam **pubblici**; non viene salvato niente |
-| Classifica amici | Database di Fanfara | SteamID, nome e avatar di Steam, giochi al 100% — visibili solo ai tuoi amici di Steam che usano Fanfara |
+| Classifica amici | Database di Fanfara | SteamID, nome e avatar di Steam, giochi al 100% (e quali, per le notifiche «amici al 100%») — visibili solo ai tuoi amici di Steam che usano Fanfara |
 | Classifica mondiale | Database di Fanfara | Gli stessi dati, visibili a tutti — **solo se entri**; quando esci sparisci dalla classifica (i tuoi amici ti vedono ancora) |
 | Collezioni degli amici | Database di Fanfara | Una copia leggera della tua collezione, leggibile **solo dai tuoi amici di Steam** — accesa di base, se la spegni in Personalizza viene cancellata |
 | Feedback / bacheca | Database di Fanfara + Discord | Solo quello che invii; lo SteamID viene tenuto solo come codice anonimo |
-| Aggiornamenti | GitHub | Controllo di una nuova versione |
+| Aggiornamenti | GitHub | Controllo di una nuova versione e lettura delle sue note |
+| Notifiche (campanella) | **Solo sul tuo PC** | `notifications.json`, `friends-perf.json` in `%AppData%\Fanfara` |
 
 La parte online di Fanfara è un piccolo servizio personale su Cloudflare (`proxy/`): tiene segreta la
 chiave della Steam Web API, così tu non ne hai mai bisogno.
@@ -265,7 +287,10 @@ sola lettura, tramite il proxy in [`proxy/`](proxy/README.md).
   se siete amici su Steam.
 - `CardShare.cs`, `Feedback.cs` — pubblicazioni in bacheca e feedback, tramite il proxy.
 - `FsOpt.cs` / `Mpo.cs` — preparano i giochi per lo schermo intero e l'opzione Frame Generation.
-- `Updater.cs` — scarica il nuovo installer e **ne verifica lo SHA-256** prima di avviarlo.
+- `Updater.cs` — scarica il nuovo installer, **ne verifica lo SHA-256**, lo avvia in silenzio dopo la
+  chiusura di Fanfara (l'installer la riapre) e legge le note della versione per le «Novità».
+- `Notifications.cs` / `FriendWatch.cs` — l'elenco della campanella e il controllo «amici al 100%»
+  (ogni 5 minuti, dalla classifica Amici).
 - `proxy/worker.js` — il Worker Cloudflare (piano gratuito): proxy della Steam Web API con la chiave
   segreta, classifica, collezioni degli amici, feedback e bacheca. Vedi
   [`proxy/README.md`](proxy/README.md).
@@ -277,3 +302,7 @@ sola lettura, tramite il proxy in [`proxy/`](proxy/README.md).
 
 ## Licenza
 MIT — vedi [`LICENSE`](LICENSE). Libero da usare, modificare e condividere.
+
+### Riconoscimenti
+La musica della Super Fanfara è un brano originale suonato con il soundfont **MuseScore General** di
+S. Christian Collins (licenza MIT). Tutti gli altri suoni ed emblemi sono originali.

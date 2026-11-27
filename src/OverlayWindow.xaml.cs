@@ -124,6 +124,33 @@ public partial class OverlayWindow : Window
         RunShow($"window.fanfara.show({json})", moved);
     }
 
+    private static string HeroUrl(uint appid) => $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appid}/library_hero.jpg";
+    private static string HeaderUrl(uint appid) => $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appid}/header.jpg";
+
+    /// <summary>Super Fanfara: the game was just completed 100% (queued after the last achievement's notification).</summary>
+    public void ShowSuper(uint appid, string game, int total, int minutes, int nth, Config config, bool preview = false)
+    {
+        if (!_ready) return;
+        bool moved = PlaceOn(TargetMonitor());
+        ForceTopmost();
+        PulseKeepTop(config.DurationMs + 9000);
+        LogShown("100% " + game);
+        var json = JsonSerializer.Serialize(new { kind = "super", game, appid, hero = HeroUrl(appid), header = HeaderUrl(appid), u = total, t = total, minutes, nth, volume = config.Volume, preview });
+        RunShow($"window.fanfara.show({json})", moved);
+    }
+
+    /// <summary>A Steam friend who uses Fanfara completed a game 100% (bottom-right card, also in game).</summary>
+    public void ShowFriend(string who, string avatar, string game, uint appid, int theirs, int mine, Config config, bool preview = false)
+    {
+        if (!_ready) return;
+        bool moved = PlaceOn(TargetMonitor());
+        ForceTopmost();
+        PulseKeepTop(8000);
+        LogShown("amico 100% " + who + " " + game);
+        var json = JsonSerializer.Serialize(new { kind = "friend", who, avatar, game, appid, hero = appid > 0 ? HeroUrl(appid) : "", header = appid > 0 ? HeaderUrl(appid) : "", theirs, mine, sound = config.FriendSound, volume = config.Volume, preview });
+        RunShow($"window.fanfara.show({json})", moved);
+    }
+
     /// <summary>Run the show script; after a move to another screen, give the page a moment to take the new size.</summary>
     private async void RunShow(string script, bool moved)
     {

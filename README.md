@@ -43,6 +43,11 @@ collections** to compare with yours. No login, no API key, nothing to configure.
 
 ## 🆕 What's new
 
+**0.6.0** — **Album styles**: besides the classic one, «Iron & leather», «Royal grimoire» and «Holo
+archive», with animated backdrops. The **Super Fanfara** celebrates every game you complete 100%. A
+notification (even in game) when a **friend completes a game 100%**, a **bell** with all the news in
+the Home, and **one-click updates** that install themselves and show you what's new.
+
 **0.5.3** — **Friends' collections**: open a Steam friend's collection from the Friends leaderboard
 and compare it with yours card by card. Steam privacy problems are recognised in every form.
 
@@ -128,6 +133,10 @@ fanfare appears at your first unlock. 🎮
 One screen with your current fanfare (live, with **Test**), your latest unlocks with their real
 icons, your rank in the World and Friends leaderboards, your rarest cards, the last 7 days and the
 games closest to 100%. Every tile opens its section.
+- **🔔 The bell** collects friends' 100%s, your own, new versions and what's new; click one to jump
+  there.
+- **One-click updates**: «Update now» downloads, verifies, installs and reopens Fanfara by itself
+  (never during a game), then shows the release notes in your language.
 
 ### 🕒 Cronologia (History)
 A **timeline** of every unlock: the time and a dot in the rarity colour, while **epic and legendary**
@@ -151,6 +160,16 @@ the real icon over the game artwork, and effects that grow with rarity.
   tooling, sewn binding, cards in photo corners in unlock order, «?» frames for the missing ones, a
   bookplate with cards, completion, **hours played**, rarest and first card, and pages you turn.
   Covers use Steam's large library artwork with the game's logo.
+- **📖 Album styles** (Customize → Album style): **Classic**, **Iron & leather**, **Royal grimoire**
+  and **Holo archive** — each with its own cover, pages, frame and animated backdrop (candles, dust,
+  sparks). Effects can be Full, Light or Off.
+
+### 🏅 Super Fanfara and friends at 100%
+- **Super Fanfara**: when you unlock a game's last achievement, a golden «100%» takes the screen with
+  the game's artwork, hours played, which 100% it is for you, confetti and an orchestral fanfare.
+- **Friends at 100%**: when a Steam friend who uses Fanfara completes a game 100%, a card appears at
+  the bottom right — even in game — with their 100% count against yours and two soft chimes. Both can
+  be turned off (the friends' one also just muted) in Customize.
 
 ### 🏆 Classifica (Leaderboard) and friends' collections
 - A ranking by **number of games completed 100%**: your completed games as cards, a public **World**
@@ -183,11 +202,12 @@ everything again every 12 hours, even while it stays open.
 |---|---|---|
 | Your history, collection, settings | **Only on your PC** | `history.json`, `games.json` (in `%AppData%\Fanfara`), `config.json` (next to the app) |
 | Reading your achievements | Fanfara's proxy → Steam | Your **SteamID** (public) to read your **public** Steam data; nothing is stored |
-| Friends leaderboard | Fanfara's database | SteamID, Steam name and avatar, games at 100% — visible only to your Steam friends who use Fanfara |
+| Friends leaderboard | Fanfara's database | SteamID, Steam name and avatar, games at 100% (and which ones, for the «friends at 100%» notifications) — visible only to your Steam friends who use Fanfara |
 | World leaderboard | Fanfara's database | The same, visible to everyone — **only if you join**; when you leave you disappear from it (your friends still see you) |
 | Friends' collections | Fanfara's database | A light copy of your collection, readable **only by your Steam friends** — on by default, turn it off in Personalizza and it's deleted |
 | Feedback / showcase | Fanfara's database + Discord | Only what you send; your SteamID is kept only as an anonymous hash |
-| Updates | GitHub | Checks for a new release |
+| Updates | GitHub | Checks for a new release and reads its notes |
+| Notifications (bell) | **Only on your PC** | `notifications.json`, `friends-perf.json` in `%AppData%\Fanfara` |
 
 Fanfara's online part is a small personal Cloudflare service (`proxy/`): it keeps the Steam Web API
 key secret, so you never need one.
@@ -253,7 +273,10 @@ read-only, through the proxy in [`proxy/`](proxy/README.md).
   only if sharing is on and something changed; reads a friend's collection only if you're Steam friends.
 - `CardShare.cs`, `Feedback.cs` — showcase posts and feedback, through the proxy.
 - `FsOpt.cs` / `Mpo.cs` — prepare games for fullscreen and the Frame Generation option.
-- `Updater.cs` — downloads the new installer and **verifies its SHA-256** before running it.
+- `Updater.cs` — downloads the new installer, **verifies its SHA-256**, runs it silently after Fanfara
+  closes (the installer starts Fanfara again) and fetches the release notes for «What's new».
+- `Notifications.cs` / `FriendWatch.cs` — the bell's list and the «friends at 100%» check (every 5
+  minutes, from the Friends leaderboard).
 - `proxy/worker.js` — the Cloudflare Worker (free tier): Steam Web API proxy with the key as a secret,
   leaderboard, friends' collections, feedback and showcase. See [`proxy/README.md`](proxy/README.md).
 
@@ -264,3 +287,7 @@ read-only, through the proxy in [`proxy/`](proxy/README.md).
 
 ## License
 MIT — see [`LICENSE`](LICENSE). Free to use, modify and share.
+
+### Credits
+The Super Fanfara music is an original piece rendered with the **MuseScore General** soundfont by
+S. Christian Collins (MIT license). All other sounds and emblems are original.

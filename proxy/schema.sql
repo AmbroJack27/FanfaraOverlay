@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS scores (
   total    INTEGER NOT NULL DEFAULT 0,-- total unlocked achievements (tie-breaker)
   member   INTEGER NOT NULL DEFAULT 0,-- 1 = shown on the public World leaderboard
   verified INTEGER NOT NULL DEFAULT 0,-- legacy column, no longer used
-  updated  INTEGER NOT NULL DEFAULT 0 -- epoch seconds of the last score update
+  updated  INTEGER NOT NULL DEFAULT 0,-- epoch seconds of the last score update
+  perf     TEXT                       -- 0.6.0: games at 100% as JSON [[appid,name,completedAt],...] (the Worker adds it to older databases)
 );
 
 -- Fast ordering for the World board.

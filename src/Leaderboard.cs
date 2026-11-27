@@ -35,6 +35,26 @@ public class Leaderboard
     public Task<string?> SubmitAsync(int perfect, int total, CancellationToken ct = default)
         => Get($"{Base}/lb/submit?steamid={Id}&perfect={perfect}&total={total}", ct);
 
+    /// <summary>
+    /// Refresh my score AND tell the proxy which games are at 100% (0.6.0+), so my Steam friends' Fanfara
+    /// can announce a newly completed game. Falls back to the plain refresh if the list can't be sent.
+    /// </summary>
+    public async Task<string?> SubmitAsync(int perfect, int total, System.Collections.Generic.List<GameRecord> perfectGames, CancellationToken ct = default)
+    {
+        try
+        {
+            var games = new System.Collections.Generic.List<object[]>();
+            foreach (var g in perfectGames) games.Add(new object[] { g.Appid, g.Name ?? "", g.LastUnlock });
+            var body = System.Text.Json.JsonSerializer.Serialize(new { games });
+            using var resp = await Http.PostAsync($"{Base}/lb/submit?steamid={Id}&perfect={perfect}&total={total}",
+                new StringContent(body, System.Text.Encoding.UTF8, "application/json"), ct);
+            if (resp.IsSuccessStatusCode) return await resp.Content.ReadAsStringAsync(ct);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { }
+        return await SubmitAsync(perfect, total, ct);
+    }
+
     /// <summary>The public world ranking (+ the user's own rank). Returns raw JSON or null.</summary>
     public Task<string?> WorldAsync(CancellationToken ct = default)
         => Get($"{Base}/lb/world?steamid={Id}", ct);

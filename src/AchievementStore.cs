@@ -102,6 +102,22 @@ public class AchievementStore
 
     public int Count { get { lock (_gate) return _byKey.Count; } }
 
+    /// <summary>
+    /// How many achievements of one game Fanfara knows are unlocked. Records saved by a live unlock
+    /// without Steam's internal id ("live:…") are left out, since a later sync may store the same
+    /// achievement again under its real id.
+    /// </summary>
+    public int CountFor(uint appid)
+    {
+        lock (_gate)
+        {
+            int n = 0;
+            foreach (var r in _byKey.Values)
+                if (r.Appid == appid && !r.Api.StartsWith("live:", StringComparison.Ordinal)) n++;
+            return n;
+        }
+    }
+
     public void Save()
     {
         try
