@@ -41,6 +41,18 @@
   .themebtn svg{width:15px;height:15px}
 
   .pane{flex:1; min-height:0; display:grid; grid-template-columns:1.7fr 1fr; gap:16px; padding:4px 20px 14px}
+  /* 0.7.0: the settings in four tabs, saved by themselves */
+  .stabs{display:flex; gap:6px; padding:4px; margin:0 20px 12px; border-radius:14px; background:var(--panel-2); border:1px solid var(--line); width:max-content; max-width:calc(100% - 40px); overflow-x:auto}
+  .stabs button{cursor:pointer; display:flex; align-items:center; gap:8px; padding:9px 16px; border-radius:10px; border:0; background:none; color:var(--muted); font:700 13.5px var(--display); white-space:nowrap}
+  .stabs button svg{width:16px; height:16px} .stabs button.on{background:var(--panel); color:var(--fg); box-shadow:0 4px 12px -6px rgba(0,0,0,.5)}
+  .stabs button.on svg{color:var(--accent)}
+  #app:not([data-tab="n"]) .colL{display:none}
+  #app:not([data-tab="n"]) .pane{grid-template-columns:minmax(0,820px)}
+  #app[data-tab="n"] .colR [data-t]:not([data-t="n"]),#app[data-tab="a"] .colR [data-t]:not([data-t="a"]),#app[data-tab="f"] .colR [data-t]:not([data-t="f"]),#app[data-tab="p"] .colR [data-t]:not([data-t="p"]){display:none}
+  #app:not([data-tab="n"]) #btnTest{display:none}
+  #app[data-tab="a"] .albs{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .szseg{width:auto; flex:0 0 auto}
+  .htitle small{display:block}
   .col{display:flex; flex-direction:column; gap:14px; min-width:0; min-height:0}
   /* Right column scrolls on its own so the bottom action bar never covers its controls */
   .colR{overflow-y:auto; overflow-x:hidden; min-height:0; padding-right:6px}
@@ -181,6 +193,9 @@
   .btn.test{background:var(--panel-2); color:var(--fg)} .btn.test:hover{background:var(--panel-3)}
   .trybtn{cursor:pointer; flex:0 0 auto; margin-right:12px; padding:7px 12px; border-radius:9px; border:1px solid var(--line); background:var(--panel-2); color:var(--fg); font:700 12px var(--display); white-space:nowrap}
   .trybtn:hover{background:var(--panel-3)}
+  .trybtn:disabled{opacity:.55; cursor:default}
+  .updst{color:var(--fg)!important; font-weight:600!important; margin-top:5px!important}
+  .updst button{cursor:pointer; margin-left:8px; padding:4px 10px; border-radius:8px; border:0; font:800 11.5px var(--display); color:#1b1405; background:linear-gradient(145deg,#ffe58a,#F5C242)}
   .btn.save{background:linear-gradient(145deg,var(--accent-2),var(--accent)); color:var(--ink); border-color:var(--accent)}
   .langsel{width:100%; background:var(--panel-2); color:var(--fg); border:1px solid var(--line);
     border-radius:11px; padding:12px 13px; font:600 13px var(--body); cursor:pointer}
@@ -210,12 +225,18 @@
 <div id="app" data-mode="dark">
   <div class="head">
     <div class="badge"><svg viewBox="0 0 24 24" fill="var(--accent)"><path d="M6 3 H18 V6.4 C18 10.6 15.3 13 12 13 C8.7 13 6 10.6 6 6.4 Z"/><path d="M11 12.8 H13 V15.6 H11 Z"/><path d="M8.2 15.5 H15.8 L16.9 18.6 H7.1 Z"/><path d="M6.5 18.6 H17.5 V20.3 H6.5 Z"/><path d="M6 4.6 C2.4 4.6 2.4 10.2 7 10.4 M18 4.6 C21.6 4.6 21.6 10.2 17 10.4" stroke="var(--accent)" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
-    <div><h1>Fanfara</h1><small id="subtitle">Scegli come appare lo sblocco degli obiettivi</small></div>
+    <div class="htitle"><h1>Fanfara</h1><small id="subtitle">Scegli come appare lo sblocco degli obiettivi</small></div>
     <button class="themebtn" id="homeBtn"></button>
     <div class="spacer"></div>
     <button class="themebtn" id="theme"></button>
   </div>
 
+  <div class="stabs" id="stabs" role="tablist">
+    <button data-tab="n" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg><span id="tabN">Notifica</span></button>
+    <button data-tab="a" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/></svg><span id="tabA">Album</span></button>
+    <button data-tab="f" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span id="tabF">Amici e 100%</span></button>
+    <button data-tab="p" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span id="tabP">App</span></button>
+  </div>
   <div class="pane">
     <div class="col colL">
       <div class="block">
@@ -231,31 +252,35 @@
       </div>
     </div>
     <div class="col colR">
-      <div><div class="panel-title" id="pt-pos">Posizione sullo schermo</div><div class="screen" id="screen"></div><div class="poslab" id="poslab"></div></div>
-      <div><div class="panel-title" id="durtitle">Durata</div><div class="range">
+      <div data-t="n"><div class="panel-title" id="pt-pos">Posizione sullo schermo</div><div class="screen" id="screen"></div><div class="poslab" id="poslab"></div></div>
+      <div data-t="n"><div class="panel-title" id="durtitle">Durata</div><div class="range">
         <input type="range" id="dur" min="2" max="12" step="0.5" value="4.2"><span class="durv" id="durv">4.2s</span></div></div>
-      <div><div class="panel-title" id="voltitle">Volume</div><div class="range">
+      <div data-t="n"><div class="panel-title" id="voltitle">Volume</div><div class="range">
         <input type="range" id="vol" min="0" max="100" step="5" value="100"><span class="durv" id="volv">100%</span></div></div>
-      <div><div class="panel-title" id="pt-lang">Lingua</div><select id="lang" class="langsel"></select></div>
-      <div><div class="panel-title" id="pt-alb">Stile degli album</div>
+      <div data-t="p"><div class="panel-title" id="pt-lang">Lingua</div><select id="lang" class="langsel"></select></div>
+      <div data-t="a"><div class="panel-title" id="pt-alb">Stile degli album</div>
         <div class="albs" id="albs"></div>
         <div class="segrow"><span><span id="albFxT">Effetti degli album</span><small id="albFxS">Candela, polvere, magia e luci intorno agli album.</small></span>
           <div class="seg3" id="albFx"><button data-v="full"></button><button data-v="lite"></button><button data-v="off"></button></div></div></div>
-      <div class="toggle"><div><b id="startupT">Avvia all'accensione del PC</b><small id="startupS">Fanfara parte da sola con Windows, pronta nel tray.</small></div>
+      <div class="toggle" data-t="a"><div><b id="szT">Grandezza dei libri nella Collezione</b><small id="szS">Quanti libri per fila: medi 6, grandi 5, molto grandi 4.</small></div>
+        <div class="seg3 szseg" id="szSeg"><button data-v="m"></button><button data-v="l"></button><button data-v="xl"></button></div></div>
+      <div class="toggle" data-t="p"><div><b id="wzT">Configurazione guidata</b><small id="wzS">Rifai i controlli di Steam, dello schermo e dei giochi.</small></div>
+        <button class="trybtn" id="wzGo" type="button">Apri</button></div>
+      <div class="toggle" data-t="p"><div><b id="startupT">Avvia all'accensione del PC</b><small id="startupS">Fanfara parte da sola con Windows, pronta nel tray.</small></div>
         <label class="switch"><input type="checkbox" id="startup"><span class="slider"></span></label></div>
-      <div class="toggle"><div><b id="updatesT">Controlla aggiornamenti all'avvio</b><small id="updatesS">Avvisa quando esce una nuova versione su GitHub.</small></div>
-        <label class="switch"><input type="checkbox" id="updates"><span class="slider"></span></label></div>
-      <div class="toggle"><div><b id="shareT">Condividi la mia collezione con gli amici</b><small id="shareS">Gli amici di Steam che usano Fanfara possono sfogliare la tua Collezione e confrontarla con la loro.</small></div>
+      <div class="toggle" data-t="p"><div><b id="updatesT">Controlla aggiornamenti all'avvio</b><small id="updatesS">Avvisa quando esce una nuova versione su GitHub.</small><small class="updst" id="updSt" hidden></small></div>
+        <button class="trybtn" id="chkUpd" type="button">Cerca ora</button><label class="switch"><input type="checkbox" id="updates"><span class="slider"></span></label></div>
+      <div class="toggle" data-t="f"><div><b id="shareT">Condividi la mia collezione con gli amici</b><small id="shareS">Gli amici di Steam che usano Fanfara possono sfogliare la tua Collezione e confrontarla con la loro.</small></div>
         <label class="switch"><input type="checkbox" id="share"><span class="slider"></span></label></div>
-      <div class="toggle"><div><b id="superT">Super Fanfara al 100%</b><small id="superS">Una grande celebrazione dorata quando completi un gioco al 100%.</small></div>
+      <div class="toggle" data-t="f"><div><b id="superT">Super Fanfara al 100%</b><small id="superS">Una grande celebrazione dorata quando completi un gioco al 100%.</small></div>
         <button class="trybtn" id="tryS" type="button">▶</button><label class="switch"><input type="checkbox" id="superfan"><span class="slider"></span></label></div>
-      <div class="toggle"><div><b id="friendT">Avvisami quando un amico arriva al 100%</b><small id="friendS">Una notifica in basso a destra, anche mentre giochi, quando un amico di Steam che usa Fanfara completa un gioco.</small></div>
+      <div class="toggle" data-t="f"><div><b id="friendT">Avvisami quando un amico arriva al 100%</b><small id="friendS">Una notifica in basso a destra, anche mentre giochi, quando un amico di Steam che usa Fanfara completa un gioco.</small></div>
         <button class="trybtn" id="tryF" type="button">▶</button><label class="switch"><input type="checkbox" id="friendal"><span class="slider"></span></label></div>
-      <div class="toggle"><div><b id="friendSndT">Suono per gli amici al 100%</b><small id="friendSndS">Due rintocchi leggeri insieme alla notifica.</small></div>
+      <div class="toggle" data-t="f"><div><b id="friendSndT">Suono per gli amici al 100%</b><small id="friendSndS">Due rintocchi leggeri insieme alla notifica.</small></div>
         <label class="switch"><input type="checkbox" id="friendsnd"><span class="slider"></span></label></div>
-      <div class="toggle"><div><b id="gamefixT">Mostra le notifiche nei giochi a schermo intero</b><small id="gamefixS">Prepara i giochi perché le notifiche compaiano anche in gioco (consigliato).</small></div>
+      <div class="toggle" data-t="p"><div><b id="gamefixT">Mostra le notifiche nei giochi a schermo intero</b><small id="gamefixS">Prepara i giochi perché le notifiche compaiano anche in gioco (consigliato).</small></div>
         <label class="switch"><input type="checkbox" id="gamefix"><span class="slider"></span></label></div>
-      <div class="toggle"><div><b id="framegenT">Compatibilità con Frame Generation (avanzato)</b><small id="framegenS">Fa comparire le notifiche anche nei giochi con Frame Generation o fullscreen esclusivo. Richiede permessi admin e un riavvio del PC.</small></div>
+      <div class="toggle" data-t="p"><div><b id="framegenT">Compatibilità con Frame Generation (avanzato)</b><small id="framegenS">Fa comparire le notifiche anche nei giochi con Frame Generation o fullscreen esclusivo. Richiede permessi admin e un riavvio del PC.</small></div>
         <label class="switch"><input type="checkbox" id="framegen"><span class="slider"></span></label></div>
     </div>
   </div>
@@ -265,7 +290,7 @@
     <div class="hint" id="hint">Premi <b>Prova</b> per l'anteprima a schermo, <b>Salva</b> per applicare.</div>
     <div class="saved" id="saved">Salvato ✓</div>
     <button class="btn test" id="btnTest">▶ Prova</button>
-    <button class="btn save" id="btnSave">Salva</button>
+    <button class="btn save" id="btnSave" hidden>Salva</button>
   </div>
   <div class="disc" id="disc">Progetto amatoriale, non affiliato né approvato dalle case produttrici. Tutti i marchi appartengono ai rispettivi proprietari.</div>
 
@@ -322,6 +347,7 @@ function applyI18n(){
   if(U.albT){ $('#pt-alb').textContent=U.albT; $('#albFxT').textContent=U.albFxT; $('#albFxS').textContent=U.albFxS;
     ['full','lite','off'].forEach(k=>{ $('#albFx [data-v="'+k+'"]').textContent=U['albFx_'+k]; });
     ['superT','superS','friendT','friendS','friendSndT','friendSndS'].forEach(k=>{ $('#'+k).textContent=U[k]; }); }
+  if(U.updChk) $('#chkUpd').textContent=U.updChk;
   renderAlbs();
   $('#gamefixT').textContent=U.gamefixT;
   $('#gamefixS').textContent=U.gamefixS;
@@ -333,7 +359,10 @@ function applyI18n(){
   $('#guideClose').textContent=U.guideClose;
   renderGuide();
   $('#disc').textContent=U.disc;
-  $('#hint').innerHTML=`${U.hintPre} <b>${U.test}</b> ${U.hintMid} <b>${U.save}</b> ${U.hintPost}`;
+  $('#hint').innerHTML=U.autoHint? `${U.hintPre} <b>${U.test}</b>. ${U.autoHint}` : `${U.hintPre} <b>${U.test}</b> ${U.hintMid} <b>${U.save}</b> ${U.hintPost}`;
+  if(U.tabN){ $('#tabN').textContent=U.tabN; $('#tabA').textContent=U.tabA; $('#tabF').textContent=U.tabF; $('#tabP').textContent=U.tabP;
+    $('#szT').textContent=U.szT; $('#szS').textContent=U.szS; $('#wzT').textContent=U.wzT; $('#wzS').textContent=U.wzS; $('#wzGo').textContent=U.wzBtn;
+    const sb=$('#szSeg').querySelectorAll('button'); sb[0].textContent=U.szM; sb[1].textContent=U.szL; sb[2].textContent=U.szXL; }
   $('#saved').textContent=U.saved;
   $('#btnTest').textContent='▶ '+U.test;
   $('#btnSave').textContent=U.save;
@@ -503,6 +532,7 @@ $('#albFx').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; S.al
 
 window.initSettings = cfg => {
   if(!cfg) return;
+  setTimeout(()=>{ lastSaved=JSON.stringify(vals()); }, 0);   // 0.7.0: what the host sent counts as saved
   if(cfg.albumStyle) S.album=cfg.albumStyle;
   if(cfg.albumFx) S.albumFx=cfg.albumFx;
   if(typeof cfg.superFanfara==='boolean') S.superfan=cfg.superFanfara;
@@ -560,6 +590,20 @@ $('#btnTest').onclick=()=> send(Object.assign({action:'test'}, vals()));
 // 0.6.0: try the Super Fanfara and the «friend at 100%» card (same label as the main Test button)
 $('#tryS').onclick=()=> send({action:'test-super'});
 $('#tryF').onclick=()=> send({action:'test-friend', friendSound:$('#friendsnd').checked});
+// 0.6.2: look for an update by hand; if there is one, install it with one click
+function updMsg(html){ const e=$('#updSt'); e.hidden=!html; e.innerHTML=html||''; const b=$('#updGo'); if(b) b.onclick=()=>{ b.disabled=true; send({action:'update-now'}); }; }
+function uf(k,o){ return String(U[k]||k).replace(/\{(\w+)\}/g,(_,x)=>o&&o[x]!=null?o[x]:''); }
+$('#chkUpd').onclick=()=>{ $('#chkUpd').disabled=true; updMsg(uf('updChecking')); send({action:'update-check'});
+  if(!window.chrome || !window.chrome.webview) setTimeout(()=>window.fanfaraUpdateCheck({state:'found',ver:'9.9.9',cur:'0.6.2'}),700); };
+window.fanfaraUpdateCheck=r=>{ $('#chkUpd').disabled=false; if(!r) return;
+  if(r.state==='found') updMsg(uf('updFound',{v:r.ver})+'<button id="updGo">'+uf('updNow')+'</button>');
+  else if(r.state==='none') updMsg(uf('updNone',{v:r.cur}));
+  else updMsg(uf('updFail')); };
+window.fanfaraUpdate=u=>{ if(!u) return; $('#chkUpd').disabled=true;
+  if(u.state==='download') updMsg(uf('updDl',{p:Math.max(0,Math.min(100,u.pct|0))}));
+  else if(u.state==='install'||u.state==='verify') updMsg(uf('updInst'));
+  else if(u.state==='wait'){ $('#chkUpd').disabled=false; updMsg(uf('updWait')); }
+  else { $('#chkUpd').disabled=false; updMsg(uf('updFail')); } };
 function tryLabels(){ const t=$('#btnTest').textContent; $('#tryS').textContent=t; $('#tryF').textContent=t; }
 tryLabels(); new MutationObserver(tryLabels).observe($('#btnTest'),{childList:true,characterData:true,subtree:true});
 $('#btnSave').onclick=()=>{ send(Object.assign({action:'save'}, vals()));
@@ -573,9 +617,31 @@ $('#q').onkeydown=ev=>{ if(ev.key==='Escape'){ $('#q').value=''; S.q=''; renderS
 $('#inusePlay').onclick=()=>play($('#inuse'));
 $('#inuse').onmouseenter=()=>play($('#inuse'),true);
 
+// ---- 0.7.0: four tabs, and every change is saved by itself (no more «Save») ----
+function setTab(t){ if(!/^[nafp]$/.test(t)) t='n'; $('#app').dataset.tab=t;
+  document.querySelectorAll('#stabs button').forEach(b=>{ b.classList.toggle('on',b.dataset.tab===t); b.setAttribute('aria-selected',b.dataset.tab===t?'true':'false'); });
+  try{ sessionStorage.setItem('fanfara-set-tab',t); }catch(e){} }
+$('#stabs').onclick=e=>{ const b=e.target.closest('button[data-tab]'); if(b) setTab(b.dataset.tab); };
+setTab((location.search.match(/[?&]tab=([nafp])/)||[])[1] || (()=>{ try{ return sessionStorage.getItem('fanfara-set-tab'); }catch(e){ return null; } })() || 'n');
+let lastSaved=null, autoT=null;
+function autoSave(){ clearTimeout(autoT); autoT=setTimeout(()=>{
+  if(lastSaved===null) return;                       // the host has not sent the settings yet
+  const now=JSON.stringify(vals()); if(now===lastSaved) return;
+  lastSaved=now; send(Object.assign({action:'save'}, vals()));
+  savedStyle=S.style; if(S.view==='cats' && !S.q) renderStyles(); else markSel();
+  const sv=$('#saved'); sv.textContent=(U&&U.saved2)||U.saved; sv.classList.add('on'); setTimeout(()=>sv.classList.remove('on'),1400); }, 350); }
+['click','change','input'].forEach(ev=>$('#app').addEventListener(ev, e=>{ if(e.target.closest('#q,#guide,#stabs')) return; autoSave(); }));
+// book size of the Collection (kept by the Collection page itself)
+function szPaint(){ let v='xl'; try{ v=localStorage.getItem('fanfara-coll-size')||'xl'; }catch(e){} $('#szSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v)); }
+$('#szSeg').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; try{ localStorage.setItem('fanfara-coll-size',b.dataset.v); }catch(x){} szPaint();
+  const sv=$('#saved'); sv.textContent=(U&&U.saved2)||U.saved; sv.classList.add('on'); setTimeout(()=>sv.classList.remove('on'),1400); };
+szPaint();
+$('#wzGo').onclick=()=>{ location.href='welcome.html?theme='+(S.theme||'dark')+'&lang='+LANG; };
+
 // first paint before the host pushes config
 setUILang(window.resolveLang(S.language, (navigator.language||'it')));
 </script>
 <script>document.addEventListener('dragstart',function(e){ var t=e.target; if(!(t && t.closest && t.closest('input,textarea,[contenteditable]'))) e.preventDefault(); });</script>
+<script src="nav.js"></script><script>FanNav.mount('set', document.querySelector('.head'))</script>
 </body>
 </html>

@@ -43,6 +43,15 @@ configurare.
 
 ## 🆕 Novità
 
+**0.7.0** — una **barra di navigazione in alto** in ogni schermata (Home, Collezione, Cronologia,
+Classifica, Impostazioni, Guida, Feedback); una **nuova Home** con le **impostazioni rapide** in alto (la
+tua fanfara con gli stili recenti, volume, posizione e durata; stile ed effetti degli album; le scelte
+per il 100%) e «Come stai andando» sotto; **Impostazioni in quattro schede** senza il pulsante Salva —
+ogni modifica si salva da sola; la **Collezione a pagine** con libri più grandi (medi, grandi o molto
+grandi) e ← → per sfogliare.
+Inoltre: **Cerca ora** (Impostazioni → App) cerca un aggiornamento e lo installa con un clic, Fanfara
+controlla ogni ora mentre è aperta e gli obiettivi azzerati su Steam spariscono anche da Fanfara.
+
 **0.6.1** — due nuovi stili degli album, **Lacca e oro** e **Ottone e ingranaggi**; i giochi completati
 al 100% hanno un nastro «100%» sul loro album; le immagini dei giochi tornano centrate nelle cornici e i
 giochi più recenti (di cui Steam ha spostato le immagini) mostrano la loro copertina. Tolta la vista
@@ -114,11 +123,11 @@ passo:
    spegnerla);
 5. importa **tutti i tuoi obiettivi passati** di Steam, mostrando l'avanzamento.
 
-Puoi riaprirla quando vuoi dal pulsante **Configurazione guidata** in alto nella Home, dalla Guida o
-dal menu dell'icona di Fanfara vicino all'orologio.
+Puoi riaprirla quando vuoi da **Impostazioni → App**, dalla Guida o dal menu dell'icona di Fanfara
+vicino all'orologio.
 
-Poi Fanfara vive in **una sola finestra** — Home, Personalizza, Cronologia, Collezione, Classifica e
-Guida — e resta attiva con un'icona vicino all'orologio quando la chiudi. Avvia un gioco e la fanfara
+Poi Fanfara vive in **una sola finestra** con una barra in alto — Home, Collezione, Cronologia,
+Classifica, Impostazioni, Guida e Feedback — e resta attiva con un'icona vicino all'orologio quando la chiudi. Avvia un gioco e la fanfara
 comparirà al primo obiettivo. 🎮
 
 > **Consiglio:** per non avere due notifiche, spegni quella di Steam:
@@ -142,9 +151,12 @@ comparirà al primo obiettivo. 🎮
   giocando**.
 
 ### 🏠 Home
-Una schermata con la tua fanfara (dal vivo, con **Prova**), gli ultimi sblocchi con le icone vere, la
-tua posizione nelle classifiche Mondiale e Amici, le carte più rare, gli ultimi 7 giorni e i giochi
-più vicini al 100%. Ogni riquadro apre la sua sezione.
+Una **barra di navigazione** in alto in ogni schermata ti porta ovunque con un clic. La Home ha due parti:
+- **Impostazioni rapide**, che si salvano da sole: la tua fanfara (anteprima dal vivo, **Prova**, gli
+  stili usati di recente, volume, posizione e durata), lo **stile degli album** con i suoi effetti e le
+  scelte per il **100%** (Super Fanfara, avvisi e suono degli amici, ciascuno con **Prova**).
+- **Come stai andando**: gli ultimi sblocchi con le icone vere, la posizione nelle classifiche Mondo e
+  Amici, i giochi più vicini al 100% e gli ultimi 7 giorni. Ogni riquadro apre la sua sezione.
 - **🔔 La campanella** raccoglie i 100% degli amici, i tuoi, le nuove versioni e le novità; clicchi e
   vai al punto giusto.
 - **Aggiornamenti con un clic**: «Aggiorna ora» scarica, verifica, installa e riapre Fanfara da sola
@@ -174,7 +186,9 @@ gemme, l'icona vera sull'immagine del gioco ed effetti che crescono con la rarit
   mancanti, un Ex Libris con carte, completamento, **ore di gioco**, carta più rara e prima carta, e
   pagine da sfogliare. Le copertine usano l'immagine grande della libreria di Steam con il logo del
   gioco.
-- **📖 Stili degli album** (Personalizza → Stile degli album): **Classico**, **Ferro e cuoio**,
+- **📄 Pagine**: gli album sono disposti su due file per pagina, con ‹ › accanto all'ordinamento,
+  frecce e pallini in fondo e i tasti ← →. Scegli libri **medi, grandi o molto grandi** (6, 5 o 4 per fila).
+- **📖 Stili degli album** (Impostazioni → Album): **Classico**, **Ferro e cuoio**,
   **Grimorio reale**, **Archivio olografico**, **Lacca e oro** e **Ottone e ingranaggi** — ognuno con
   copertina, pagine, cornice e sfondo animato (candele, polvere, scintille, petali di ciliegio, vapore).
   Gli effetti possono essere Pieni, Leggeri o Spenti. I giochi completati al 100% hanno un nastro «100%»
@@ -186,7 +200,7 @@ gemme, l'icona vera sull'immagine del gioco ed effetti che crescono con la rarit
   fanfara orchestrale.
 - **Amici al 100%**: quando un amico di Steam che usa Fanfara completa un gioco al 100%, compare una
   scheda in basso a destra — anche in gioco — con i suoi 100% contro i tuoi e due rintocchi leggeri.
-  Si possono spegnere entrambe (quella degli amici anche solo nel suono) in Personalizza.
+  Si possono spegnere entrambe (quella degli amici anche solo nel suono) nelle Impostazioni.
 
 ### 🏆 Classifica e collezioni degli amici
 - Una classifica per **numero di giochi completati al 100%**: i tuoi giochi completati come carte, una
@@ -207,7 +221,7 @@ tutto ogni 12 ore, anche se resta aperta.
   tradotto, fino ai nomi dei gradi di ogni stile. Anche l'installer.
 - **Tema chiaro e scuro** ovunque, **avvio con Windows**, **aggiornamenti automatici**.
 - Un **avviso rosso** chiaro nella Home se Steam nasconde i tuoi obiettivi, con *Come risolvere*.
-- **💬 Invia feedback** dalla Home, dalla Guida o dal menu dell'icona (problema / idea / altro), se vuoi
+- **💬 Invia feedback** dalla barra in alto, dalla Guida o dal menu dell'icona (problema / idea / altro), se vuoi
   con il registro tecnico ripulito dai dati personali.
 - Una **Guida** nell'app, in 5 lingue, che spiega ogni funzione.
 
@@ -221,7 +235,7 @@ tutto ogni 12 ore, anche se resta aperta.
 | Lettura dei tuoi obiettivi | Proxy di Fanfara → Steam | Il tuo **SteamID** (pubblico) per leggere i tuoi dati Steam **pubblici**; non viene salvato niente |
 | Classifica amici | Database di Fanfara | SteamID, nome e avatar di Steam, giochi al 100% (e quali, per le notifiche «amici al 100%») — visibili solo ai tuoi amici di Steam che usano Fanfara |
 | Classifica mondiale | Database di Fanfara | Gli stessi dati, visibili a tutti — **solo se entri**; quando esci sparisci dalla classifica (i tuoi amici ti vedono ancora) |
-| Collezioni degli amici | Database di Fanfara | Una copia leggera della tua collezione, leggibile **solo dai tuoi amici di Steam** — accesa di base, se la spegni in Personalizza viene cancellata |
+| Collezioni degli amici | Database di Fanfara | Una copia leggera della tua collezione, leggibile **solo dai tuoi amici di Steam** — accesa di base, se la spegni nelle Impostazioni viene cancellata |
 | Feedback / bacheca | Database di Fanfara + Discord | Solo quello che invii; lo SteamID viene tenuto solo come codice anonimo |
 | Immagini dei giochi | Proxy di Fanfara → Steam | Solo i numeri dei giochi (appid), per trovare dove Steam tiene le immagini dei giochi più recenti |
 | Aggiornamenti | GitHub | Controllo di una nuova versione e lettura delle sue note |
@@ -243,7 +257,7 @@ profilo** sia **Dettagli dei giochi**. Aspetta qualche minuto, poi premi **Ricon
   «esclusivo» (a volte si chiama **Finestra senza bordi**). Gira comunque alla frequenza del monitor.
 - Il gioco era già aperto quando Fanfara l'ha preparato: **riavvia il gioco** una volta.
 - Alcuni giochi con **Frame Generation** (DLSS 3, FSR 3) nascondono gli overlay: accendi
-  **«Compatibilità con Frame Generation»** in Personalizza (servono i permessi di amministratore e un
+  **«Compatibilità con Frame Generation»** in Impostazioni → App (servono i permessi di amministratore e un
   riavvio).
 - Con più monitor, scegli lo schermo nella **configurazione guidata**.
 

@@ -63,6 +63,10 @@ public class Config
     // Bottom-right alert (also in game) when a Steam friend who uses Fanfara completes a game 100%, and its sound.
     public bool FriendAlerts { get; set; } = true;
     public bool FriendSound { get; set; } = true;
+    // ---- 0.7.0 ----
+    // The last notification styles used (newest first, the current one included): the Home offers them as quick picks.
+    // Always replaced by a new list (never changed in place), so saving from another thread is safe.
+    public List<string> RecentStyles { get; set; } = new();
     // Version that ran last time: when it changes, the Home shows «What's new».
     public string LastVersion { get; set; } = "";
 

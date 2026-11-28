@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Fanfara</AssemblyName>
     <RootNamespace>Fanfara</RootNamespace>
-    <Version>0.6.1</Version>
+    <Version>0.7.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <!-- Single self-contained .exe for end users (see README / GitHub Actions) -->
@@ -66,6 +66,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="web\welcome.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!-- 0.7.0: the navigation bar at the top of every screen -->
+    <None Update="web\nav.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <!-- Fantasy style: real crest images + sampled-orchestra stingers (one per rarity) -->

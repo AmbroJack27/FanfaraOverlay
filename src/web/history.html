@@ -432,4 +432,5 @@
   (function(){ var m=location.search.match(/[?&]lang=([a-z]{2})/); setLang(m?m[1]:'it'); renderAll(); })();
 </script>
 <script>document.addEventListener('dragstart',function(e){ var t=e.target; if(!(t && t.closest && t.closest('input,textarea,[contenteditable]'))) e.preventDefault(); });</script>
+<script src="nav.js"></script><script>FanNav.mount('hist')</script>
 </body></html>

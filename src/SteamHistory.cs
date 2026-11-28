@@ -20,6 +20,9 @@ public class SteamHistory
 
     /// <summary>How many achievements were newly added by the last BackfillAsync run.</summary>
     public int LastAdded { get; private set; }
+    private int _removed;
+    /// <summary>0.6.2: achievements removed by the last full sync because Steam no longer shows them unlocked.</summary>
+    public int LastRemoved => _removed;
 
     /// <summary>True when, during this pass, Steam answered with fewer unlocks than Fanfara already knew.</summary>
     public bool SteamBehind { get; private set; }
@@ -57,6 +60,7 @@ public class SteamHistory
     public async Task<Result> BackfillAsync(IProgress<Progress>? progress = null, CancellationToken ct = default)
     {
         Log($"avvio — proxy='{Base}'");
+        _removed = 0;
         if (string.IsNullOrEmpty(Base) || Base.Contains("REPLACE-ME")) { Log("proxy non configurato -> NoProxy"); return Result.NoProxy; }
 
         ulong id = _config.ResolvedSteamId();
@@ -87,7 +91,7 @@ public class SteamHistory
         foreach (var g in probe)
         {
             int n;
-            try { n = await ApplyGameAsync(id, g.appid, g.name ?? "", lang, fresh: false, ct); }
+            try { n = await ApplyGameAsync(id, g.appid, g.name ?? "", lang, fresh: false, ct, trust: true); }
             catch (OperationCanceledException) { throw; }
             catch { n = -1; }
             if (n == Hidden) hidden++;
@@ -126,7 +130,7 @@ public class SteamHistory
                 {
                     try
                     {
-                        int n = await ApplyGameAsync(id, game.appid, game.name ?? "", lang, fresh: false, ct);
+                        int n = await ApplyGameAsync(id, game.appid, game.name ?? "", lang, fresh: false, ct, trust: true);
                         if (n == Hidden) return;                                   // hidden by privacy: nothing to retry
                         if (n < 0) { failed.Add(game); return; }                 // rate-limited → retry next round
                         System.Threading.Interlocked.Add(ref added, n);
@@ -169,7 +173,7 @@ public class SteamHistory
         _config.HistoryImported = true;
         _config.LastSyncUtc = DateTime.UtcNow.ToString("o");
         _config.Save();
-        Log($"fine — {games.Count} giochi, {added} obiettivi nuovi, totale in archivio {_store.Count}");
+        Log($"fine — {games.Count} giochi, {added} obiettivi nuovi, {_removed} tolti, totale in archivio {_store.Count}");
         return Result.Ok;
     }
 
@@ -186,7 +190,7 @@ public class SteamHistory
     private int _withAch;
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, int> _noAchWhy = new();
 
-    private async Task<int> ApplyGameAsync(ulong id, uint appid, string name, string lang, bool fresh, CancellationToken ct)
+    private async Task<int> ApplyGameAsync(ulong id, uint appid, string name, string lang, bool fresh, CancellationToken ct, bool trust = false)
     {
         string url = $"{Base}/ach?steamid={id}&appid={appid}&l={lang}";
         if (fresh) url += "&t=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -198,11 +202,13 @@ public class SteamHistory
         if (string.IsNullOrEmpty(name)) name = a.game ?? "";
         int added = 0;
         long last = 0;
+        var seen = new HashSet<string>();
         if (a.achievements != null)
         {
             foreach (var r in a.achievements)
             {
                 if (string.IsNullOrEmpty(r.api)) continue;
+                seen.Add(r.api!);
                 if (r.unlock > last) last = r.unlock;
                 var rec = new AchievementRecord
                 {
@@ -217,6 +223,14 @@ public class SteamHistory
                 };
                 if (_store.Upsert(rec)) added++;
             }
+        }
+        // 0.6.2: in the full sync Steam is the reference: achievements it no longer shows as unlocked
+        // (reset with a tool) leave the History, the Collection and the 100% count. Unlocks from the last
+        // 30 minutes are kept, because Steam can still be catching up with a live unlock.
+        if (trust && a.total > 0 && a.achievements != null)
+        {
+            int gone = _store.RemoveMissing(appid, seen, DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 1800);
+            if (gone > 0) { System.Threading.Interlocked.Add(ref _removed, gone); Log($"gioco {appid}: {gone} obiettivi non più sbloccati su Steam — tolti da Fanfara"); }
         }
         // Per-game completion for the "100% games" cards and the leaderboard score.
         // Right after a game closes, Steam's Web API can still be a few minutes behind: it may answer

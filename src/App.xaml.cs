@@ -134,11 +134,12 @@ public partial class App : System.Windows.Application
         if (!autoStarted)
             ShowSettings();
 
-        // Quiet check for a newer version on GitHub (if enabled) — at startup and every 12 hours.
-        if (_config.CheckUpdates)
+        // Quiet check for a newer version on GitHub (if enabled) — at startup, every hour while Fanfara
+        // stays open (0.6.2; it was every 12 hours) and whenever the window is opened again.
+        if (_config.CheckUpdates && DateTime.UtcNow - _lastUpdateCheck > TimeSpan.FromMinutes(1))   // the window may have just checked
             _ = CheckForUpdatesAsync(silent: true);
-        _updateTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromHours(12) };
-        _updateTimer.Tick += (_, _) => { if (_config.CheckUpdates && _update == null) _ = CheckForUpdatesAsync(silent: true); };
+        _updateTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromHours(1) };
+        _updateTimer.Tick += (_, _) => { if (_config.CheckUpdates) _ = CheckForUpdatesAsync(silent: true); };
         _updateTimer.Start();
 
         // 0.6.0: the bell refreshes the Home; a new version shows «What's new»; friends at 100% are checked every 5 minutes.
@@ -247,8 +248,10 @@ public partial class App : System.Windows.Application
         finally { Interlocked.Exchange(ref _backfillRunning, 0); SetSyncUi(false); }
     }
 
+    private DateTime _lastUpdateCheck = DateTime.MinValue;
     private async Task CheckForUpdatesAsync(bool silent)
     {
+        _lastUpdateCheck = DateTime.UtcNow;
         var lang = _config.EffectiveLanguage;
         var info = await Updater.CheckAsync();
         if (info == null)
@@ -397,6 +400,9 @@ public partial class App : System.Windows.Application
     /// <summary>Show the single app window, optionally jumping straight to a screen (history/collection).</summary>
     private void ShowSettings(string? page = null)
     {
+        // 0.6.2: opening the window also looks for a new version (at most every 10 minutes)
+        if (_config.CheckUpdates && DateTime.UtcNow - _lastUpdateCheck > TimeSpan.FromMinutes(10))
+            _ = CheckForUpdatesAsync(silent: true);
         // Until the guided setup has been completed (or skipped), opening Fanfara opens it — also for
         // people who already used an older version, so everyone sees it once.
         if (page == null && !_config.OnboardingDone) page = "welcome.html";
@@ -407,6 +413,12 @@ public partial class App : System.Windows.Application
             // The Home's "Sincronizzato" chip can start a sync; it runs quietly (no message boxes).
             _settings.SyncRequested += () => _ = RunBackfillAsync(manual: false);
             _settings.UpdateRequested += () => _ = InstallUpdateAsync();
+            _settings.UpdateCheckRequested += async () =>
+            {
+                await CheckForUpdatesAsync(silent: true);
+                string state = _update != null ? "found" : Updater.LastCheckFailed ? "fail" : "none";
+                _settings?.PushUpdateCheck(state, _update?.Version ?? "", Updater.CurrentVersion.ToString(3));
+            };
             if (_newsJson != null) _settings.ShowNews(_newsJson);
             _settings.SetSyncState(Volatile.Read(ref _backfillRunning) == 1);
             _settings.Show();

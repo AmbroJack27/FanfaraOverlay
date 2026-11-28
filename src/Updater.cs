@@ -34,9 +34,13 @@ public static class Updater
         }
     }
 
+    /// <summary>True when the last check could not reach GitHub or read its answer (0.6.2).</summary>
+    public static bool LastCheckFailed { get; private set; }
+
     /// <summary>Returns info about a newer release, or null (no update / offline / error).</summary>
     public static async Task<UpdateInfo?> CheckAsync()
     {
+        LastCheckFailed = false;
         try
         {
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
@@ -72,7 +76,7 @@ public static class Updater
             string body = root.TryGetProperty("body", out var b) ? b.GetString() ?? "" : "";
             return new UpdateInfo(verStr, tag, dl!, hashUrl, body);
         }
-        catch { return null; }
+        catch { LastCheckFailed = true; return null; }
     }
 
     /// <summary>

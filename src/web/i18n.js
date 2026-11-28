@@ -30,3 +30,34 @@ window.resolveLang=function(pref,os){var L=window.FAN_LANGS;if(pref&&pref!=='aut
       friendT:"Avisarme cuando un amigo llegue al 100 %", friendS:"Una notificación abajo a la derecha, incluso mientras juegas, cuando un amigo de Steam que usa Fanfara completa un juego.",
       friendSndT:"Sonido para los amigos al 100 %", friendSndS:"Dos campanadas suaves con la notificación."}
 }; Object.keys(add).forEach(function(l){ if(U[l]) Object.assign(U[l], add[l]); }); })();
+// ---- 0.6.2: look for an update by hand, install it with one click ----
+(function(){ var U=window.FAN_I18N.ui, add={
+  it:{updChk:"Cerca ora", updChecking:"Controllo su GitHub…", updNone:"Hai già l'ultima versione ({v}).", updFound:"Fanfara {v} è disponibile.", updNow:"Aggiorna ora",
+      updFail:"Controllo non riuscito: controlla la connessione e riprova.", updDl:"Scarico l'aggiornamento… {p}%", updInst:"Installo… Fanfara si chiude e si riapre da sola.", updWait:"Lo installo appena chiudi il gioco."},
+  en:{updChk:"Check now", updChecking:"Checking GitHub…", updNone:"You already have the latest version ({v}).", updFound:"Fanfara {v} is available.", updNow:"Update now",
+      updFail:"The check didn't work: check your connection and try again.", updDl:"Downloading the update… {p}%", updInst:"Installing… Fanfara closes and reopens by itself.", updWait:"I'll install it as soon as you close your game."},
+  fr:{updChk:"Vérifier", updChecking:"Vérification sur GitHub…", updNone:"Tu as déjà la dernière version ({v}).", updFound:"Fanfara {v} est disponible.", updNow:"Mettre à jour",
+      updFail:"La vérification a échoué : vérifie ta connexion et réessaie.", updDl:"Téléchargement de la mise à jour… {p} %", updInst:"Installation… Fanfara se ferme et se rouvre tout seul.", updWait:"Je l'installerai dès que tu fermeras ton jeu."},
+  de:{updChk:"Jetzt prüfen", updChecking:"Prüfe auf GitHub…", updNone:"Du hast bereits die neueste Version ({v}).", updFound:"Fanfara {v} ist verfügbar.", updNow:"Jetzt aktualisieren",
+      updFail:"Die Prüfung hat nicht geklappt: Prüfe die Verbindung und versuche es erneut.", updDl:"Update wird geladen… {p} %", updInst:"Wird installiert… Fanfara schließt sich und startet von selbst neu.", updWait:"Ich installiere es, sobald du dein Spiel schließt."},
+  es:{updChk:"Buscar ahora", updChecking:"Comprobando en GitHub…", updNone:"Ya tienes la última versión ({v}).", updFound:"Fanfara {v} está disponible.", updNow:"Actualizar ahora",
+      updFail:"La comprobación ha fallado: revisa la conexión y vuelve a intentarlo.", updDl:"Descargando la actualización… {p} %", updInst:"Instalando… Fanfara se cierra y se vuelve a abrir sola.", updWait:"La instalaré en cuanto cierres el juego."}
+}; Object.keys(add).forEach(function(l){ var t=U[l]||(U[l]={}); Object.keys(add[l]).forEach(function(k){ t[k]=add[l][k]; }); }); })();
+// ---- 0.7.0: settings in tabs (saved by themselves), book size, guided setup ----
+(function(){ var U=window.FAN_I18N.ui, add={
+  it:{tabN:"Notifica", tabA:"Album", tabF:"Amici e 100%", tabP:"App", autoHint:"Ogni modifica si salva da sola.", saved2:"Salvato ✓",
+      szT:"Grandezza dei libri nella Collezione", szS:"Quanti libri per fila: medi 6, grandi 5, molto grandi 4.", szM:"Medi", szL:"Grandi", szXL:"Molto grandi",
+      wzT:"Configurazione guidata", wzS:"Rifai i controlli di Steam, dello schermo e dei giochi.", wzBtn:"Apri"},
+  en:{tabN:"Notification", tabA:"Albums", tabF:"Friends & 100%", tabP:"App", autoHint:"Every change is saved by itself.", saved2:"Saved ✓",
+      szT:"Size of the books in the Collection", szS:"How many books per row: medium 6, large 5, very large 4.", szM:"Medium", szL:"Large", szXL:"Very large",
+      wzT:"Guided setup", wzS:"Run the Steam, screen and game checks again.", wzBtn:"Open"},
+  fr:{tabN:"Notification", tabA:"Albums", tabF:"Amis et 100 %", tabP:"Appli", autoHint:"Chaque modification s’enregistre toute seule.", saved2:"Enregistré ✓",
+      szT:"Taille des livres dans la Collection", szS:"Combien de livres par rangée : moyens 6, grands 5, très grands 4.", szM:"Moyens", szL:"Grands", szXL:"Très grands",
+      wzT:"Configuration guidée", wzS:"Refais les vérifications de Steam, de l’écran et des jeux.", wzBtn:"Ouvrir"},
+  de:{tabN:"Benachrichtigung", tabA:"Alben", tabF:"Freunde & 100 %", tabP:"App", autoHint:"Jede Änderung wird automatisch gespeichert.", saved2:"Gespeichert ✓",
+      szT:"Größe der Bücher in der Sammlung", szS:"Wie viele Bücher pro Reihe: mittel 6, groß 5, sehr groß 4.", szM:"Mittel", szL:"Groß", szXL:"Sehr groß",
+      wzT:"Geführte Einrichtung", wzS:"Steam-, Bildschirm- und Spielprüfungen erneut ausführen.", wzBtn:"Öffnen"},
+  es:{tabN:"Notificación", tabA:"Álbumes", tabF:"Amigos y 100 %", tabP:"App", autoHint:"Cada cambio se guarda solo.", saved2:"Guardado ✓",
+      szT:"Tamaño de los libros en la Colección", szS:"Cuántos libros por fila: medianos 6, grandes 5, muy grandes 4.", szM:"Medianos", szL:"Grandes", szXL:"Muy grandes",
+      wzT:"Configuración guiada", wzS:"Repite las comprobaciones de Steam, la pantalla y los juegos.", wzBtn:"Abrir"}
+}; Object.keys(add).forEach(function(l){ var t=U[l]||(U[l]={}); Object.keys(add[l]).forEach(function(k){ t[k]=add[l][k]; }); }); })();

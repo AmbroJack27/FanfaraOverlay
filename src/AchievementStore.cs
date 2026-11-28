@@ -103,6 +103,28 @@ public class AchievementStore
     public int Count { get { lock (_gate) return _byKey.Count; } }
 
     /// <summary>
+    /// 0.6.2: the achievements of a game that Steam no longer shows as unlocked (e.g. reset with a tool) are
+    /// removed. <paramref name="stillUnlocked"/> = the ids Steam returned; records unlocked after
+    /// <paramref name="keepAfter"/> (unix seconds) are kept, since Steam can be a few minutes behind a live unlock.
+    /// Returns how many were removed.
+    /// </summary>
+    public int RemoveMissing(uint appid, ICollection<string> stillUnlocked, long keepAfter)
+    {
+        lock (_gate)
+        {
+            var gone = new List<string>();
+            foreach (var kv in _byKey)
+            {
+                var r = kv.Value;
+                if (r.Appid != appid || r.Unlock > keepAfter) continue;
+                if (r.Api.StartsWith("live:", StringComparison.Ordinal) || !stillUnlocked.Contains(r.Api)) gone.Add(kv.Key);
+            }
+            foreach (var k in gone) _byKey.Remove(k);
+            return gone.Count;
+        }
+    }
+
+    /// <summary>
     /// How many achievements of one game Fanfara knows are unlocked. Records saved by a live unlock
     /// without Steam's internal id ("live:…") are left out, since a later sync may store the same
     /// achievement again under its real id.

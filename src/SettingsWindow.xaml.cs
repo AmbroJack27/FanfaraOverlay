@@ -40,6 +40,14 @@ public partial class SettingsWindow : Window
         catch { }
     }
 
+    /// <summary>«Check now» pressed in Personalizza (0.6.2).</summary>
+    public event Action? UpdateCheckRequested;
+    /// <summary>Result of a check by hand: state = found | none | fail.</summary>
+    public void PushUpdateCheck(string state, string ver, string cur)
+    {
+        try { Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraUpdateCheck && window.fanfaraUpdateCheck({JsonSerializer.Serialize(new { state, ver, cur })})"); } catch { }
+    }
+
     /// <summary>«Update now» pressed in the Home (0.6.0).</summary>
     public event Action? UpdateRequested;
     private string? _pendingNews;   // «What's new» waiting for the Home to be shown
@@ -59,7 +67,8 @@ public partial class SettingsWindow : Window
     /// <summary>One-click update progress for the Home toast: state = download | verify | install | wait | fail.</summary>
     public void PushUpdate(string state, int pct = 0)
     {
-        try { if (OnHome) Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraUpdate && window.fanfaraUpdate({JsonSerializer.Serialize(new { state, pct })})"); } catch { }
+        // 0.6.2: also on Personalizza, where an update can be looked for and installed by hand
+        try { Web.CoreWebView2?.ExecuteScriptAsync($"window.fanfaraUpdate && window.fanfaraUpdate({JsonSerializer.Serialize(new { state, pct })})"); } catch { }
     }
 
     public SettingsWindow(Config config, OverlayWindow overlay, AchievementStore store, GamesStore games, string? initialPage = null)
@@ -523,7 +532,19 @@ public partial class SettingsWindow : Window
             }
             else if (msg.action == "news")
             {
-                if (_lastNews != null) { _pendingNews = _lastNews; PushNews(); }
+                // 0.6.2: read the notes again from GitHub (they may have been corrected), else show the last ones
+                try
+                {
+                    var cur = Updater.CurrentVersion.ToString(3);
+                    var md = Updater.Section(await Updater.NotesAsync(cur), _config.EffectiveLanguage);
+                    if (!string.IsNullOrWhiteSpace(md)) ShowNews(JsonSerializer.Serialize(new { ver = cur, md }));
+                    else if (_lastNews != null) { _pendingNews = _lastNews; PushNews(); }
+                }
+                catch { if (_lastNews != null) { _pendingNews = _lastNews; PushNews(); } }
+            }
+            else if (msg.action == "update-check")
+            {
+                UpdateCheckRequested?.Invoke();
             }
             else if (msg.action == "update-now")
             {
@@ -674,12 +695,20 @@ public partial class SettingsWindow : Window
             }
             else if (msg.action == "save")
             {
-                if (msg.style != null) _config.Style = msg.style;
+                if (msg.style != null && msg.style != _config.Style)
+                {
+                    // 0.7.0: remember the last styles used, for the quick picks in the Home
+                    var rec = new List<string> { msg.style, _config.Style };
+                    foreach (var r in _config.RecentStyles ?? new List<string>()) if (!rec.Contains(r)) rec.Add(r);
+                    _config.RecentStyles = rec.Where(x => !string.IsNullOrEmpty(x)).Distinct().Take(6).ToList();
+                    _config.Style = msg.style;
+                }
                 if (msg.sound != null) _config.Sound = msg.sound;
                 if (msg.position != null) _config.Position = msg.position;
                 if (msg.duration is int d && d > 0) _config.DurationMs = d;
                 if (msg.volume is int vol && vol >= 0 && vol <= 100) _config.Volume = vol;
-                if (msg.startup is bool s)
+                // 0.7.0: the page saves by itself after every change, so only act on what really changed
+                if (msg.startup is bool s && s != _config.StartWithWindows)
                 {
                     _config.StartWithWindows = s;
                     StartupManager.Apply(s);
@@ -692,7 +721,7 @@ public partial class SettingsWindow : Window
                     if (sc) { _config.CollShareHash = ""; _ = share.UploadAsync(force: true); }
                     else _ = share.DeleteAsync();
                 }
-                if (msg.language != null) { _config.Language = msg.language; _overlay.ApplyLanguage(); }
+                if (msg.language != null && msg.language != _config.Language) { _config.Language = msg.language; _overlay.ApplyLanguage(); }
                 if (msg.albumStyle is "classic" or "ferro" or "reale" or "olografico" or "lacca" or "ottone") _config.AlbumStyle = msg.albumStyle;
                 if (msg.albumFx is "full" or "lite" or "off") _config.AlbumFx = msg.albumFx;
                 if (msg.superFanfara is bool sfan) _config.SuperFanfara = sfan;

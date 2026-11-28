@@ -396,7 +396,23 @@
 .lib-empty{color:var(--muted); padding:30px 0; text-align:center}
 .lib-more{margin:18px 0 0; text-align:center; color:var(--faint); font:600 12.5px var(--display)}
 /* covers view */
-.covers{display:grid; grid-template-columns:repeat(auto-fill,minmax(158px,1fr)); gap:26px 22px; perspective:1200px}
+.covers{display:grid; grid-template-columns:repeat(var(--cols,6),minmax(0,1fr)); gap:30px 26px; perspective:1200px}
+/* 0.7.0: bigger books, in pages */
+.covers.sz-l{gap:34px 32px} .covers.sz-xl{gap:40px 44px}
+.covers.sz-m .acv .nm{font-size:16px} .covers.sz-l .acv .nm{font-size:19px} .covers.sz-xl .acv .nm{font-size:23px}
+.covers.sz-l .acv .br{font-size:11px} .covers.sz-xl .acv .br{font-size:13px}
+.covers.sz-l .acv .pg{font-size:13.5px} .covers.sz-xl .acv .pg{font-size:16px} .covers.sz-l .acv .pg i{height:6px} .covers.sz-xl .acv .pg i{height:8px}
+.covers.sz-l .rb100{width:92px; height:92px} .covers.sz-l .rb100 span{top:20px; right:-34px; width:140px; font-size:13px; padding:4px 0} .covers.sz-l .rb100 svg{width:14px; height:14px}
+.covers.sz-xl .rb100{width:118px; height:118px} .covers.sz-xl .rb100 span{top:26px; right:-42px; width:180px; font-size:16px; padding:5px 0} .covers.sz-xl .rb100 svg{width:17px; height:17px}
+.lpg{display:flex; align-items:center; gap:6px}
+.lpg[hidden]{display:none}
+.lpg button{cursor:pointer; width:38px; height:38px; border-radius:11px; border:1px solid var(--line); background:var(--panel); color:var(--fg); font:700 19px/1 var(--display); display:grid; place-items:center}
+.lpg button:hover:not([disabled]){border-color:color-mix(in srgb,var(--gold,#F5C242) 55%,var(--line))}
+.lpg button[disabled]{opacity:.35; cursor:default}
+.lpg span{font:700 13px var(--display); min-width:104px; text-align:center; color:var(--fg); font-variant-numeric:tabular-nums}
+.lpg.bottom{justify-content:center; margin-top:28px}
+.pgdots{display:flex; gap:7px; justify-content:center; margin-top:12px; flex-wrap:wrap}
+.pgdots i{width:8px; height:8px; border-radius:50%; background:var(--fg); opacity:.22; cursor:pointer} .pgdots i.on{opacity:1; background:#F5C242}
 .acv{cursor:pointer; position:relative; aspect-ratio:5/6.5; border-radius:3px 10px 10px 3px; display:flex; flex-direction:column; align-items:center; gap:9px; padding:16px 14px 12px 20px; text-align:center;
   background:radial-gradient(ellipse 80% 60% at 30% 18%, rgba(255,255,255,.14), transparent 60%), var(--leather-img), linear-gradient(160deg, var(--c1), var(--c2) 45%, var(--c3)); background-blend-mode:normal, soft-light, normal;
   box-shadow:inset 10px 0 10px -7px rgba(0,0,0,.65), 2px 2px 0 var(--c3), 4px 4px 0 rgba(0,0,0,.35), 0 18px 26px -16px rgba(0,0,0,.8);
@@ -872,7 +888,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
         packP:'Sono gli obiettivi che hai sbloccato dall’ultima volta che hai aperto la Collezione. Apri la bustina per scoprirli.',
         packOpen:'✨ Apri la bustina',packStore:'Metti nella collezione ›',packMore:'+{n} altre',packDone:'✓ {n} carte aggiunte ai loro album',packDone1:'✓ 1 carta aggiunta al suo album',
         showT:'La tua vetrina',showS:'Le 5 carte più rare della tua collezione',libT:'I tuoi album',libN:'giochi',search:'Cerca un gioco…',
-        sRecent:'Recenti',sCompl:'Più completi',sAz:'A–Z',vCovers:'Copertine',vShelf:'Scaffale',libEmpty:'Nessun album trovato',
+        sRecent:'Recenti',szM:'Medi',szL:'Grandi',szXL:'Molto grandi',pgOf:'Pagina {n} di {m}',pgPrev:'Pagina precedente',pgNext:'Pagina successiva',sCompl:'Più completi',sAz:'A–Z',vCovers:'Copertine',vShelf:'Scaffale',libEmpty:'Nessun album trovato',
         cardsOf:'{u} / {t} carte',complete:'★ completo',setDone:'★ Set completo',wax:'SET<br>COMPLETO',albumOf:'ALBUM DEI TROFEI',
         cover:'Copertina',pg1:'Pagina {a} di {n}',pg2:'Pagine {a}–{b} di {n}',openAlb:'Apri l’album',orCover:'oppure clicca la copertina',
         albHint:'Clicca una carta per aprirla · clicca la pagina o usa ← → per sfogliare · Esc per chiudere',
@@ -883,7 +899,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
         packP:'These are the achievements you unlocked since you last opened the Collection. Open the pack to reveal them.',
         packOpen:'✨ Open the pack',packStore:'Add to the collection ›',packMore:'+{n} more',packDone:'✓ {n} cards added to their albums',packDone1:'✓ 1 card added to its album',
         showT:'Your showcase',showS:'The 5 rarest cards in your collection',libT:'Your albums',libN:'games',search:'Search a game…',
-        sRecent:'Recent',sCompl:'Most complete',sAz:'A–Z',vCovers:'Covers',vShelf:'Shelf',libEmpty:'No album found',
+        sRecent:'Recent',szM:'Medium',szL:'Large',szXL:'Very large',pgOf:'Page {n} of {m}',pgPrev:'Previous page',pgNext:'Next page',sCompl:'Most complete',sAz:'A–Z',vCovers:'Covers',vShelf:'Shelf',libEmpty:'No album found',
         cardsOf:'{u} / {t} cards',complete:'★ complete',setDone:'★ Set complete',wax:'SET<br>COMPLETE',albumOf:'TROPHY ALBUM',
         cover:'Cover',pg1:'Page {a} of {n}',pg2:'Pages {a}–{b} of {n}',openAlb:'Open the album',orCover:'or click the cover',
         albHint:'Click a card to open it · click the page or use ← → to turn · Esc to close',
@@ -894,7 +910,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
         packP:'Ce sont les succès débloqués depuis votre dernière visite de la Collection. Ouvrez le paquet pour les découvrir.',
         packOpen:'✨ Ouvrir le paquet',packStore:'Ranger dans la collection ›',packMore:'+{n} autres',packDone:'✓ {n} cartes rangées dans leurs albums',packDone1:'✓ 1 carte rangée dans son album',
         showT:'Votre vitrine',showS:'Les 5 cartes les plus rares de votre collection',libT:'Vos albums',libN:'jeux',search:'Chercher un jeu…',
-        sRecent:'Récents',sCompl:'Plus complets',sAz:'A–Z',vCovers:'Couvertures',vShelf:'Étagère',libEmpty:'Aucun album trouvé',
+        sRecent:'Récents',szM:'Moyens',szL:'Grands',szXL:'Très grands',pgOf:'Page {n} sur {m}',pgPrev:'Page précédente',pgNext:'Page suivante',sCompl:'Plus complets',sAz:'A–Z',vCovers:'Couvertures',vShelf:'Étagère',libEmpty:'Aucun album trouvé',
         cardsOf:'{u} / {t} cartes',complete:'★ complet',setDone:'★ Set complet',wax:'SET<br>COMPLET',albumOf:'ALBUM DES TROPHÉES',
         cover:'Couverture',pg1:'Page {a} sur {n}',pg2:'Pages {a}–{b} sur {n}',openAlb:'Ouvrir l’album',orCover:'ou cliquez sur la couverture',
         albHint:'Cliquez sur une carte pour l’ouvrir · cliquez sur la page ou utilisez ← → pour tourner · Échap pour fermer',
@@ -905,7 +921,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
         packP:'Das sind die Erfolge seit deinem letzten Besuch in der Sammlung. Öffne das Päckchen, um sie aufzudecken.',
         packOpen:'✨ Päckchen öffnen',packStore:'In die Sammlung ›',packMore:'+{n} weitere',packDone:'✓ {n} Karten in ihre Alben gelegt',packDone1:'✓ 1 Karte in ihr Album gelegt',
         showT:'Deine Vitrine',showS:'Die 5 seltensten Karten deiner Sammlung',libT:'Deine Alben',libN:'Spiele',search:'Spiel suchen…',
-        sRecent:'Neueste',sCompl:'Am vollständigsten',sAz:'A–Z',vCovers:'Cover',vShelf:'Regal',libEmpty:'Kein Album gefunden',
+        sRecent:'Neueste',szM:'Mittel',szL:'Groß',szXL:'Sehr groß',pgOf:'Seite {n} von {m}',pgPrev:'Vorherige Seite',pgNext:'Nächste Seite',sCompl:'Am vollständigsten',sAz:'A–Z',vCovers:'Cover',vShelf:'Regal',libEmpty:'Kein Album gefunden',
         cardsOf:'{u} / {t} Karten',complete:'★ komplett',setDone:'★ Set komplett',wax:'SET<br>KOMPLETT',albumOf:'TROPHÄENALBUM',
         cover:'Einband',pg1:'Seite {a} von {n}',pg2:'Seiten {a}–{b} von {n}',openAlb:'Album öffnen',orCover:'oder klicke auf den Einband',
         albHint:'Klicke auf eine Karte, um sie zu öffnen · klicke auf die Seite oder nutze ← → zum Blättern · Esc zum Schließen',
@@ -916,7 +932,7 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
         packP:'Son los logros que desbloqueaste desde la última vez que abriste la Colección. Abre el sobre para descubrirlos.',
         packOpen:'✨ Abrir el sobre',packStore:'Guardar en la colección ›',packMore:'+{n} más',packDone:'✓ {n} cartas guardadas en sus álbumes',packDone1:'✓ 1 carta guardada en su álbum',
         showT:'Tu vitrina',showS:'Las 5 cartas más raras de tu colección',libT:'Tus álbumes',libN:'juegos',search:'Buscar un juego…',
-        sRecent:'Recientes',sCompl:'Más completos',sAz:'A–Z',vCovers:'Portadas',vShelf:'Estantería',libEmpty:'No se encontró ningún álbum',
+        sRecent:'Recientes',szM:'Medianos',szL:'Grandes',szXL:'Muy grandes',pgOf:'Página {n} de {m}',pgPrev:'Página anterior',pgNext:'Página siguiente',sCompl:'Más completos',sAz:'A–Z',vCovers:'Portadas',vShelf:'Estantería',libEmpty:'No se encontró ningún álbum',
         cardsOf:'{u} / {t} cartas',complete:'★ completo',setDone:'★ Set completo',wax:'SET<br>COMPLETO',albumOf:'ÁLBUM DE TROFEOS',
         cover:'Portada',pg1:'Página {a} de {n}',pg2:'Páginas {a}–{b} de {n}',openAlb:'Abrir el álbum',orCover:'o haz clic en la portada',
         albHint:'Haz clic en una carta para abrirla · haz clic en la página o usa ← → para pasar · Esc para cerrar',
@@ -1204,6 +1220,11 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
   var CARDS=[], GAMES={}, SETS=[], VOL=0.8, PENDING=false, PACKBUSY=false, NEWC=[];
   var SORT='recent', VIEW='covers', QUERY='';
   try{ SORT=localStorage.getItem('fanfara-coll-sort')||'recent'; }catch(e){}   // 0.6.1: the «Shelf» view was removed
+  // 0.7.0: the albums come in pages of 2 rows; the player picks the size of the books (Medium 6 · Large 5 · Very large 4 per row)
+  var SIZE='xl', PAGE=0, SIZECOLS={m:6,l:5,xl:4};
+  try{ var sz=localStorage.getItem('fanfara-coll-size'); if(SIZECOLS[sz]) SIZE=sz; }catch(e){}
+  function colsNow(){ var box=byId('lib'), w=box?box.clientWidth:1200, c=SIZECOLS[SIZE]||4, min=SIZE==='m'?150:SIZE==='l'?175:205;
+    while(c>2 && w/c < min) c--; return c; }
   function byId(id){ return document.getElementById(id); }
   function fmt(s,o){ return String(s==null?'':s).replace(/\{(\w+)\}/g,function(m,k){ return o[k]!=null?o[k]:m; }); }
   var TROPHY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>';
@@ -1452,26 +1473,44 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
     byId('lib').innerHTML='<div class="lib-hd"><h2>'+esc(S.libT)+'</h2><span class="kpi"><b>'+fmtN(SETS.length)+'</b>'+esc(S.libN)+'</span><div class="sp"></div>'
       +'<label class="srch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="'+esc(S.search)+'"></label>'
       +'<div class="seg" id="sortSeg">'+[['recent',S.sRecent],['compl',S.sCompl],['az',S.sAz]].map(function(x){ return '<button data-sort="'+x[0]+'"'+(SORT===x[0]?' class="on"':'')+'>'+esc(x[1])+'</button>'; }).join('')+'</div>'
+      +'<div class="seg" id="sizeSeg">'+[['m',S.szM],['l',S.szL],['xl',S.szXL]].map(function(x){ return '<button data-size="'+x[0]+'"'+(SIZE===x[0]?' class="on"':'')+'>'+esc(x[1])+'</button>'; }).join('')+'</div>'
+      +'<div class="lpg" id="pgTop"></div>'
       +'</div>'
       +'<div id="libList"></div>';
-    var q=byId('q'); q.value=QUERY; q.oninput=function(){ QUERY=this.value; renderList(); };
+    var q=byId('q'); q.value=QUERY; q.oninput=function(){ QUERY=this.value; PAGE=0; renderList(); };
     renderList();
   }
   function renderList(){
     var qq=QUERY.trim().toLowerCase(), list=sortedSets().filter(function(s){ return (!qq || s.name.toLowerCase().indexOf(qq)>=0) && !(FRIEND && ONLYC && !MYG[s.appid]); }), box=byId('libList');
+    var cols=colsNow(), per=cols*2, pages=Math.max(1,Math.ceil(list.length/per)); if(PAGE>=pages) PAGE=pages-1; if(PAGE<0) PAGE=0;
+    pager(pages);
     if(!list.length){ box.innerHTML='<div class="lib-empty">'+esc(S.libEmpty)+'</div>'; return; }
-      box.innerHTML='<div class="covers">'+list.map(function(s){
+    list=list.slice(PAGE*per,(PAGE+1)*per);
+      box.innerHTML='<div class="covers sz-'+SIZE+'" style="--cols:'+cols+'">'+list.map(function(s){
         return '<div class="acv'+(s.done?' done':'')+'" data-a="'+s.appid+'" style="'+lvars(s)+'"><div class="br gold-t">FANFARA</div><div class="im">'+gart(s.appid,true)+'</div>'
           +'<div class="nm gold-t">'+esc(s.name)+'</div><div class="pg"><i><b style="width:'+Math.round(s.u/s.t*100)+'%"></b></i>'+fmtN(s.u)+'/'+fmtN(s.t)+'</div>'
           +(FRIEND && MINE ? (MYG[s.appid] ? '<div class="pg me">'+esc(S.fYou)+' <i><b style="width:'+Math.round(MYG[s.appid].u/Math.max(1,MYG[s.appid].t)*100)+'%"></b></i>'+fmtN(MYG[s.appid].u)+'/'+fmtN(MYG[s.appid].t)+'</div>' : '<div class="pg me none">'+esc(S.fNoGame)+'</div>') : '')
-          +(s.done?'<div class="rb100"><span>'+TROPHY+'100%</span></div>':'')+'</div>'; }).join('')+'</div>';
+          +(s.done?'<div class="rb100"><span>'+TROPHY+'100%</span></div>':'')+'</div>'; }).join('')+'</div>'
+        +(pages>1?'<div class="lpg bottom">'+pagerBtns(pages)+'</div><div class="pgdots">'+Array.from({length:pages},function(_,i){ return '<i data-pg="'+i+'"'+(i===PAGE?' class="on"':'')+' title="'+esc(fmt(S.pgOf,{n:i+1,m:pages}))+'"></i>'; }).join('')+'</div>':'');
   }
+  function pagerBtns(pages){ return '<button data-pgd="-1" aria-label="'+esc(S.pgPrev)+'"'+(PAGE<=0?' disabled':'')+'>‹</button><span>'+esc(fmt(S.pgOf,{n:PAGE+1,m:pages}))+'</span><button data-pgd="1" aria-label="'+esc(S.pgNext)+'"'+(PAGE>=pages-1?' disabled':'')+'>›</button>'; }
+  function pager(pages){ var t=byId('pgTop'); if(t){ t.innerHTML=pages>1?pagerBtns(pages):''; t.hidden=pages<=1; } }
+  var rzT=0; window.addEventListener('resize',function(){ clearTimeout(rzT); rzT=setTimeout(function(){ if(byId('libList')) renderList(); },150); });
+  document.addEventListener('keydown',function(e){   // ← → turn the pages of the library (not while a card or an album is open)
+    if(cur || (A && A.set) || e.defaultPrevented || e.altKey || e.ctrlKey) return;
+    var tg=e.target; if(tg && (tg.tagName==='INPUT'||tg.tagName==='TEXTAREA'||tg.isContentEditable)) return;
+    var b=document.querySelector('#pgTop [data-pgd="'+(e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0)+'"]');
+    if(b && !b.disabled){ e.preventDefault(); b.click(); } });
 
   document.addEventListener('click',function(e){
     if(cur) return;
     var t=e.target.closest('#show .mc'); if(t){ openCard(t,+t.dataset.i); return; }
     t=e.target.closest('.acv,.spb'); if(t){ byId('tip').classList.remove('on'); openAlbum(+t.dataset.a); return; }
-    t=e.target.closest('#sortSeg [data-sort]'); if(t){ SORT=t.dataset.sort; try{ localStorage.setItem('fanfara-coll-sort',SORT); }catch(x){}
+    t=e.target.closest('[data-pgd]'); if(t){ if(!t.disabled){ PAGE+=+t.dataset.pgd; renderList(); } return; }   // the screen stays where it is
+    t=e.target.closest('.pgdots [data-pg]'); if(t){ PAGE=+t.dataset.pg; renderList(); return; }
+    t=e.target.closest('#sizeSeg [data-size]'); if(t){ SIZE=t.dataset.size; PAGE=0; try{ localStorage.setItem('fanfara-coll-size',SIZE); }catch(x){}
+      Array.prototype.forEach.call(document.querySelectorAll('#sizeSeg button'),function(b){ b.classList.toggle('on',b===t); }); renderList(); return; }
+    t=e.target.closest('#sortSeg [data-sort]'); if(t){ SORT=t.dataset.sort; PAGE=0; try{ localStorage.setItem('fanfara-coll-sort',SORT); }catch(x){}
       Array.prototype.forEach.call(document.querySelectorAll('#sortSeg button'),function(b){ b.classList.toggle('on',b===t); }); renderList(); return; }
   });
   document.addEventListener('mouseover',function(e){ var b=e.target.closest&&e.target.closest('.spb'), t=byId('tip'); if(!b){ t.classList.remove('on'); return; }
@@ -1668,4 +1707,5 @@ body.sk .alb-hint{color:#e8dcc4; text-shadow:0 1px 3px #000}
   (function(){ var m=location.search.match(/[?&]lang=([a-z]{2})/); setLang(m?m[1]:'it'); renderAll(); })();
 </script>
 <script>document.addEventListener('dragstart',function(e){ var t=e.target; if(!(t && t.closest && t.closest('input,textarea,[contenteditable]'))) e.preventDefault(); });</script>
+<script src="nav.js"></script><script>FanNav.mount('coll')</script>
 </body></html>

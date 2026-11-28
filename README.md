@@ -43,6 +43,14 @@ collections** to compare with yours. No login, no API key, nothing to configure.
 
 ## 🆕 What's new
 
+**0.7.0** — a **navigation bar at the top** of every screen (Home, Collection, History, Leaderboard,
+Settings, Guide, Feedback); a **new Home** with **quick settings** at the top (your fanfare with recent
+styles, volume, position and duration; album style and effects; the 100% options) and «How you're
+doing» below; **Settings in four tabs** with no Save button — every change saves itself; the
+**Collection in pages** with bigger books (medium, large or very large) and ← → to turn the page.
+Also: **Check now** (Settings → App) looks for an update and installs it with one click, Fanfara checks
+every hour while open, and achievements reset on Steam disappear from Fanfara too.
+
 **0.6.1** — two new album styles, **Lacquer & gold** and **Brass & gears**; games completed 100% get a
 «100%» ribbon on their album; game pictures are centred in the frames again and newer games (whose
 pictures Steam moved) show their artwork. The «Shelf» view is gone.
@@ -107,11 +115,11 @@ A **guided setup** opens the first time (and once after an update). Step by step
    you join) and **sharing your collection with friends** (on, you can turn it off);
 5. imports **all your past Steam achievements**, with live progress.
 
-You can reopen it any time from the **Guided setup** button at the top of Home, the Guide or the
-menu of Fanfara's icon next to the clock.
+You can reopen it any time from **Settings → App**, the Guide or the menu of Fanfara's icon next to
+the clock.
 
-Fanfara then lives in **one window** — Home, Personalizza, Cronologia, Collezione, Classifica and
-Guida — and keeps running with an icon near the clock when you close it. Start a game and the
+Fanfara then lives in **one window** with a bar at the top — Home, Collection, History, Leaderboard,
+Settings, Guide and Feedback — and keeps running with an icon near the clock when you close it. Start a game and the
 fanfare appears at your first unlock. 🎮
 
 > **Tip:** to avoid two notifications, turn off Steam's own:
@@ -134,9 +142,12 @@ fanfare appears at your first unlock. 🎮
 - Shows over **fullscreen and borderless** games and on the **screen where you're playing**.
 
 ### 🏠 Home
-One screen with your current fanfare (live, with **Test**), your latest unlocks with their real
-icons, your rank in the World and Friends leaderboards, your rarest cards, the last 7 days and the
-games closest to 100%. Every tile opens its section.
+A **navigation bar** at the top of every screen takes you anywhere in one click. The Home has two parts:
+- **Quick settings**, saved by themselves: your fanfare (live preview, **Test**, the styles you used
+  last, volume, position and duration), the **album style** and its effects, and the **100%** options
+  (Super Fanfara, friends' alerts and their sound, each with **Test**).
+- **How you're doing**: latest unlocks with their real icons, your World/Friends leaderboard rank, the
+  games closest to 100% and the last 7 days. Every box opens its section.
 - **🔔 The bell** collects friends' 100%s, your own, new versions and what's new; click one to jump
   there.
 - **One-click updates**: «Update now» downloads, verifies, installs and reopens Fanfara by itself
@@ -164,7 +175,9 @@ the real icon over the game artwork, and effects that grow with rarity.
   tooling, sewn binding, cards in photo corners in unlock order, «?» frames for the missing ones, a
   bookplate with cards, completion, **hours played**, rarest and first card, and pages you turn.
   Covers use Steam's large library artwork with the game's logo.
-- **📖 Album styles** (Customize → Album style): **Classic**, **Iron & leather**, **Royal grimoire**,
+- **📄 Pages**: the albums are laid out two rows per page, with ‹ › next to the sorting, arrows and dots
+  at the bottom and the ← → keys. Choose **medium, large or very large** books (6, 5 or 4 per row).
+- **📖 Album styles** (Settings → Albums): **Classic**, **Iron & leather**, **Royal grimoire**,
   **Holo archive**, **Lacquer & gold** and **Brass & gears** — each with its own cover, pages, frame and
   animated backdrop (candles, dust, sparks, cherry petals, steam). Effects can be Full, Light or Off.
   Games completed 100% wear a «100%» ribbon across the corner of their album.
@@ -174,7 +187,7 @@ the real icon over the game artwork, and effects that grow with rarity.
   the game's artwork, hours played, which 100% it is for you, confetti and an orchestral fanfare.
 - **Friends at 100%**: when a Steam friend who uses Fanfara completes a game 100%, a card appears at
   the bottom right — even in game — with their 100% count against yours and two soft chimes. Both can
-  be turned off (the friends' one also just muted) in Customize.
+  be turned off (the friends' one also just muted) in Settings.
 
 ### 🏆 Classifica (Leaderboard) and friends' collections
 - A ranking by **number of games completed 100%**: your completed games as cards, a public **World**
@@ -195,7 +208,7 @@ everything again every 12 hours, even while it stays open.
   Everything is translated, down to each style's rank names. The installer too.
 - **Light and dark theme** everywhere, **start with Windows**, **automatic updates**.
 - A clear **red notice** on the Home if Steam hides your achievements, with *How to fix it*.
-- **💬 Send feedback** from the Home, the Guide or the tray menu (problem / idea / other), optionally
+- **💬 Send feedback** from the bar at the top, the Guide or the tray menu (problem / idea / other), optionally
   with the technical log, cleaned of personal data.
 - An in-app **Guide** in 5 languages that explains every feature.
 
@@ -209,7 +222,7 @@ everything again every 12 hours, even while it stays open.
 | Reading your achievements | Fanfara's proxy → Steam | Your **SteamID** (public) to read your **public** Steam data; nothing is stored |
 | Friends leaderboard | Fanfara's database | SteamID, Steam name and avatar, games at 100% (and which ones, for the «friends at 100%» notifications) — visible only to your Steam friends who use Fanfara |
 | World leaderboard | Fanfara's database | The same, visible to everyone — **only if you join**; when you leave you disappear from it (your friends still see you) |
-| Friends' collections | Fanfara's database | A light copy of your collection, readable **only by your Steam friends** — on by default, turn it off in Personalizza and it's deleted |
+| Friends' collections | Fanfara's database | A light copy of your collection, readable **only by your Steam friends** — on by default, turn it off in Settings and it's deleted |
 | Feedback / showcase | Fanfara's database + Discord | Only what you send; your SteamID is kept only as an anonymous hash |
 | Game pictures | Fanfara's proxy → Steam | Only game numbers (appid), to find where Steam keeps the pictures of newer games |
 | Updates | GitHub | Checks for a new release and reads its notes |
@@ -231,7 +244,7 @@ to **Public**. Wait a few minutes, then press **Check again** on the Home.
   «exclusive» (sometimes called **Borderless**). It still runs at your monitor's refresh rate.
 - The game was already running when Fanfara prepared it: **restart the game** once.
 - Some games with **Frame Generation** (DLSS 3, FSR 3) hide overlays: turn on **«Frame Generation
-  compatibility»** in Personalizza (admin rights and one restart).
+  compatibility»** in Settings → App (admin rights and one restart).
 - With more than one monitor, choose the screen in the **guided setup**.
 
 **I don't see the «Collection» button next to a friend.**
